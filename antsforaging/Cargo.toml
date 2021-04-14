@@ -1,0 +1,16 @@
+﻿[package]
+name = "antsforaging"
+version = "0.1.0"
+authors = ["Francesco Foglia <frafonia@gmail.com>"]
+edition = "2018"
+license = "MIT"
+readme = "README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rust-ab = { git = "https://github.com/rust-ab/rust-ab.git" }
+
+[features]
+visualization = ["rust-ab/visualization"]
+visualization_wasm = ["rust-ab/visualization_wasm"]
