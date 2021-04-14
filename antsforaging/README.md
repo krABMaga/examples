@@ -7,9 +7,9 @@ required for the ants to find the food and return to their nest for the first ti
 paths taken by the ants while they look for food and avoid obstacles, and the pheromone distribution around the grid hotspots
   (nest and food sites).
 
-![](ggrmGefqum.gif)
+![](hED1k8qOij.gif)
 
-![](1jC18BYrnA.gif)
+![](RdBHf4jHoC.gif)
 
 # How to run
 - To run only the simulation, run `cargo run --release`.
