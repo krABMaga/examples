@@ -119,7 +119,7 @@ fn main() {
     let mut app = Visualization::default()
         .with_background_color(Color::rgb(255.,255.,255.))
         .with_simulation_dimensions(WIDTH as f32, HEIGHT as f32)
-        .with_window_dimensions(800.,800.)
+        .with_window_dimensions(600.,600.)
         .setup::<Animal, VisState>(VisState, state, schedule);
     app.add_system(GrassField::batch_render.system());
     app.run()
