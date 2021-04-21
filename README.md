@@ -8,5 +8,5 @@ This repository hosts working examples of agent-based simulations, based on the 
 | -------------------------------- | ------------------ | ------------------ |
 | [Flockers](boids)                | :heavy_check_mark: | :heavy_check_mark: |
 | [Ants Foraging](antsforaging)    | :heavy_check_mark: | :heavy_check_mark: |
-| [Wolf Sheep Grass](predatorprey) | :heavy_check_mark:   |:heavy_check_mark:    |
+| [Wolf Sheep Grass](predatorprey) | :heavy_check_mark: |:heavy_check_mark:|
 | Virus on a Network               | :construction:     | :construction:     |
