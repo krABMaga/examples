@@ -65,7 +65,7 @@ impl Agent for Animal {
 
         match life_state {
             LifeState::Alive => {
-                //self.reproduce(state);
+                self.reproduce(state);
             }
             LifeState::Dead => self.die(state),
         }
@@ -125,7 +125,7 @@ impl AnimalActions for Animal {
         if rng.gen_bool(self.prob_reproduction) {
             
             let new_animal = state.reproduce_animal(self);
-            state.scheduler.schedule_repeating(new_animal, 0.0, 0);
+            state.scheduler.schedule_repeating(new_animal, state.scheduler.step_count() as f64, 0);
             println!("-----\n{:?}{} is a mum: {:?}{} is born\n-----", self.species, self.id, new_animal.species, new_animal.id);
         }
     }

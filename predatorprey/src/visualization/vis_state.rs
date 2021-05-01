@@ -116,7 +116,7 @@ impl VisState {
             let loc = Int2D { x, y };
             
             let mut sheep = Animal::new_sheep(sheep_id + NUM_WOLVES + 1, loc, INIT_ENERGY, GAIN_ENERGY, WOLF_REPR);
-            state.set_sheep_location(sheep, &loc);
+            state.set_sheep_location(&sheep, &loc);
             schedule.schedule_repeating(sheep, 0., 0);
 
             let SpriteType::Emoji(emoji_code) = sheep.sprite();
