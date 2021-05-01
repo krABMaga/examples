@@ -62,7 +62,7 @@ impl Animal {
 
         if loc.x != x || loc.y != y {
             self.loc = loc;
-            state.set_sheep_location(*self, &loc);
+            state.set_sheep_location(&self, &loc);
             self.last = Some(Int2D { x, y });
         }
     }
@@ -71,6 +71,7 @@ impl Animal {
 
 
         let loc = self.loc;
+
         if let Some(grass_val) = state.get_grass_at_location(&self.loc) {
             let mut grass_state = *grass_val;
             if grass_state!= FULL_GROWN {
@@ -78,7 +79,6 @@ impl Animal {
             }
             grass_state= 0;
             state.set_grass_at_location(&loc, grass_state);
-
             self.energy += self.gain_energy;
             //let g = state.get_grass_at_location(&loc).unwrap();
             

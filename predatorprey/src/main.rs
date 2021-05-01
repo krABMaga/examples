@@ -9,9 +9,9 @@ use rust_ab::rand;
 use rayon::prelude::*;
 
 
-pub const ENERGY_CONSUME: f64  = 1.0;
-pub const NUM_WOLVES: u128 = 10;
-pub const NUM_SHEEPS: u128 = 10;
+pub const ENERGY_CONSUME: f64  = 5.0;
+pub const NUM_WOLVES: u128 = 1;
+pub const NUM_SHEEPS: u128 = 1;
 
 
 pub const INIT_ENERGY: f64 = 100.0;
@@ -21,30 +21,26 @@ pub const WOLF_REPR: f64 = 0.1;
 
 pub const WIDTH: i64 = 50;
 pub const HEIGHT: i64 = 50;
-pub const STEP: u128 = 1000;
-
-
-
+pub const STEP: u128 = 100;
 
 //----------------------------------------------------------------
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main(){
-    let mut state = State::new(WIDTH, HEIGHT);
-    let mut schedule_wolves: Schedule<Animal> = Schedule::new();
-    let mut schedule_sheeps: Schedule<Animal> = Schedule::new();
+    
+    let mut state = State::new(WIDTH, HEIGHT, Schedule::new());
 
     generate_food(&mut state);
-    generate_wolves(&mut state, &mut schedule_wolves);
-    generate_sheeps(&mut state, &mut schedule_sheeps);
+    generate_wolves(&mut state);
+    generate_sheeps(&mut state);
 
+    let scheduler = &state.scheduler;
     for step in 1..STEP{
         if step%100 == 0 {
             println!("Milestone {}", step);
         }
         
         state.step = step;
-        schedule_sheeps.step(&mut state);
-        schedule_wolves.step(&mut state);
+        scheduler.step(&state);
         
     }
 }
@@ -63,8 +59,8 @@ fn generate_food(state: &mut State) -> () {
 }
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-fn generate_sheeps(state: &mut State, schedule: &mut Schedule<Animal>) -> () {
-    
+fn generate_sheeps(state: &mut State) -> () {
+    let schedule = &state.scheduler;
     let mut rng = rand::thread_rng();
     
     for id in 0..NUM_SHEEPS {
@@ -72,16 +68,17 @@ fn generate_sheeps(state: &mut State, schedule: &mut Schedule<Animal>) -> () {
         let y = rng.gen_range(0, HEIGHT);
         let loc = Int2D { x, y };
  
-        let mut sheep = Animal::new_sheep(id, loc, INIT_ENERGY, GAIN_ENERGY, WOLF_REPR);
-        
-        state.set_sheep_location(sheep, &loc);
+        let mut sheep = Animal::new_sheep(id + NUM_WOLVES, loc, INIT_ENERGY, GAIN_ENERGY, WOLF_REPR);
+       // println!("Sheep initial loc: {} {} \n------------", loc.x, loc.y);
+        state.set_sheep_location(&mut sheep, &loc);
         schedule.schedule_repeating(sheep, 0., 0);
     }
 }
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-fn generate_wolves(state: &mut State, schedule: &mut Schedule<Animal>) -> () {
+fn generate_wolves(state: &mut State) -> () {
 
+    let schedule = &state.scheduler;
     let mut rng = rand::thread_rng();
     for id in 0..NUM_WOLVES {
         let x = rng.gen_range(0, WIDTH);
@@ -113,14 +110,14 @@ use {
 // Main used when a visualization feature is applied
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
-    let state = State::new(WIDTH, HEIGHT);
-    let schedule: Schedule<Animal> = Schedule::new();
-
+    
+    let state = State::new(WIDTH, HEIGHT, Schedule::new());
+    let scheduler = state.scheduler;
     let mut app = Visualization::default()
         .with_background_color(Color::rgb(255.,255.,255.))
         .with_simulation_dimensions(WIDTH as f32, HEIGHT as f32)
         .with_window_dimensions(600.,600.)
-        .setup::<Animal, VisState>(VisState, state, schedule);
+        .setup::<Animal, VisState>(VisState, state, scheduler);
     app.add_system(GrassField::batch_render.system());
     app.run()
 }

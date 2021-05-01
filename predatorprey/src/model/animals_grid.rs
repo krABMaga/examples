@@ -17,7 +17,7 @@ impl AnimalsGrid {
         }
     }
 
-    pub(crate) fn update(&mut self) {
+    pub(crate) fn update(&self) {
         self.grid.update();
     }
 }
