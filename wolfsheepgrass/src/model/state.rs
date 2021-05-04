@@ -64,7 +64,7 @@ impl State {
     pub fn remove_animal(&self, animal: Animal){
         match animal.species{
             AnimalSpecies::Wolf => {
-                self.wolves_grid.grid.remove(&animal);
+                self.wolves_grid.grid.remove_object(&animal);
                 //self.wolves_grid.grid.update();
 
                 if let Some(_pos)  = self.get_wolf_at_location(&animal.loc){
@@ -74,7 +74,7 @@ impl State {
             }
 
             AnimalSpecies::Sheep => {
-                self.sheeps_grid.grid.remove(&animal);
+                self.sheeps_grid.grid.remove_object(&animal);
                 //self.sheeps_grid.update();
 
                /* assert!(self.get_sheep_location(&animal) == None);
