@@ -4,9 +4,9 @@ This repository hosts working examples of agent-based simulations, based on the 
 
 #  Table of contents
 
-| Model                            | Simulation         | Visualization      |
-| -------------------------------- | ------------------ | ------------------ |
-| [Flockers](boids)                | :heavy_check_mark: | :heavy_check_mark: |
-| [Ants Foraging](antsforaging)    | :heavy_check_mark: | :heavy_check_mark: |
-| [Wolf Sheep Grass](predatorprey) | :heavy_check_mark: |:heavy_check_mark:|
-| Virus on a Network               | :construction:     | :construction:     |
+| Model                              | Simulation         | Visualization      |
+| -----------------------------------| ------------------ | ------------------ |
+| [Flockers](boids)                  | :heavy_check_mark: | :heavy_check_mark: |
+| [Ants Foraging](antsforaging)      | :heavy_check_mark: | :heavy_check_mark: |
+| [Wolf Sheep Grass](wolfsheepgrass) | :heavy_check_mark: |:heavy_check_mark:  |
+| [Virus on a Network](virusnetwork) | :heavy_check_mark: | :construction:     |
