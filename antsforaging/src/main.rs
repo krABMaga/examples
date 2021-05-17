@@ -118,12 +118,12 @@ fn generate_nest(state: &mut State) {
     let x: i64 = if HOME_XMIN == HOME_XMAX {
         HOME_XMIN
     } else {
-        rng.gen_range(HOME_XMIN, HOME_XMAX)
+        rng.gen_range(HOME_XMIN..HOME_XMAX)
     };
     let y: i64 = if HOME_YMIN == HOME_YMAX {
         HOME_YMIN
     } else {
-        rng.gen_range(HOME_YMIN, HOME_YMAX)
+        rng.gen_range(HOME_YMIN..HOME_YMAX)
     };
     state.set_site(&Int2D { x, y }, StaticObjectType::HOME);
 }
@@ -136,12 +136,12 @@ fn generate_food(state: &mut State) {
     let x: i64 = if FOOD_XMIN == FOOD_XMAX {
         FOOD_XMIN
     } else {
-        rng.gen_range(FOOD_XMIN, FOOD_XMAX)
+        rng.gen_range(FOOD_XMIN..FOOD_XMAX)
     };
     let y: i64 = if FOOD_YMIN == FOOD_YMAX {
         FOOD_YMIN
     } else {
-        rng.gen_range(FOOD_YMIN, FOOD_YMAX)
+        rng.gen_range(FOOD_YMIN..FOOD_YMAX)
     };
 
     state.set_site(&Int2D { x, y }, StaticObjectType::FOOD);
