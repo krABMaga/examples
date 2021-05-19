@@ -86,7 +86,6 @@ impl VisState {
         rng: &mut ThreadRng
     ) {
 
-        
         for wolf_id in 0.. NUM_WOLVES{
             let x = rng.gen_range(0, WIDTH);
             let y = rng.gen_range(0, HEIGHT);

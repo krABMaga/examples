@@ -38,7 +38,7 @@ use {
     rust_ab::rand,
     rust_ab::rand::Rng,
     rust_ab::engine::location::Real2D,
-    std::time::Instant,
+    rust_ab::simulate
 };
 
 // Main used when only the simulation should run, without any visualization.
@@ -73,17 +73,6 @@ fn main() {
 
     // assert!(!schedule.events.is_empty());
 
-    let start = Instant::now();
-
-    for _ in 0..STEP {
-        schedule.step(&mut state);
-    }
-
-    let run_duration = start.elapsed();
-
-    println!("Time elapsed in testing schedule is: {:?}", run_duration);
-    println!("(boids)Total Step:{}\nStep for seconds: {:?}",
-             schedule.step,
-             schedule.step as f64 /(run_duration.as_nanos() as f64 * 1e-9)
-    );
+    
+    simulate!(STEP, schedule, Bird, state);
 }

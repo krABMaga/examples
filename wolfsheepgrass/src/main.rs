@@ -51,7 +51,7 @@ fn generate_food(state: &mut State) -> () {
     (0.. HEIGHT).into_par_iter().for_each(|x| {
         (0.. WIDTH).into_par_iter().for_each(|y| {
             let mut rng = rand::thread_rng();
-            let grass_init_value = rng.gen_range(0, FULL_GROWN+1);
+            let grass_init_value = rng.gen_range(0..FULL_GROWN+1);
             state.set_grass_at_location(&Int2D{x,y}, grass_init_value);
         })
     });
@@ -64,8 +64,8 @@ fn generate_sheeps(state: &mut State) -> () {
     let mut rng = rand::thread_rng();
     
     for id in 0..NUM_SHEEPS {
-        let x = rng.gen_range(0, WIDTH);
-        let y = rng.gen_range(0, HEIGHT);
+        let x = rng.gen_range(0..WIDTH);
+        let y = rng.gen_range(0..HEIGHT);
         let loc = Int2D { x, y };
  
         let mut sheep = Animal::new_sheep(id + NUM_WOLVES, loc, INIT_ENERGY, GAIN_ENERGY, WOLF_REPR);
@@ -81,8 +81,8 @@ fn generate_wolves(state: &mut State) -> () {
     let schedule = &state.scheduler;
     let mut rng = rand::thread_rng();
     for id in 0..NUM_WOLVES {
-        let x = rng.gen_range(0, WIDTH);
-        let y = rng.gen_range(0, HEIGHT);
+        let x = rng.gen_range(0..WIDTH);
+        let y = rng.gen_range(0..HEIGHT);
         let loc = Int2D { x, y };
  
         let mut wolf = Animal::new_wolf(id, loc, INIT_ENERGY, GAIN_ENERGY, WOLF_REPR);

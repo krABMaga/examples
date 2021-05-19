@@ -50,8 +50,8 @@ impl Animal {
                 }
             }
         } else {
-            let xd: i64 = rng.gen_range(-1, 2);
-            let yd: i64 = rng.gen_range(-1, 2);
+            let xd: i64 = rng.gen_range(-1..2);
+            let yd: i64 = rng.gen_range(-1..2);
             let xm = x + xd;
             let ym = y + yd;
             // Don't go outside the field and do not stay still

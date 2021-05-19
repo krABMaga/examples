@@ -82,7 +82,7 @@ impl State {
 
     /// Check if a particular grid cell has an obstacle or not. Will return None if the grid cell
     /// holds no obstacle, Some(StaticObjectType::OBSTACLE) otherwise.
-    pub fn get_obstacle(&self, loc: &Int2D) -> Option<&StaticObjectType> {
+    pub fn get_obstacle(&self, loc: &Int2D) -> Option<&Vec<StaticObjectType>> {
         self.obstacles_grid.grid.get_object_at_location(loc)
     }
 
@@ -104,7 +104,7 @@ impl State {
 
     /// Check if a particular grid cell has a site or not. Will return None if the grid cell
     /// holds no site, Some(StaticObjectType::FOOD) or Some(StaticObjectType::HOME) otherwise.
-    pub fn get_site(&self, loc: &Int2D) -> Option<&StaticObjectType> {
+    pub fn get_site(&self, loc: &Int2D) -> Option<&Vec<StaticObjectType>> {
         self.sites_grid.grid.get_object_at_location(loc)
     }
 
