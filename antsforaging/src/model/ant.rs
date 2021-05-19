@@ -178,8 +178,8 @@ impl Ant {
             }
         } else if rng.gen_bool(RANDOM_ACTION_PROBABILITY) {
             // All other ideas have failed, just choose a random direction
-            let xd: i64 = rng.gen_range(-1, 2);
-            let yd: i64 = rng.gen_range(-1, 2);
+            let xd: i64 = rng.gen_range(-1..2);
+            let yd: i64 = rng.gen_range(-1..2);
             let xm = x + xd;
             let ym = y + yd;
             // Don't go outside the field, in an obstacle and do not stay still

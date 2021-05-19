@@ -36,10 +36,10 @@ impl Bird {
             if self != *vec[i] {
                 let dx = toroidal_distance(self.pos.x, vec[i].pos.x, WIDTH);
                 let dy = toroidal_distance(self.pos.y, vec[i].pos.y, HEIGHT);
-                let square = (dx * dx + dy * dy).sqrt();
+                let square = dx * dx + dy * dy;
                 count += 1;
-                x += dx / (square * square) + 1.0;
-                y += dy / (square * square) + 1.0;
+                x += dx / (square * square + 1.0);
+                y += dy / (square * square + 1.0);
             }
         }
         if count > 0 {
@@ -124,11 +124,11 @@ impl Bird {
 
         for i in 0..vec.len() {
             if self != *vec[i] {
-                let _dx = toroidal_distance(self.pos.x, vec[i].pos.x, WIDTH);
-                let _dy = toroidal_distance(self.pos.y, vec[i].pos.y, HEIGHT);
+               /* let _dx = toroidal_distance(self.pos.x, vec[i].pos.x, WIDTH);
+                let _dy = toroidal_distance(self.pos.y, vec[i].pos.y, HEIGHT); */
                 count += 1;
-                x += self.pos.x;
-                y += self.pos.y;
+                x += vec[i].last_d.x;
+                y += self.last_d.y;
             }
         }
         if count > 0 {

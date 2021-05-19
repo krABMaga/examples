@@ -47,12 +47,12 @@ impl VisState {
         let x: i64 = if HOME_XMIN == HOME_XMAX {
             HOME_XMIN
         } else {
-            rng.gen_range(HOME_XMIN, HOME_XMAX)
+            rng.gen_range(HOME_XMIN..HOME_XMAX)
         };
         let y: i64 = if HOME_YMIN == HOME_YMAX {
             HOME_YMIN
         } else {
-            rng.gen_range(HOME_YMIN, HOME_YMAX)
+            rng.gen_range(HOME_YMIN..HOME_YMAX)
         };
 
         let position = Int2D { x, y };
@@ -78,12 +78,12 @@ impl VisState {
         let x: i64 = if FOOD_XMIN == FOOD_XMAX {
             FOOD_XMIN
         } else {
-            rng.gen_range(FOOD_XMIN, FOOD_XMAX)
+            rng.gen_range(FOOD_XMIN..FOOD_XMAX)
         };
         let y: i64 = if FOOD_YMIN == FOOD_YMAX {
             FOOD_YMIN
         } else {
-            rng.gen_range(FOOD_YMIN, FOOD_YMAX)
+            rng.gen_range(FOOD_YMIN..FOOD_YMAX)
         };
 
         let position = Int2D { x, y };

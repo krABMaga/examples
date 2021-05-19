@@ -1,0 +1,20 @@
+name: Sync site
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '**.gif'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch event
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.SITE_REPO_ACCESS_TOKEN }}
+          repository: rust-ab/rust-ab.github.io
+          event-type: updated
