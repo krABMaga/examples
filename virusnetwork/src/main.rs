@@ -1,33 +1,27 @@
 extern crate rust_ab;
 
-use model::node::{self, NetNode};
+use model::{node::{self, NetNode}, state::{INITIAL_INFECTED_PROB, INIT_EDGE}};
 use model::node::{NodeStatus, NodeStatus::*};
 use model::state::EpidemicNetworkState;
-
-use rust_ab::{bevy::{DefaultPlugins, prelude::{Commands, Msaa, OrthographicCameraBundle, Transform}}, engine::field::network::EdgeOptions::*, simulate};
+use rust_ab::engine::{field::network::EdgeOptions::*};
 use rust_ab::engine::field::network::*;
 use rust_ab::engine::schedule::*;
 use rust_ab::rand::Rng;
 use rust_ab::{engine::agent::Agent, rand};
 use rust_ab::{engine::location::Real2D, preferential_attachment_BA};
+use rust_ab::{ explore, simulate };
 use std::{time::Instant, u128};
 
 mod model;
 
-static STEP: u128 = 50;
-static NUM_NODES: u128 = 5;
-static WIDTH: f64 = 200.0;
-static HEIGTH: f64 = 208.0;
+static STEP: u128 = 500;
+//#[param=integer,min=100,max=10000,n=1000,distribution=uniform]
+static NUM_NODES: u128 = 100;
+static WIDTH: f64 = 500.0;
+static HEIGTH: f64 = 500.0;
 static DISCRETIZATION: f64 = 10.0 / 1.5;
 static TOROIDAL: bool = false;
 
-///Initial infected nodes
-static INITIAL_INFECTED_PROB: f64 = 0.3;
-static INIT_EDGE: u128 = 2;
-static VIRUS_SPREAD_CHANCE: f64 = 0.3;
-static VIRUS_CHECK_FREQUENCY: f64 = 0.2;
-static RECOVERY_CHANCE: f64 = 0.30;
-static GAIN_RESISTENCE_CHANCE: f64 = 0.20;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
@@ -40,6 +34,29 @@ fn main() {
     for node in state.network.edges.keys(){
         println!("Node {} has {} edges", node.id, state.network.getEdges(node).unwrap().len());
     }
+
+   // let p = Parameters::FloatParam(2.1, 3.2, 5.3);
+/*     let model_output = |&state| {
+        //bam
+        //compute number of infected agents on state.network = infected
+        // compute number of recoverd agents on state.network = recovered
+        return (infected, recoverd);
+    }
+
+    exploration_output = explore!(STEP, schedule, NetNode, state, model_output); */
+    //table exploration_output
+    //each row 
+    // params list + output list
+
+    //inside explore!
+    //model_configurations = compute_paramentes(state)
+    //for params in model_configurations do in parallel
+        //simulate!(STEP....)
+        //sim_output = model_output(state)
+    //end
+    //results.append(sim:_output)
+
+   // exploration_output = explore!(STEP, schedule, NetNode, state, model_output, algorithm);
 
     simulate!(STEP, schedule, NetNode, state);
 }
@@ -85,6 +102,7 @@ fn gen_nodes(state: &mut EpidemicNetworkState, schedule: &mut Schedule<NetNode>)
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
+    rust_ab::{bevy::{DefaultPlugins, prelude::{Commands, Msaa, OrthographicCameraBundle, Transform}}, engine::field::network::EdgeOptions},
     rust_ab::visualization::visualization::Visualization,
     crate::visualization::vis_state::VisState,
     rust_ab::bevy::prelude::Color,
@@ -118,6 +136,7 @@ fn main() {
 
 }
 
+#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn setup(mut commands: Commands) {
     let shape = shapes::RegularPolygon {
         sides: 6,

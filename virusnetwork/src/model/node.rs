@@ -13,7 +13,7 @@ use std::{
 };
 
 use crate::model::state::EpidemicNetworkState;
-use crate::{GAIN_RESISTENCE_CHANCE, RECOVERY_CHANCE, VIRUS_CHECK_FREQUENCY, VIRUS_SPREAD_CHANCE};
+use crate::model::state::{GAIN_RESISTENCE_CHANCE, RECOVERY_CHANCE, VIRUS_CHECK_FREQUENCY, VIRUS_SPREAD_CHANCE};
 
 #[derive(Clone, Copy, Debug)]
 pub enum NodeStatus {
@@ -106,7 +106,7 @@ impl Agent for NetNode {
     type SimState = EpidemicNetworkState;
 
     fn step(&mut self, state: &EpidemicNetworkState) {
-        println!("STEP {}: Node{}, status:{:?}", state.step, self.id, self.status);
+        //println!("STEP {}: Node{}, status:{:?}", state.step, self.id, self.status);
         match self.status {
             NodeStatus::Infected => {
                 self.spread_virus( state);

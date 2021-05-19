@@ -47,7 +47,7 @@ impl Render for NetNode {
 
         let node = state.field1.get_objects_at_location(model_pos);
         let node = node.first();
-
+        
         if let Some(current_node)  = node{
             self.status  = current_node.status;
         }

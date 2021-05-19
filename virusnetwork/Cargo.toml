@@ -14,5 +14,5 @@ bevy_prototype_lyon = "0.3.1"
 
 
 [features]
-visualization = ["rust-ab/visualization"]
-visualization_wasm = ["rust-ab/visualization_wasm"]
+#visualization = ["rust-ab/visualization"]
+#visualization_wasm = ["rust-ab/visualization_wasm"]
