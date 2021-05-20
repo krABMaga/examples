@@ -92,7 +92,9 @@ impl VisState {
 
             let mut wolf = Animal::new_wolf(wolf_id, loc, INIT_ENERGY, GAIN_ENERGY, WOLF_REPR);
             state.set_wolf_location(&mut wolf, &loc);
-            schedule.schedule_repeating(wolf, 0., 0);
+            // Sheep have an higher ordering than wolves. This is so that if a wolf kills one, in the next step
+            // the attacked sheep will immediately notice and die, instead of noticing after two steps.
+            schedule.schedule_repeating(wolf, 0., 1);
 
             let SpriteType::Emoji(emoji_code) = wolf.sprite();
             let sprite_render = sprite_render_factory.get_emoji_loader(emoji_code);

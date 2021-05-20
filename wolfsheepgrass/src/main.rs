@@ -11,9 +11,9 @@ use rust_ab::engine::schedule::Schedule;
 use rust_ab::rand;
 use rust_ab::rand::Rng;
 
-pub const ENERGY_CONSUME: f64 = 5.0;
-pub const NUM_WOLVES: u128 = 1;
-pub const NUM_SHEEPS: u128 = 1;
+pub const ENERGY_CONSUME: f64 = 1.0;
+pub const NUM_WOLVES: u128 = 10;
+pub const NUM_SHEEPS: u128 = 10;
 
 pub const INIT_ENERGY: f64 = 100.0;
 pub const GAIN_ENERGY: f64 = 10.0;
@@ -21,8 +21,8 @@ pub const GAIN_ENERGY: f64 = 10.0;
 pub const SHEEP_REPR: f64 = 0.1;
 pub const WOLF_REPR: f64 = 0.01;
 
-pub const WIDTH: i64 = 50;
-pub const HEIGHT: i64 = 50;
+pub const WIDTH: i64 = 100;
+pub const HEIGHT: i64 = 100;
 pub const STEP: u128 = 100;
 
 //----------------------------------------------------------------
@@ -82,8 +82,8 @@ fn generate_wolves(state: &mut State, schedule: &mut Schedule<Animal>) -> () {
 
         let mut wolf = Animal::new_wolf(id, loc, INIT_ENERGY, GAIN_ENERGY, WOLF_REPR);
         state.set_wolf_location(&mut wolf, &loc);
-        // Wolves have a higher priority than sheep. This lets the Schedule process wolves first, so
-        // that a wolf killing a sheep is taken into account in the same step.
+        // Sheep have an higher ordering than wolves. This is so that if a wolf kills one, in the next step
+        // the attacked sheep will immediately notice and die, instead of noticing after two steps.
         schedule.schedule_repeating(wolf, 0., 1);
     }
 }
