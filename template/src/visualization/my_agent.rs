@@ -1,6 +1,6 @@
 use rust_ab::visualization::renderable::{Render, SpriteType};
 use crate::model::my_agent::MyAgent;
-use rust_ab::bevy::prelude::{Transform, Quat};
+use rust_ab::bevy::prelude::{Transform, Quat, Visible};
 
 /// Define how your agent should be rendered here.
 impl Render for MyAgent{
@@ -27,7 +27,7 @@ impl Render for MyAgent{
     }
 
     /// Specify the code to execute for each frame, for each agent.
-    fn update(&mut self, transform: &mut Transform, state: &Self::SimState) {
+    fn update(&mut self, transform: &mut Transform, state: &Self::SimState, _visible: &mut Visible) {
 
         // This snippet updates the agent position, scale and rotation for each frame.
         let (pos_x, pos_y, pos_z) = self.position(state);
