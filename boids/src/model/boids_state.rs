@@ -28,7 +28,7 @@ impl BoidsState {
 }
 
 impl State for BoidsState {
-    fn update(&mut self) {
+    fn update(&mut self, _step: usize) {
         self.field1.lazy_update();
     }
 }

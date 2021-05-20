@@ -1,6 +1,6 @@
 use crate::model::bird::Bird;
 use crate::model::boids_state::BoidsState;
-use rust_ab::bevy::prelude::{Quat, Transform};
+use rust_ab::bevy::prelude::{Quat, Transform, Visible};
 use rust_ab::engine::location::Real2D;
 use rust_ab::visualization::renderable::{Render, SpriteType};
 use std::f64::consts::PI;
@@ -33,7 +33,7 @@ impl Render for Bird {
         (rotation - PI) as f32
     }
 
-    fn update(&mut self, transform: &mut Transform, state: &BoidsState) {
+    fn update(&mut self, transform: &mut Transform, state: &BoidsState, _visible: &mut Visible) {
         let (pos_x, pos_y, z) = self.position(state);
         let model_pos = Real2D {
             x: pos_x as f64,
