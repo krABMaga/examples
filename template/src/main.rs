@@ -2,7 +2,7 @@
 use crate::model::my_state::MyState;
 use rust_ab::engine::schedule::Schedule;
 use crate::model::my_agent::MyAgent;
-
+use rust_ab::simulate;
 mod model;
 
 // Visualization specific imports
@@ -19,7 +19,7 @@ mod visualization;
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
     // Initialize the simulation and its visualization here.
-    let state = MyState;
+    let state = MyState::new();
     let schedule = Schedule::<MyAgent>::new();
 
     Visualization::default()
@@ -34,16 +34,18 @@ fn main() {
     // Initialize the simulation here.
     static STEP: u128 = 50;
 
-    let mut state = MyState;
+    let mut state = MyState::new();
     let mut schedule = Schedule::<MyAgent>::new();
 
     let my_agent = MyAgent{id: 1};
     // Put the agent in your state
     schedule.schedule_repeating(my_agent, 0., 0);
 
-    for _ in 0..STEP {
+    simulate!(STEP, schedule, MyAgent, state);
+
+    /* for _ in 0..STEP {
         schedule.step(&mut state);
     }
 
-    println!("The simulation has completed successfully.");
+    println!("The simulation has completed successfully.") */;
 }

@@ -16,12 +16,14 @@ pub static DISCRETIZATION: f64 = 10.0 / 1.5;
 pub static TOROIDAL: bool = true;
 
 pub struct BoidsState {
+    pub step: u128,
     pub field1: Field2D<Bird>,
 }
 
 impl BoidsState {
     pub fn new(w: f64, h: f64, d: f64, t: bool) -> BoidsState {
         BoidsState {
+            step: 0,
             field1: Field2D::new(w, h, d, t),
         }
     }

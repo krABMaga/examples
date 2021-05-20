@@ -10,7 +10,7 @@ pub const WIDTH: i64 = 200;
 pub const HEIGHT: i64 = 200;
 pub const NUM_AGENT: u128 = 1000;
 pub const EVAPORATION: f64 = 0.999;
-pub const STEP: u128 = 5000;
+pub const STEP: u128 = 1000;
 // Nest coordinate range
 pub const HOME_XMIN: i64 = 175;
 pub const HOME_XMAX: i64 = 175;
@@ -60,6 +60,7 @@ use {
     rust_ab::engine::location::Int2D,
     rust_ab::rand::Rng,
     crate::model::static_objects::StaticObjectType,
+    rust_ab::simulate
 };
 
 // Main used when only the simulation should run, without any visualization.
@@ -75,10 +76,15 @@ fn main() {
 
     state.update_obstacles();
     state.update_sites();
-    let mut food_found_at = None;
-    let mut food_delivered_at = None;
 
-    for step in 1..STEP {
+    simulate!(STEP, schedule, Ant, state);
+
+    /*
+        let mut food_found_at = None;
+        let mut food_delivered_at = None;
+
+    
+     for step in 1..STEP {
         if step % 100 == 0 {
             println!("Milestone {}", step);
         }
@@ -105,7 +111,8 @@ fn main() {
 
     if let (Some(found_at_step), Some(delivered_at_step)) = (food_found_at, food_delivered_at) {
         println!("The path created by ants from the nest to the food takes {} steps.", delivered_at_step - found_at_step);
-    }
+    } */
+
 }
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
