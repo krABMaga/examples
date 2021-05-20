@@ -82,7 +82,6 @@ fn main() {
         if step % 100 == 0 {
             println!("Milestone {}", step);
         }
-        state.step = step;
 
         schedule.step(&mut state);
 
