@@ -1,7 +1,6 @@
 use rust_ab::engine::field::number_grid_2d::NumberGrid2D;
 pub const FULL_GROWN: u16 = 1000;
 
-
 /// Represents food pheromones. Higher f64 value means more concentrated pheromone.
 
 pub struct GrassField {
@@ -15,18 +14,15 @@ impl GrassField {
         }
     }
 
-    pub fn update(&self) {
+    pub fn update(&mut self) {
         self.grid.update();
         self.grid.locs.apply_to_all_values(|grass| {
             let growth = *grass;
-            if  growth < FULL_GROWN {
+            if growth < FULL_GROWN {
                 growth + 1
-            }
-            else{
+            } else {
                 growth
             }
         });
-        
-
     }
 }

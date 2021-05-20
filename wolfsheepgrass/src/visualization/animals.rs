@@ -1,15 +1,14 @@
 use crate::model::animals::*;
 use crate::model::state::State;
-use rust_ab::visualization::renderable::{Render, SpriteType};
-use rust_ab::bevy::prelude::{Quat, Transform};
+use rust_ab::bevy::prelude::{Quat, SpriteBundle, Transform, Visible};
 use rust_ab::engine::location::Int2D;
-
+use rust_ab::visualization::renderable::{Render, SpriteType};
 
 impl Render for Animal {
     fn sprite(&self) -> SpriteType {
-        match self.species{
-            AnimalSpecies::Wolf => { SpriteType::Emoji(String::from("wolf")) }
-            AnimalSpecies::Sheep => { SpriteType::Emoji(String::from("sheep")) }
+        match self.species {
+            AnimalSpecies::Wolf => SpriteType::Emoji(String::from("wolf")),
+            AnimalSpecies::Sheep => SpriteType::Emoji(String::from("sheep")),
         }
     }
 
@@ -17,10 +16,9 @@ impl Render for Animal {
     /// by the RustAB schedule. All objects will be rendered on the 0. z, except pheromones, which will be
     /// put on a lower z-axis.
     fn position(&self, state: &State) -> (f32, f32, f32) {
-        
-        let loc =  match self.species{
-            AnimalSpecies::Wolf => { state.get_wolf_location(self)  }
-            AnimalSpecies::Sheep => { state.get_sheep_location(self) }
+        let loc = match self.species {
+            AnimalSpecies::Wolf => state.get_wolf_location(self),
+            AnimalSpecies::Sheep => state.get_sheep_location(self),
         };
         match loc {
             Some(pos) => (pos.x as f32, pos.y as f32, 0.),
@@ -35,7 +33,7 @@ impl Render for Animal {
 
     /// No rotation is needed for ants
     fn rotation(&self) -> f32 {
-        let rotation = if let Some(Int2D{x, y}) = self.last {
+        let rotation = if let Some(Int2D { x, y }) = self.last {
             ((y - self.loc.y) as f32).atan2((x - self.loc.x) as f32)
         } else {
             0.
@@ -44,31 +42,26 @@ impl Render for Animal {
     }
 
     /// Simply update the transform based on the position chosen
-    fn update(&mut self, transform: &mut Transform, state: &State) {
-/* 
-        match self.animal_state{
-            LifeState::Dead => { return; }
-            LifeState::Alive => {}
-        }
- */
+    fn update(&mut self, transform: &mut Transform, state: &State, visible: &mut Visible) {
         let (pos_x, pos_y, z) = self.position(state);
         let (scale_x, scale_y) = self.scale();
 
-        // Update our local ant copy positions to properly calculate rotation
-
-        let scheduled_animal = match self.species{
-            AnimalSpecies::Wolf => { state.wolves_grid.grid.get_object_at_location(&Int2D{x: pos_x as i64, y: pos_y as i64 })}
-            AnimalSpecies::Sheep => { state.sheeps_grid.grid.get_object_at_location(&Int2D{x: pos_x as i64, y: pos_y as i64 })}
+        let scheduled_animal = match self.species {
+            AnimalSpecies::Wolf => state.get_wolf(self),
+            AnimalSpecies::Sheep => state.get_sheep(self),
         };
 
-        
-        if scheduled_animal.is_some(){
+        if scheduled_animal.is_some() {
             let anim = scheduled_animal.unwrap();
-            if self != anim { return };
 
             self.loc = anim.loc;
             self.last = anim.last;
-        }   
+            if let LifeState::Dead = anim.animal_state {
+                if visible.is_visible {
+                    visible.is_visible = false
+                }
+            }
+        }
 
         let rotation = self.rotation();
 

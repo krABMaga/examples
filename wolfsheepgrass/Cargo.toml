@@ -14,5 +14,5 @@ rayon = "1.5.0"
 
 
 [features]
-#visualization = ["rust-ab/visualization"]
-#visualization_wasm = ["rust-ab/visualization_wasm"]
+visualization = ["rust-ab/visualization"]
+visualization_wasm = ["rust-ab/visualization_wasm"]

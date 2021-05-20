@@ -8,7 +8,10 @@ use rust_ab::{
     rand::{self, Rng},
 };
 
+use rust_ab::engine::schedule::ScheduleOptions;
+use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
+use std::option::Option::None;
 
 pub const FOOD_CHOICE: f64 = 0.5;
 
@@ -40,7 +43,7 @@ pub struct Animal {
     pub prob_reproduction: f64,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum LifeState {
     Alive,
     Dead,
@@ -49,46 +52,73 @@ pub enum LifeState {
 pub trait AnimalActions {
     fn consume_energy(&mut self) -> LifeState;
     fn act(&mut self, state: &State);
-    fn reproduce(&mut self, state: &State);
     fn eat(&mut self, state: &State);
-    fn die(&self, state: &State);
 }
 
 impl Agent for Animal {
     type SimState = State;
 
     fn step(&mut self, state: &Self::SimState) {
-        println!("{:?}{} i'm scheduled at step {}, energy: {}, loc: {} {}", self.species, self.id, state.step, self.energy, self.loc.x, self.loc.y);
+        println!(
+            "{:?}{} i'm scheduled at step {}, energy: {}, loc: {} {}",
+            self.species, self.id, state.step, self.energy, self.loc.x, self.loc.y
+        );
+
         self.act(state);
         self.eat(state);
-        let life_state = self.consume_energy();
-
-        match life_state {
-            LifeState::Alive => {
-                self.reproduce(state);
+        self.animal_state = self.consume_energy();
+        if let LifeState::Dead = self.animal_state {
+            //state.remove_animal(*self); // this breaks the visualization since it cannot fetch the animal from the state anymore
+            if let AnimalSpecies::Sheep = self.species {
+                state.set_sheep_location(self, &self.loc);
+            } else {
+                state.set_wolf_location(self, &self.loc);
             }
-            LifeState::Dead => self.die(state),
+            return;
         }
+    }
 
-        /*match self.animal_state {
-            LifeState::Alive => {
-                self.act(state);
-                self.eat(state);
-                let life_state = self.consume_energy();
+    fn should_remove(&mut self, state: &Self::SimState) -> bool {
+        if self.animal_state == LifeState::Dead {
+            println!(
+                "Animal {:?}{} dies at step {}",
+                self.species, self.id, state.step
+            );
+            true
+        } else {
+            false
+        }
+    }
 
-                match life_state {
-                    LifeState::Alive => {
-                        self.reproduce(state);
-                    }
-                    LifeState::Dead => self.die(state),
-                }
+    fn should_reproduce(
+        &mut self,
+        state: &Self::SimState,
+    ) -> Option<HashMap<Box<Self>, ScheduleOptions>> {
+        let mut rng = rand::thread_rng();
+        if let LifeState::Alive = self.animal_state {
+            if rng.gen_bool(self.prob_reproduction) {
+                let mut map = HashMap::new();
+                let new_animal = state.reproduce_animal(self);
+                let ordering = if let AnimalSpecies::Wolf = new_animal.species {
+                    1
+                } else {
+                    0
+                };
+                map.insert(
+                    Box::new(new_animal),
+                    ScheduleOptions {
+                        ordering,
+                        repeating: true,
+                    },
+                );
+                println!(
+                    "-----\n{:?}{} is a mum: {:?}{} is born\n-----",
+                    self.species, self.id, new_animal.species, new_animal.id
+                );
+                return Some(map);
             }
-
-            LifeState::Dead => {
-
-                return;
-            }
-        }*/
+        }
+        None
     }
 }
 
@@ -119,17 +149,6 @@ impl AnimalActions for Animal {
         }
     }
 
-    fn reproduce(&mut self, state: &State) {
-        //waiting for Scheduler operation
-        let mut rng = rand::thread_rng();
-        if rng.gen_bool(self.prob_reproduction) {
-            
-            let new_animal = state.reproduce_animal(self);
-            state.scheduler.schedule_repeating(new_animal, state.scheduler.step_count() as f64, 0);
-            println!("-----\n{:?}{} is a mum: {:?}{} is born\n-----", self.species, self.id, new_animal.species, new_animal.id);
-        }
-    }
-
     fn eat(&mut self, state: &State) {
         match self.species {
             AnimalSpecies::Wolf => {
@@ -139,35 +158,6 @@ impl AnimalActions for Animal {
                 self.sheep_eat(state);
             }
         }
-    }
-
-    fn die(&self, state: &State) {
-        println!(
-            "Animal {:?}{} dies at step {}",
-            self.species, self.id, state.step
-        );
-        //self.animal_state = LifeState::Dead;
-        
-        state.scheduler.remove(*self);
-        state.remove_animal(*self);
-        
-        /*let animal = match self.species {
-            AnimalSpecies::Wolf => {
-                
-                state.wolves_grid.update();
-                state.get_wolf_at_location(&self.loc)
-            }
-            AnimalSpecies::Sheep => {
-                state.get_sheep_at_location(&self.loc)
-            }
-        };
-        */
-        /*if animal.is_some() {
-            println!("ANIMALE NON RIMOSSO {}", animal.unwrap().id);
-        } else {
-            println!("ANIMALE RIMOSSO");
-        }
-        println!("----");*/
     }
 }
 
