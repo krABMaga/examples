@@ -13,7 +13,7 @@ impl MyState{
 impl State for MyState {
     /// Put the code that should be executed for each state update here. The state is updated once for each
     /// schedule step.
-    fn update(&mut self) {
+    fn update(&mut self, _step: usize) {
 
     }
 }

@@ -68,21 +68,17 @@ impl Animal {
     }
 
     pub fn sheep_eat(&mut self, state: &State) {
-
-
         let loc = self.loc;
 
         if let Some(grass_val) = state.get_grass_at_location(&self.loc) {
             let mut grass_state = *grass_val;
-            if grass_state!= FULL_GROWN {
+            if grass_state != FULL_GROWN {
                 return;
             }
-            grass_state= 0;
+            grass_state = 0;
             state.set_grass_at_location(&loc, grass_state);
             self.energy += self.gain_energy;
             //let g = state.get_grass_at_location(&loc).unwrap();
-            
-
         }
     }
 }

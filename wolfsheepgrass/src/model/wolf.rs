@@ -32,20 +32,25 @@ impl Animal {
 impl Animal {
     pub fn wolf_eat(&mut self, state: &State) {
         if let Some(prey) = state.get_sheep_at_location(&self.loc) {
-            if let Some(loc) = state.get_sheep_location(&prey){
+            if self.loc.x != prey.loc.x || self.loc.y != prey.loc.y {
+                return;
+            }
+
+            /*if let Some(loc) = state.get_sheep_location(&prey){
                 if loc.x != prey.loc.x || loc.y != prey.loc.y{
                     return
                 }
                 else {println!("same locs")}
-            }else {println!("There is a dead sheep here!"); return;}
+            }else {println!("There is a dead sheep here!"); return;}*/
 
             match prey.animal_state {
                 LifeState::Alive => {
                     let id_wolf = self.id;
                     let id_sheep = prey.id;
 
-
-                    prey.die(state);
+                    let mut prey = *prey;
+                    prey.animal_state = LifeState::Dead;
+                    state.set_sheep_location(&prey, &self.loc);
                     self.energy += self.gain_energy;
 
                     println!(
@@ -53,16 +58,12 @@ impl Animal {
                         id_sheep, id_wolf, state.step, prey.loc.x, prey.loc.y, self.loc.x, self.loc.y
                     );
 
-        
                     /*
                     println!("Sheep{} rimossa", prey.id);
                     if loc.is_some(){
                         println!("MA COME IS POSSIBLE");
                     }*/
-
-
                 }
-
 
                 LifeState::Dead => {}
             }
@@ -95,25 +96,20 @@ impl Animal {
                 }
 
                 let food = state.get_sheep_at_location(&new_int2d);
-                
 
                 if food.is_some() {
-                    if let Some(checksum) = state.get_sheep_location(food.unwrap()){
+                    if let Some(checksum) = state.get_sheep_location(food.unwrap()) {
                         //println!("loc1: {} {}  - loc2: {} {}", checksum.x, checksum.y, new_int2d.x, new_int2d.y);
-                        if checksum.x != new_int2d.x || checksum.y != new_int2d.y{
-                           // println!("Sheep trace, wrong location, loc1: {} {}  - loc2: {} {}", checksum.x, checksum.y, new_int2d.x, new_int2d.y);
+                        if checksum.x != new_int2d.x || checksum.y != new_int2d.y {
+                            // println!("Sheep trace, wrong location, loc1: {} {}  - loc2: {} {}", checksum.x, checksum.y, new_int2d.x, new_int2d.y);
                             continue;
-                        }
-                        else{
+                        } else {
                             //println!("loc1: {} {}  - loc2: {} {}", checksum.x, checksum.y, new_int2d.x, new_int2d.y)
                         }
-                    }
-                    else {
+                    } else {
                         //println!("It's a dead sheep, loc: {} {}", new_int2d.x, new_int2d.y);
                         continue;
                     }
-                    
-                    
 
                     match food.unwrap().animal_state {
                         LifeState::Alive => {

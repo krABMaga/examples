@@ -18,31 +18,15 @@ pub struct State {
     pub to_home_grid: ToHomeGrid,
     pub food_source_found: RwLock<bool>,
     pub food_returned_home: RwLock<bool>,
-    pub step: u128,
+    pub step: usize,
 }
 
 impl rust_ab::engine::state::State for State {
-    fn update(&mut self) {
+    fn update(&mut self, step: usize) {
         self.ants_grid.update();
-        //self.obstacles_grid.update();
-        //self.sites_grid.update();
         self.to_food_grid.update();
         self.to_home_grid.update();
-        // Every time update is called, the write shard is applied on the reading one, and the write
-        // shard gets emptied. We need to restore all the pheromones in the write shard to avoid losing
-        // the ones not used in each frame. We do it immediately after the flush to allow for ants
-        // to deposit new pheromones without them getting overwritten.
-        /*
-        for x in 0..WIDTH {
-            for y in 0..HEIGHT {
-                let pos = Int2D { x, y };
-                let cur_value = *self.to_food_grid.grid.get_value_at_pos(&pos).unwrap_or(&0.);
-                self.to_food_grid.grid.set_value_at_pos(&pos, cur_value);
-
-                let cur_value = *self.to_home_grid.grid.get_value_at_pos(&pos).unwrap_or(&0.);
-                self.to_home_grid.grid.set_value_at_pos(&pos, cur_value);
-            }
-        }*/
+        self.step = step;
     }
 }
 
@@ -82,8 +66,11 @@ impl State {
 
     /// Check if a particular grid cell has an obstacle or not. Will return None if the grid cell
     /// holds no obstacle, Some(StaticObjectType::OBSTACLE) otherwise.
-    pub fn get_obstacle(&self, loc: &Int2D) -> Option<&Vec<StaticObjectType>> {
-        self.obstacles_grid.grid.get_object_at_location(loc)
+    pub fn get_obstacle(&self, loc: &Int2D) -> Option<&StaticObjectType> {
+        match self.obstacles_grid.grid.get_object_at_location(loc) {
+            Some(_vec) => Some(&StaticObjectType::OBSTACLE),
+            None => None
+        }
     }
 
     /// Set an obstacle in a particular grid cell.
@@ -102,10 +89,22 @@ impl State {
         self.ants_grid.grid.get_object_location(*ant)
     }
 
+    pub fn get_ant(&self, ant: &Ant) -> Option<&Ant> {
+        self.ants_grid.grid.get_object(ant)
+    }
+
     /// Check if a particular grid cell has a site or not. Will return None if the grid cell
     /// holds no site, Some(StaticObjectType::FOOD) or Some(StaticObjectType::HOME) otherwise.
-    pub fn get_site(&self, loc: &Int2D) -> Option<&Vec<StaticObjectType>> {
-        self.sites_grid.grid.get_object_at_location(loc)
+    pub fn get_site(&self, loc: &Int2D) -> Option<&StaticObjectType> {
+        match self.sites_grid.grid.get_object_at_location(loc) {
+            Some(vec) => {
+                if vec.len() > 1 {
+                    panic!("A grid cell contains more than a site, this should not happen!");
+                }
+                vec.first()
+            },
+            None => None
+        }
     }
 
     /// Set a particular site in a grid cell.

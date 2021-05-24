@@ -2,7 +2,7 @@ use crate::model::state::State;
 use rust_ab::engine::agent::Agent;
 use rust_ab::engine::location::Int2D;
 use rust_ab::visualization::renderable::{Render, SpriteType};
-use rust_ab::bevy::prelude::Transform;
+use rust_ab::bevy::prelude::{Transform, Visible};
 
 /// Objects that do not move, such as obstacles or sites.
 pub struct StaticObject {
@@ -38,5 +38,5 @@ impl Render for StaticObject {
     }
 
     // No update required, static objects do not move
-    fn update(&mut self, _transform: &mut Transform, _state: &State) {}
+    fn update(&mut self, _transform: &mut Transform, _state: &State, _visible: &mut Visible) {}
 }
