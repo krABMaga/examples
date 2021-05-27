@@ -1,19 +1,19 @@
-use rust_ab::rand;
-use rust_ab::{
-    engine::{
-        agent::Agent,
-        field::field::Field,
-        location::{Location2D, Real2D},
-    },
-    rand::Rng,
-};
 use std::{
     fmt,
     hash::{Hash, Hasher},
 };
 
-use crate::model::state::EpidemicNetworkState;
+use rust_ab::{
+    engine::{
+        agent::Agent,
+        location::{Location2D, Real2D},
+    },
+    rand::Rng,
+};
+use rust_ab::rand;
+
 use crate::model::state::{GAIN_RESISTENCE_CHANCE, RECOVERY_CHANCE, VIRUS_CHECK_FREQUENCY, VIRUS_SPREAD_CHANCE};
+use crate::model::state::EpidemicNetworkState;
 
 #[derive(Clone, Copy, Debug)]
 pub enum NodeStatus {
@@ -42,24 +42,24 @@ impl NetNode {
 
 
     fn spread_virus(&mut self, state: &EpidemicNetworkState) {
-        let neighborhood = state.network.getEdges(&self);
+        let neighborhood = state.network.network.get_edges(&self);
         if neighborhood.is_none() {
             return;
         };
-    
+
         let mut rng = rand::thread_rng();
         println!("Node{} spreading virus", self.id);
         for edge in neighborhood.unwrap() {
             if rng.gen_bool(VIRUS_SPREAD_CHANCE) {
                 let mut victim = edge.v;
-    
+
                 match victim.status {
                     NodeStatus::Susceptible => {
                         println!("{} Infected by {}", self.id, victim.id);
                         victim.status = NodeStatus::Infected;
-    
+
                         //update
-                        state.network.addNode(&victim);
+                        state.network.network.add_node(&victim);
                         state.field1.set_object_location(victim, victim.pos);
                     }
                     _ => {
@@ -69,24 +69,23 @@ impl NetNode {
             }
         }
     }
-    
-    fn recovery_attempt(&mut self, state: &EpidemicNetworkState) -> NodeStatus{
+
+    fn recovery_attempt(&mut self, _state: &EpidemicNetworkState) -> NodeStatus {
         let mut rng = rand::thread_rng();
         if rng.gen_bool(RECOVERY_CHANCE) {
             self.virus_detected = false;
 
-            if rng.gen_bool(GAIN_RESISTENCE_CHANCE){    
-                return NodeStatus::Resistent
-            }
-            else {
-                return NodeStatus::Susceptible
+            if rng.gen_bool(GAIN_RESISTENCE_CHANCE) {
+                return NodeStatus::Resistent;
+            } else {
+                return NodeStatus::Susceptible;
             }
         }
-    
+
         NodeStatus::Infected
     }
 
-    fn routine(&mut self, state: &EpidemicNetworkState){
+    fn routine(&mut self, state: &EpidemicNetworkState) {
         if !self.virus_detected {
             //Scan Virus
             let mut rng = rand::thread_rng();
@@ -95,11 +94,9 @@ impl NetNode {
 
         if self.virus_detected {
             self.status = self.recovery_attempt(state);
-        } 
+        }
     }
-
 }
-
 
 
 impl Agent for NetNode {
@@ -109,11 +106,11 @@ impl Agent for NetNode {
         //println!("STEP {}: Node{}, status:{:?}", state.step, self.id, self.status);
         match self.status {
             NodeStatus::Infected => {
-                self.spread_virus( state);
+                self.spread_virus(state);
                 self.routine(state);
             }
             NodeStatus::Susceptible => {
-               // self.routine(state);
+                // self.routine(state);
             }
             _ => {}
         }
@@ -122,8 +119,8 @@ impl Agent for NetNode {
 
 impl Hash for NetNode {
     fn hash<H>(&self, state: &mut H)
-    where
-        H: Hasher,
+        where
+            H: Hasher,
     {
         self.id.hash(state);
         //    state.write_u128(self.id);
