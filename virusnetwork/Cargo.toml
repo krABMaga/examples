@@ -10,8 +10,6 @@ readme = "README.md"
 
 [dependencies]
 rust-ab = {git="https://github.com/rust-ab/rust-ab.git"}
-bevy_prototype_lyon = "0.3.1"
-
 
 [features]
 visualization = ["rust-ab/visualization"]

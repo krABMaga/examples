@@ -1,7 +1,8 @@
-use crate::model::node::NetNode;
-
-use rust_ab::engine::field::{field::Field, field_2d::Field2D, network::Network};
+use rust_ab::engine::field::{field::Field, field_2d::Field2D};
 use rust_ab::engine::state::State;
+
+use crate::model::epidemic_network::EpidemicNetwork;
+use crate::model::node::NetNode;
 
 ///Initial infected nodes
 pub static INITIAL_INFECTED_PROB: f64 = 0.01;
@@ -17,11 +18,10 @@ pub static RECOVERY_CHANCE: f64 = 0.30;
 pub static GAIN_RESISTENCE_CHANCE: f64 = 0.20;
 
 
-
 pub struct EpidemicNetworkState {
-    pub step: u128,
+    pub step: usize,
     pub field1: Field2D<NetNode>,
-    pub network: Network<NetNode, String>,
+    pub network: EpidemicNetwork,
 }
 
 impl EpidemicNetworkState {
@@ -29,13 +29,14 @@ impl EpidemicNetworkState {
         EpidemicNetworkState {
             step: 0,
             field1: Field2D::new(w, h, d, t),
-            network: Network::new(false),
+            network: EpidemicNetwork::new(),
         }
     }
 }
 
-impl State for EpidemicNetworkState{
-    fn update(&mut self){
+impl State for EpidemicNetworkState {
+    fn update(&mut self, step: usize) {
         self.field1.update();
+        self.step = step;
     }
 }
