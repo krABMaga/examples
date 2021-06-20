@@ -128,14 +128,14 @@ impl Bird {
                 let _dy = toroidal_distance(self.pos.y, vec[i].pos.y, HEIGHT); */
                 count += 1;
                 x += vec[i].last_d.x;
-                y += self.last_d.y;
+                y += vec[i].last_d.y;
             }
         }
         if count > 0 {
             x = x / count as f64;
             y = y / count as f64;
             let real = Real2D {
-                x: -x / count as f64,
+                x: x / count as f64,
                 y: y / count as f64,
             };
             return real;
