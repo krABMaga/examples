@@ -201,7 +201,6 @@ impl Ant {
 
         // Get rewarded if we've reached a site and update our food status
         if let Some(site) = state.get_site(&self.loc) {
-            let site = site[0];
             match site {
                 StaticObjectType::HOME => {
                     if self.has_food {
