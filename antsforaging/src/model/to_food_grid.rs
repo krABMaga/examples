@@ -1,30 +1,32 @@
-use crate::EVAPORATION;
-use rust_ab::engine::field::number_grid_2d::NumberGrid2D;
+use crate::{EVAPORATION, FOOD_LOW_PHEROMONE};
+use rust_ab::engine::fields::field::Field;
+use rust_ab::engine::fields::grid_option::GridOption;
+use rust_ab::engine::fields::sparse_number_grid_2d::SparseNumberGrid2D;
 
-/// Extremely low pheromone, under which the value gets rounded to 0
-const LOW_PHEROMONE: f64 = 0.00000000000001;
-
-/// Represents food pheromones. Higher f64 value means more concentrated pheromone.
+// Represents food pheromones. Higher f32 value means more concentrated pheromone.
 pub struct ToFoodGrid {
-    pub grid: NumberGrid2D<f64>,
+    pub grid: SparseNumberGrid2D<f32>,
 }
 
 impl ToFoodGrid {
-    pub fn new(width: i64, height: i64) -> ToFoodGrid {
+    pub fn new(width: i32, height: i32) -> ToFoodGrid {
         ToFoodGrid {
-            grid: NumberGrid2D::new(width, height),
+            grid: SparseNumberGrid2D::new(width, height),
         }
     }
 
     pub fn update(&mut self) {
         self.grid.update();
-        self.grid.locs.apply_to_all_values(|val| {
-            let new_val = val * EVAPORATION;
-            if new_val < LOW_PHEROMONE {
-                0.
-            } else {
-                new_val
-            }
-        })
+        self.grid.apply_to_all_values(
+            |val| {
+                let new_val = val * EVAPORATION;
+                if new_val < FOOD_LOW_PHEROMONE {
+                    0.
+                } else {
+                    new_val
+                }
+            },
+            GridOption::READ,
+        )
     }
 }

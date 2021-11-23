@@ -1,116 +1,56 @@
-use crate::model::state::State;
-use model::{
-    animals::Animal,
-    grass::{GrassField, FULL_GROWN},
-};
-use rust_ab::engine::location::Int2D;
-
+use crate::model::state::WsgState;
 mod model;
-use rayon::prelude::*;
-use rust_ab::engine::schedule::Schedule;
-use rust_ab::rand;
-use rust_ab::rand::Rng;
 
 pub const ENERGY_CONSUME: f64 = 1.0;
-pub const NUM_WOLVES: u128 = 10;
-pub const NUM_SHEEPS: u128 = 10;
+pub const NUM_WOLVES: u32 = (60. * 0.4) as u32;
+pub const NUM_SHEEPS: u32 = (60. * 0.6) as u32;
+pub const FULL_GROWN: u16 = 20;
 
-pub const INIT_ENERGY: f64 = 100.0;
-pub const GAIN_ENERGY: f64 = 10.0;
+pub const GAIN_ENERGY_SHEEP: f64 = 5.0;
+pub const GAIN_ENERGY_WOLF: f64 = 13.0;
 
-pub const SHEEP_REPR: f64 = 0.1;
-pub const WOLF_REPR: f64 = 0.01;
+pub const SHEEP_REPR: f64 = 0.2;
+pub const WOLF_REPR: f64 = 0.1;
 
-pub const WIDTH: i64 = 100;
-pub const HEIGHT: i64 = 100;
-pub const STEP: u128 = 100;
+pub const MOMENTUM_PROBABILITY: f64 = 0.8;
 
-//----------------------------------------------------------------
+pub const WIDTH: i32 = 25;
+pub const HEIGHT: i32 = 25;
+pub const STEP: u64 = 10;
+
+// No visualization specific imports
+#[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
+use {
+    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::simulate,
+    rust_ab::Info, rust_ab::ProgressBar, std::time::Duration,
+};
+
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    let mut state = State::new(WIDTH, HEIGHT);
-    let mut schedule = Schedule::<Animal>::new();
-
-    generate_food(&mut state);
-    generate_wolves(&mut state, &mut schedule);
-    generate_sheeps(&mut state, &mut schedule);
-
-    for step in 1..STEP {
-        if step % 100 == 0 {
-            println!("Milestone {}", step);
-        }
-
-        schedule.step(&mut state);
-    }
+    simulate!(STEP, WsgState::new(WIDTH, HEIGHT), 1, Info::VERBOSE);
 }
-
-#[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-fn generate_food(state: &mut State) -> () {
-    (0..HEIGHT).into_par_iter().for_each(|x| {
-        (0..WIDTH).into_par_iter().for_each(|y| {
-            let mut rng = rand::thread_rng();
-            let grass_init_value = rng.gen_range(0..FULL_GROWN + 1);
-            state.set_grass_at_location(&Int2D { x, y }, grass_init_value);
-        })
-    });
-}
-
-#[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-fn generate_sheeps(state: &mut State, schedule: &mut Schedule<Animal>) -> () {
-    let mut rng = rand::thread_rng();
-
-    for id in 0..NUM_SHEEPS {
-        let x = rng.gen_range(0..WIDTH);
-        let y = rng.gen_range(0..HEIGHT);
-        let loc = Int2D { x, y };
-
-        let mut sheep =
-            Animal::new_sheep(id + NUM_WOLVES, loc, INIT_ENERGY, GAIN_ENERGY, SHEEP_REPR);
-        // println!("Sheep initial loc: {} {} \n------------", loc.x, loc.y);
-        state.set_sheep_location(&mut sheep, &loc);
-        schedule.schedule_repeating(sheep, 0., 0);
-    }
-}
-
-#[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-fn generate_wolves(state: &mut State, schedule: &mut Schedule<Animal>) -> () {
-    let mut rng = rand::thread_rng();
-    for id in 0..NUM_WOLVES {
-        let x = rng.gen_range(0..WIDTH);
-        let y = rng.gen_range(0..HEIGHT);
-        let loc = Int2D { x, y };
-
-        let mut wolf = Animal::new_wolf(id, loc, INIT_ENERGY, GAIN_ENERGY, WOLF_REPR);
-        state.set_wolf_location(&mut wolf, &loc);
-        // Sheep have an higher ordering than wolves. This is so that if a wolf kills one, in the next step
-        // the attacked sheep will immediately notice and die, instead of noticing after two steps.
-        schedule.schedule_repeating(wolf, 0., 1);
-    }
-}
-
-//----------------------------------------------------------------
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 mod visualization;
 
-// Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
     crate::visualization::vis_state::VisState, rust_ab::bevy::prelude::Color,
-    rust_ab::bevy::prelude::IntoSystem, rust_ab::visualization::field::number_grid_2d::BatchRender,
+    rust_ab::bevy::prelude::IntoSystem,
+    rust_ab::engine::fields::dense_number_grid_2d::DenseNumberGrid2D,
+    rust_ab::visualization::fields::number_grid_2d::BatchRender,
     rust_ab::visualization::visualization::Visualization,
 };
 
 // Main used when a visualization feature is applied
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
-    let state = State::new(WIDTH, HEIGHT);
-    let scheduler = Schedule::new();
+    let state = WsgState::new(WIDTH, HEIGHT);
     let mut app = Visualization::default()
         .with_background_color(Color::rgb(255., 255., 255.))
         .with_simulation_dimensions(WIDTH as f32, HEIGHT as f32)
-        .with_window_dimensions(600., 600.)
-        .setup::<Animal, VisState>(VisState, state, scheduler);
-    app.add_system(GrassField::batch_render.system());
+        .with_window_dimensions(1000., 700.)
+        .setup::<VisState, WsgState>(VisState, state);
+    app.add_system(DenseNumberGrid2D::batch_render.system());
     app.run()
 }

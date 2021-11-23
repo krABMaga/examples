@@ -1,7 +1,16 @@
 [package]
 name = "rust-ab-template"
-version = "0.1.0"
-authors = ["Francesco Foglia <frafonia@gmail.com>"]
+version = "0.2.0"
+authors = [
+    "Carmine Spagnuolo <spagnuolocarmine@gmail.com>", 
+    "Alessia Antelmi <aantelmi@unisa.it>", 
+    "Matteo D'Auria <matdauria@unisa.it>", 
+    "Daniele De Vinco <danieledevinco1996@gmail.com", 
+    "Francesco Foglia <frafonia@gmail.com>", 
+    "Pasquale Caramante <pasqcaramante@gmail.com>", 
+    "Luca Postiglione <lucapostiglione10@gmail.com>", 
+    "Giuseppe D'Ambrosio <giuseppe.dambrosio14@gmail.com>"
+]
 edition = "2018"
 license = "MIT"
 readme = "README.md"
@@ -14,4 +23,3 @@ rust-ab = { git="https://github.com/rust-ab/rust-ab.git" }
 [features]
 visualization = ["rust-ab/visualization"]
 visualization_wasm = ["rust-ab/visualization_wasm"]
-parallel = ["rust-ab/parallel"]

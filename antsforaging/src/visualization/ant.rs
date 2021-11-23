@@ -1,33 +1,42 @@
 use crate::model::ant::Ant;
-use crate::model::state::State;
-use rust_ab::visualization::renderable::{Render, SpriteType};
+use crate::model::state::ModelState;
 use rust_ab::bevy::prelude::{Quat, Transform, Visible};
+use rust_ab::engine::agent::Agent;
 use rust_ab::engine::location::Int2D;
+use rust_ab::engine::state::State;
+use rust_ab::visualization::agent_render::{AgentRender, SpriteType};
 
-impl Render for Ant {
-    fn sprite(&self) -> SpriteType {
+pub struct AntVis {
+    pub id: u32,
+}
+
+impl AgentRender for AntVis {
+    fn sprite(&self, _agent: &Box<dyn Agent>, _state: &Box<&dyn State>) -> SpriteType {
         SpriteType::Emoji(String::from("ant"))
     }
 
-    /// The position must always be fetched through the state, since that will be the one actually updated
-    /// by the RustAB schedule. All objects will be rendered on the 0. z, except pheromones, which will be
-    /// put on a lower z-axis.
-    fn position(&self, state: &State) -> (f32, f32, f32) {
-        let loc = state.get_ant_location(self);
+    // The position must always be fetched through the state, since that will be the one actually updated
+    // by the RustAB schedule. All objects will be rendered on the 0. z, except pheromones, which will be
+    // put on a lower z-axis.
+    fn position(&self, agent: &Box<dyn Agent>, state: &Box<&dyn State>) -> (f32, f32, f32) {
+        let state = state.as_any().downcast_ref::<ModelState>().unwrap();
+        let agent = agent.downcast_ref::<Ant>().unwrap();
+        let loc = state.ants_grid.get_location(*agent);
         match loc {
-            Some(pos) => (pos.x as f32, pos.y as f32, 0.),
-            None => (self.loc.x as f32, self.loc.y as f32, 0.),
+            Some(pos) => (pos.x as f32, pos.y as f32, 1.),
+            None => (agent.loc.x as f32, agent.loc.y as f32, 1.),
         }
     }
 
-    /// Emojis are 64x64, way too big for our simulation
-    fn scale(&self) -> (f32, f32) {
+    // Emojis are 64x64, way too big for our simulation
+    fn scale(&self, _agent: &Box<dyn Agent>, _state: &Box<&dyn State>) -> (f32, f32) {
         (0.1, 0.1)
     }
 
-    fn rotation(&self) -> f32 {
-        let rotation = if let Some(Int2D{x, y}) = self.last {
-            ((y - self.loc.y) as f32).atan2((x - self.loc.x) as f32)
+    fn rotation(&self, agent: &Box<dyn Agent>, _state: &Box<&dyn State>) -> f32 {
+        let agent = agent.downcast_ref::<Ant>().unwrap();
+        let rotation = if let Some(Int2D { x, y }) = agent.last {
+            ((y - agent.loc.y) as f32).atan2((x - agent.loc.x) as f32)
         } else {
             0.
         };
@@ -35,18 +44,17 @@ impl Render for Ant {
     }
 
     /// Simply update the transform based on the position chosen
-    fn update(&mut self, transform: &mut Transform, state: &State, _visible: &mut Visible) {
+    fn update(
+        &mut self,
+        agent: &Box<dyn Agent>,
+        transform: &mut Transform,
+        state: &Box<&dyn State>,
+        _visible: &mut Visible,
+    ) {
+        let (pos_x, pos_y, z) = self.position(agent, state);
+        let (scale_x, scale_y) = self.scale(agent, state);
 
-        let (pos_x, pos_y, z) = self.position(state);
-        let (scale_x, scale_y) = self.scale();
-
-        // Update our local ant copy positions to properly calculate rotation
-        if let Some(updated_ant) = state.get_ant(self) {
-            self.loc = updated_ant.loc;
-            self.last = updated_ant.last;
-        }
-
-        let rotation = self.rotation();
+        let rotation = self.rotation(agent, state);
 
         let translation = &mut transform.translation;
         translation.x = pos_x;
@@ -55,5 +63,9 @@ impl Render for Ant {
         transform.scale.x = scale_x;
         transform.scale.y = scale_y;
         transform.rotation = Quat::from_rotation_z(rotation);
+    }
+
+    fn get_id(&self) -> u32 {
+        self.id
     }
 }

@@ -1,41 +1,39 @@
-use std::hash::{Hash, Hasher};
-
+use core::fmt;
 use rust_ab::engine::agent::Agent;
-use rust_ab::engine::location::{Int2D, Location2D};
+use rust_ab::engine::location::Int2D;
+use rust_ab::engine::state::State;
 use rust_ab::rand;
 use rust_ab::rand::Rng;
+use std::hash::{Hash, Hasher};
 
-use crate::{HEIGHT, WIDTH};
-use crate::model::state::State;
-use crate::model::static_objects::StaticObjectType;
+use crate::model::state::*;
+use crate::{
+    HEIGHT, MOMENTUM_PROBABILITY, RANDOM_ACTION_PROBABILITY, REWARD, UPDATE_CUTDOWN, WIDTH,
+};
+use rust_ab::engine::schedule::Schedule;
 
-pub const REWARD: f64 = 1.;
-pub const MOMENTUM_PROBABILITY: f64 = 0.8;
-pub const RANDOM_ACTION_PROBABILITY: f64 = 0.1;
-pub const UPDATE_CUTDOWN: f64 = 0.9;
-
-/// A struct representing an ant, with an id, a position, whether it's holding food or not and the
-/// current reward, used to increase the pheromone on the location of the ant if a site is reached.
+// A struct representing an ant, with an id, a position, whether it's holding food or not and the
+// current reward, used to increase the pheromone on the location of the ant if a site is reached.
 #[derive(Copy, Clone)]
 pub struct Ant {
-    /// An unique id.
-    pub id: u128,
-    /// The position of the agent.
+    // An unique id.
+    pub id: u32,
+    // The position of the agent.
     pub loc: Int2D,
-    /// Last position of the agent, starts as None
+    // Last position of the agent, starts as None
     pub last: Option<Int2D>,
-    /// False means the agent will try to find food by following food pheromones if possible, or by
-    /// flooding the grid until it is found. True means the agent will try to return home by using the
-    /// previously deposited pheromones.
+    // False means the agent will try to find food by following food pheromones if possible, or by
+    // flooding the grid until it is found. True means the agent will try to return home by using the
+    // previously deposited pheromones.
     pub has_food: bool,
-    /// Value used to increase the pheromones in the nest and in the food source.
-    /// This will let the agents spread pheromones in the surrounding areas from point of interests
-    /// so that other agents will know which path to take to do their job.
-    pub reward: f64,
+    // Value used to increase the pheromones in the nest and in the food source.
+    // This will let the agents spread pheromones in the surrounding areas from point of interests
+    // so that other agents will know which path to take to do their job.
+    pub reward: f32,
 }
 
 impl Ant {
-    pub fn new(id: u128, loc: Int2D, has_food: bool, reward: f64) -> Ant {
+    pub fn new(id: u32, loc: Int2D, has_food: bool, reward: f32) -> Ant {
         Ant {
             id,
             loc,
@@ -45,21 +43,21 @@ impl Ant {
         }
     }
 
-    /// Deposit a home pheromone if self is not holding food, else deposit a food pheromone,
-    /// so that other agents will take in account the pheromone value when choosing the next step's
-    /// direction.
-    pub fn deposit_pheromone(&mut self, state: &State) {
+    // Deposit a home pheromone if self is not holding food, else deposit a food pheromone,
+    // so that other agents will take in account the pheromone value when choosing the next step's
+    // direction.
+    pub fn deposit_pheromone(&mut self, state: &ModelState) {
         let x = self.loc.x;
         let y = self.loc.y;
 
         // Fetch the value of the correct pheromone on our location, depending whether we're holding
         // food or not.
-        let mut max = *if self.has_food {
-            state.get_food_pheromone(&self.loc)
+        let mut max = if self.has_food {
+            state.to_food_grid.grid.get_value(&self.loc)
         } else {
-            state.get_home_pheromone(&self.loc)
+            state.to_home_grid.grid.get_value(&self.loc)
         }
-            .unwrap_or(&0.);
+        .unwrap_or(0.);
 
         // Find the highest pheromone we care about in the surrounding 3x3 area to calculate the value
         // of the pheromone in our current area. Normally, the maximum pheromone in the 3x3 area is fetched
@@ -73,12 +71,12 @@ impl Ant {
                     continue;
                 }
                 // Fetch the pheromone in the cell we're analyzing
-                let pheromone = *if self.has_food {
-                    state.get_food_pheromone(&Int2D { x: _x, y: _y })
+                let pheromone = if self.has_food {
+                    state.to_food_grid.grid.get_value(&Int2D { x: _x, y: _y })
                 } else {
-                    state.get_home_pheromone(&Int2D { x: _x, y: _y })
+                    state.to_home_grid.grid.get_value(&Int2D { x: _x, y: _y })
                 }
-                    .unwrap_or(&0.);
+                .unwrap_or(0.);
                 // Decrease the value a bit, with diagonal cells of our 3x3 grid considered farther
                 let m = (pheromone * {
                     if dx * dy != 0 {
@@ -94,19 +92,19 @@ impl Ant {
         }
         // Set the new value of the pheromone we're considering
         if self.has_food {
-            state.set_food_pheromone(&self.loc, max)
+            state.to_food_grid.grid.set_value_location(max, &self.loc);
         } else {
-            state.set_home_pheromone(&self.loc, max)
+            state.to_home_grid.grid.set_value_location(max, &self.loc);
         }
         // We have used our reward, reset it
         self.reward = 0.;
     }
 
-    /// Step to the next cell by taking into account pheromones. If no pheromones of the right type
-    /// are found in a 3x3 grid centered on us, try to step in the same direction of the last frame
-    /// with a probability of MOMENTUM_PROBABILITY. Otherwise, step in a random direction with a
-    /// probability of RANDOM_ACTION_PROBABILITY.
-    pub fn act(&mut self, state: &State) {
+    // Step to the next cell by taking into account pheromones. If no pheromones of the right type
+    // are found in a 3x3 grid centered on us, try to step in the same direction of the last frame
+    // with a probability of MOMENTUM_PROBABILITY. Otherwise, step in a random direction with a
+    // probability of RANDOM_ACTION_PROBABILITY.
+    pub fn act(&mut self, state: &ModelState) {
         let mut rng = rand::thread_rng();
         let mut max = -1.; // An initial, impossible pheromone.
 
@@ -135,12 +133,12 @@ impl Ant {
                     continue;
                 }
 
-                let m = *if self.has_food {
-                    state.get_home_pheromone(&new_int2d)
+                let m = if self.has_food {
+                    state.to_home_grid.grid.get_value(&new_int2d)
                 } else {
-                    state.get_food_pheromone(&new_int2d)
+                    state.to_food_grid.grid.get_value(&new_int2d)
                 }
-                    .unwrap_or(&0.);
+                .unwrap_or(0.);
                 if m > max {
                     // We found a new maximum, reset the count
                     count = 2;
@@ -178,8 +176,8 @@ impl Ant {
             }
         } else if rng.gen_bool(RANDOM_ACTION_PROBABILITY) {
             // All other ideas have failed, just choose a random direction
-            let xd: i64 = rng.gen_range(-1..2);
-            let yd: i64 = rng.gen_range(-1..2);
+            let xd: i32 = rng.gen_range(-1..2);
+            let yd: i32 = rng.gen_range(-1..2);
             let xm = x + xd;
             let ym = y + yd;
             // Don't go outside the field, in an obstacle and do not stay still
@@ -196,13 +194,13 @@ impl Ant {
         }
         let loc = Int2D { x: max_x, y: max_y };
         self.loc = loc;
-        state.set_ant_location(self, &loc);
+        state.ants_grid.set_object_location(*self, &loc);
         self.last = Some(Int2D { x, y });
 
         // Get rewarded if we've reached a site and update our food status
-        if let Some(site) = state.get_site(&self.loc) {
-            match site {
-                StaticObjectType::HOME => {
+        if let Some(obs) = state.obstacles_grid.get_objects(&self.loc) {
+            match obs.first().unwrap().value {
+                ItemType::Home => {
                     if self.has_food {
                         {
                             let mut x = state.food_returned_home.write().unwrap();
@@ -212,33 +210,37 @@ impl Ant {
                         self.has_food = !self.has_food;
                     }
                 }
-                StaticObjectType::FOOD => {
+                ItemType::Food => {
                     if !self.has_food {
                         {
                             let mut x = state.food_source_found.write().unwrap();
                             *x = true;
+                            //println!("Found food!");
                         }
                         self.reward = REWARD;
                         self.has_food = !self.has_food;
                     }
                 }
-                _ => (),
+                ItemType::Obstacle => {}
             }
         }
     }
 
-    fn diagonal_cutdown() -> f64 {
-        UPDATE_CUTDOWN.powf((2 as f64).sqrt())
+    fn diagonal_cutdown() -> f32 {
+        UPDATE_CUTDOWN.powf((2_f32).sqrt())
     }
 }
 
 impl Agent for Ant {
-    type SimState = State;
-
     /// Each ant deposits a pheromone in its current location, then it steps in the next grid cell.
-    fn step(&mut self, state: &State) {
+    fn step(&mut self, state: &mut dyn State, _schedule: &mut Schedule, _schedule_id: u32) {
+        let state = state.as_any().downcast_ref::<ModelState>().unwrap();
         self.deposit_pheromone(state);
         self.act(state);
+    }
+
+    fn get_id(&self) -> u32 {
+        self.id
     }
 }
 
@@ -250,21 +252,17 @@ impl PartialEq for Ant {
     }
 }
 
-impl Location2D<Int2D> for Ant {
-    fn get_location(self) -> Int2D {
-        self.loc
-    }
-
-    fn set_location(&mut self, loc: Int2D) {
-        self.loc = loc;
+impl Hash for Ant {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        self.id.hash(state);
     }
 }
 
-impl Hash for Ant {
-    fn hash<H>(&self, state: &mut H)
-        where
-            H: Hasher,
-    {
-        self.id.hash(state);
+impl fmt::Display for Ant {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} loc {}", self.id, self.loc)
     }
 }

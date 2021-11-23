@@ -1,132 +1,129 @@
-use crate::{model::{animals::Animal, grass::FULL_GROWN, state::State}, GAIN_ENERGY, INIT_ENERGY, WOLF_REPR, SHEEP_REPR};
-
-use crate::{HEIGHT, NUM_SHEEPS, NUM_WOLVES, WIDTH};
-
+use crate::model::sheep::Sheep;
+use crate::model::state::WsgState;
+use crate::model::wolf::Wolf;
+use crate::visualization::sheep_vis::SheepVis;
+use crate::visualization::wolf_vis::WolfVis;
+use rust_ab::bevy::prelude::Commands;
+use rust_ab::engine::agent::Agent;
 use rust_ab::engine::location::Int2D;
 use rust_ab::engine::schedule::Schedule;
-use rust_ab::rand;
-use rust_ab::rand::Rng;
-use rust_ab::visualization::field::number_grid_2d::BatchRender;
-use rust_ab::visualization::on_state_init::OnStateInit;
-use rust_ab::visualization::renderable::{Render, SpriteType};
+use rust_ab::engine::state::State;
+use rust_ab::visualization::agent_render::{AgentRender, SpriteType};
+use rust_ab::visualization::asset_handle_factory::AssetHandleFactoryResource;
+use rust_ab::visualization::fields::number_grid_2d::BatchRender;
 use rust_ab::visualization::simulation_descriptor::SimulationDescriptor;
-use rust_ab::visualization::sprite_render_factory::SpriteFactoryResource;
-use rust_ab::{
-    bevy::prelude::{Commands, ResMut},
-    rand::prelude::ThreadRng,
-};
+use rust_ab::visualization::visualization_state::VisualizationState;
 
+#[derive(Clone)]
 pub struct VisState;
 
-impl OnStateInit<Animal> for VisState {
+impl VisualizationState<WsgState> for VisState {
     fn on_init(
         &self,
-        mut commands: Commands,
-        mut sprite_render_factory: SpriteFactoryResource,
-        mut state: ResMut<State>,
-        mut schedule: ResMut<Schedule<Animal>>,
-        mut sim: ResMut<SimulationDescriptor>,
+        commands: &mut Commands,
+        sprite_render_factory: &mut AssetHandleFactoryResource,
+        state: &mut WsgState,
+        _schedule: &mut Schedule,
+        sim: &mut SimulationDescriptor,
     ) {
-        let mut rng = rand::thread_rng();
+        Self::generate_grass(&state, sprite_render_factory, commands, sim);
+    }
 
-        Self::generate_grass(
-            &state,
-            &mut sprite_render_factory,
-            &mut commands,
-            &mut sim,
-            &mut rng,
-        );
+    fn get_agent_render(
+        &self,
+        agent: &Box<dyn Agent>,
+        _state: &WsgState,
+    ) -> Option<Box<dyn AgentRender>> {
+        if let Some(wolf) = agent.downcast_ref::<Wolf>() {
+            Some(Box::new(WolfVis { id: wolf.id }))
+        } else {
+            let sheep = agent.downcast_ref::<Sheep>().unwrap();
+            Some(Box::new(SheepVis { id: sheep.id }))
+        }
+    }
 
-        Self::generate_wolves(
-            &state,
-            &mut schedule,
-            &mut sprite_render_factory,
-            &mut commands,
-            &mut rng,
-        );
+    fn get_agent(
+        &self,
+        agent_render: &Box<dyn AgentRender>,
+        state: &Box<&dyn State>,
+    ) -> Option<Box<dyn Agent>> {
+        let state = state.as_any().downcast_ref::<WsgState>().unwrap();
+        if let Some(_wolf_vis) = agent_render.downcast_ref::<WolfVis>() {
+            match state.wolves_grid.get(&Wolf::new(
+                agent_render.get_id(),
+                Int2D { x: 0, y: 0 },
+                0.,
+                0.,
+                0.,
+            )) {
+                Some(matching_agent) => Some(Box::new(matching_agent)),
+                None => None,
+            }
+        } else {
+            match state.sheeps_grid.get(&Sheep::new(
+                agent_render.get_id(),
+                Int2D { x: 0, y: 0 },
+                0.,
+                0.,
+                0.,
+            )) {
+                Some(matching_agent) => Some(Box::new(matching_agent)),
+                None => None,
+            }
+        }
+    }
 
-        Self::generate_sheeps(
-            &state,
-            &mut schedule,
-            &mut sprite_render_factory,
-            &mut commands,
-            &mut rng,
-        );
+    fn before_render(
+        &mut self,
+        state: &mut WsgState,
+        _schedule: &Schedule,
+        commands: &mut Commands,
+        asset_factory: &mut AssetHandleFactoryResource,
+    ) {
+        let new_sheeps = state.new_sheeps.lock().unwrap();
+        for sheep in &*new_sheeps {
+            let boxed_agent = &(*sheep).as_agent();
+            let boxed_state = Box::new(state.as_state());
+            let sheep_vis = self.get_agent_render(boxed_agent, state);
+            let SpriteType::Emoji(emoji_code) =
+                sheep_vis.unwrap().sprite(boxed_agent, &boxed_state);
+            let sprite_render = asset_factory.get_emoji_loader(emoji_code);
+            self.setup_agent_graphics(
+                boxed_agent,
+                self.get_agent_render(boxed_agent, state).unwrap(),
+                sprite_render,
+                commands,
+                &boxed_state,
+            );
+        }
 
-        // Update the grids associated to the obstacles and the sites, only once, to write the data from the
-        // write buffer to the read buffer
+        let new_wolves = state.new_wolves.lock().unwrap();
+        for wolf in &*new_wolves {
+            let boxed_wolf = &(*wolf).as_agent();
+            let boxed_state = Box::new(state.as_state());
+            let wolf_vis = self.get_agent_render(boxed_wolf, state);
+            let SpriteType::Emoji(emoji_code) = wolf_vis.unwrap().sprite(boxed_wolf, &boxed_state);
+            let sprite_render = asset_factory.get_emoji_loader(emoji_code);
+            self.setup_agent_graphics(
+                boxed_wolf,
+                self.get_agent_render(boxed_wolf, state).unwrap(),
+                sprite_render,
+                commands,
+                &boxed_state,
+            );
+        }
     }
 }
 
 impl VisState {
     fn generate_grass(
-        state: &State,
-        sprite_render_factory: &mut SpriteFactoryResource,
+        state: &WsgState,
+        sprite_render_factory: &mut AssetHandleFactoryResource,
         commands: &mut Commands,
         sim: &mut SimulationDescriptor,
-        rng: &mut ThreadRng,
     ) {
-        for x in 0..WIDTH {
-            for y in 0..HEIGHT {
-                let grass_init_value = rng.gen_range(0..FULL_GROWN + 1);
-                state.set_grass_at_location(&Int2D { x, y }, grass_init_value);
-            }
-        }
-
         state
             .grass_field
             .render(&mut *sprite_render_factory, commands, sim);
-    }
-
-    fn generate_wolves(
-        state: &State,
-        schedule: &mut Schedule<Animal>,
-        sprite_render_factory: &mut SpriteFactoryResource,
-        commands: &mut Commands,
-        rng: &mut ThreadRng,
-    ) {
-        for wolf_id in 0..NUM_WOLVES {
-            let x = rng.gen_range(0..WIDTH);
-            let y = rng.gen_range(0..HEIGHT);
-            let loc = Int2D { x, y };
-
-            let mut wolf = Animal::new_wolf(wolf_id, loc, INIT_ENERGY, GAIN_ENERGY, WOLF_REPR);
-            state.set_wolf_location(&mut wolf, &loc);
-            // Sheep have an higher ordering than wolves. This is so that if a wolf kills one, in the next step
-            // the attacked sheep will immediately notice and die, instead of noticing after two steps.
-            schedule.schedule_repeating(wolf, 0., 1);
-
-            let SpriteType::Emoji(emoji_code) = wolf.sprite();
-            let sprite_render = sprite_render_factory.get_emoji_loader(emoji_code);
-            wolf.setup_graphics(sprite_render, commands, state);
-        }
-    }
-
-    fn generate_sheeps(
-        state: &State,
-        schedule: &mut Schedule<Animal>,
-        sprite_render_factory: &mut SpriteFactoryResource,
-        commands: &mut Commands,
-        rng: &mut ThreadRng,
-    ) {
-        for sheep_id in 0..NUM_SHEEPS {
-            let x = rng.gen_range(0..WIDTH);
-            let y = rng.gen_range(0..HEIGHT);
-            let loc = Int2D { x, y };
-
-            let mut sheep = Animal::new_sheep(
-                sheep_id + NUM_WOLVES + 1,
-                loc,
-                INIT_ENERGY,
-                GAIN_ENERGY,
-                SHEEP_REPR,
-            );
-            state.set_sheep_location(&sheep, &loc);
-            schedule.schedule_repeating(sheep, 0., 0);
-
-            let SpriteType::Emoji(emoji_code) = sheep.sprite();
-            let sprite_render = sprite_render_factory.get_emoji_loader(emoji_code);
-            sheep.setup_graphics(sprite_render, commands, state);
-        }
     }
 }

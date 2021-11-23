@@ -1,2 +1,2 @@
-mod my_agent;
-pub mod my_vis_state;
+pub mod crab_vis;
+pub mod sea_vis;

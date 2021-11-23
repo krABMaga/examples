@@ -1,29 +1,32 @@
-use crate::EVAPORATION;
-use rust_ab::engine::field::number_grid_2d::NumberGrid2D;
+use crate::{EVAPORATION, HOME_LOW_PHEROMONE};
+use rust_ab::engine::fields::field::Field;
+use rust_ab::engine::fields::grid_option::GridOption;
+use rust_ab::engine::fields::sparse_number_grid_2d::SparseNumberGrid2D;
 
-const LOW_PHEROMONE: f64 = 0.00000000000001;
-
-/// Represents home pheromones. Higher f64 means more concentrated pheromone.
+// Represents home pheromones. Higher f32 means more concentrated pheromone.
 pub struct ToHomeGrid {
-    pub grid: NumberGrid2D<f64>,
+    pub grid: SparseNumberGrid2D<f32>,
 }
 
 impl ToHomeGrid {
-    pub fn new(width: i64, height: i64) -> ToHomeGrid {
+    pub fn new(width: i32, height: i32) -> ToHomeGrid {
         ToHomeGrid {
-            grid: NumberGrid2D::new(width, height),
+            grid: SparseNumberGrid2D::new(width, height),
         }
     }
 
     pub fn update(&mut self) {
         self.grid.update();
-        self.grid.locs.apply_to_all_values(|val| {
-            let new_val = val * EVAPORATION;
-            if new_val < LOW_PHEROMONE {
-                0.
-            } else {
-                new_val
-            }
-        })
+        self.grid.apply_to_all_values(
+            |val| {
+                let new_val = val * EVAPORATION;
+                if new_val < HOME_LOW_PHEROMONE {
+                    0.
+                } else {
+                    new_val
+                }
+            },
+            GridOption::READ,
+        )
     }
 }

@@ -1,51 +1,45 @@
 // Global imports (needed for the simulation to run)
-use crate::model::my_state::MyState;
-use rust_ab::engine::schedule::Schedule;
-use crate::model::my_agent::MyAgent;
-use rust_ab::simulate;
+use crate::model::sea::Sea;
 mod model;
+
+#[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
+use {
+    rust_ab::engine::schedule::*, rust_ab::engine::state::State, rust_ab::simulate, rust_ab::Info,
+    rust_ab::ProgressBar, std::time::Duration,
+};
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
+    crate::visualization::sea_vis::SeaVis, rust_ab::bevy::prelude::Color,
     rust_ab::visualization::visualization::Visualization,
-    crate::visualization::my_vis_state::MyVisState
 };
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 mod visualization;
 
-// Main used when a visualization feature is applied.
-#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
-fn main() {
-    // Initialize the simulation and its visualization here.
-    let state = MyState::new();
-    let schedule = Schedule::<MyAgent>::new();
-
-    Visualization::default()
-        .with_window_dimensions(800., 800.)
-        .with_simulation_dimensions(500., 500.)
-        .start::<MyAgent, MyVisState>(MyVisState, state, schedule);
-}
+pub const NUM_AGENTS: u32 = 10;
+pub static WIDTH: f32 = 400.;
+pub static HEIGHT: f32 = 400.;
+pub static DISCRETIZATION: f32 = 10.0 / 1.5;
+pub static TOROIDAL: bool = true;
 
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    // Initialize the simulation here.
-    static STEP: u128 = 50;
+    pub static STEP: u64 = 50;
+    simulate!(STEP, Sea::new(), 1, Info::VERBOSE);
+}
 
-    let mut state = MyState::new();
-    let mut schedule = Schedule::<MyAgent>::new();
-
-    let my_agent = MyAgent{id: 1};
-    // Put the agent in your state
-    schedule.schedule_repeating(my_agent, 0., 0);
-
-    simulate!(STEP, schedule, MyAgent, state);
-
-    /* for _ in 0..STEP {
-        schedule.step(&mut state);
-    }
-
-    println!("The simulation has completed successfully.") */;
+// Main used when a visualization feature is applied.
+#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
+fn main() {
+    // Initialize the simulation and its visualization here.
+    let state = Sea::new();
+    Visualization::default()
+        .with_window_dimensions(800., 800.)
+        .with_simulation_dimensions(500., 500.)
+        .with_background_color(Color::BLUE)
+        .with_name("Template")
+        .start::<SeaVis, Sea>(SeaVis, state);
 }

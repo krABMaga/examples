@@ -1,113 +1,45 @@
 extern crate rust_ab;
 
-
-use rust_ab::rand;
-use rust_ab::{engine::location::Real2D};
-use rust_ab::bevy::prelude::IntoSystem;
-use rust_ab::engine::schedule::*;
-use rust_ab::rand::Rng;
-use rust_ab::visualization::field::network::NetworkRender;
+#[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
+use {
+    rust_ab::engine::schedule::*, rust_ab::engine::state::State, rust_ab::simulate, rust_ab::Info,
+    rust_ab::ProgressBar, std::time::Duration,
+};
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    crate::visualization::vis_state::VisState,
-    rust_ab::bevy::prelude::Color,
+    crate::visualization::vis_state::VisState, rust_ab::bevy::prelude::Color,
+    rust_ab::bevy::prelude::IntoSystem, rust_ab::visualization::fields::network::NetworkRender,
     rust_ab::visualization::visualization::Visualization,
 };
-use model::{node::NetNode, state::INITIAL_INFECTED_PROB};
-use model::node::{NodeStatus, NodeStatus::*};
+
 use model::state::EpidemicNetworkState;
-
-use crate::model::epidemic_network::EpidemicNetwork;
-
-//use rust_ab::{ explore, simulate };
-
 mod model;
 
-static STEP: u128 = 500;
-//#[param=integer,min=100,max=10000,n=1000,distribution=uniform]
-static NUM_NODES: u128 = 100;
-static WIDTH: f64 = 500.0;
-static HEIGTH: f64 = 500.0;
-static DISCRETIZATION: f64 = 10.0 / 1.5;
+static NUM_NODES: u32 = 100;
+static WIDTH: f32 = 500.0;
+static HEIGTH: f32 = 500.0;
+static DISCRETIZATION: f32 = 10.0 / 1.5;
 static TOROIDAL: bool = false;
-
+///Initial infected nodes
+pub static INITIAL_INFECTED_PROB: f64 = 0.01;
+pub static INIT_EDGES: usize = 2;
+pub static VIRUS_SPREAD_CHANCE: f64 = 0.3;
+pub static VIRUS_CHECK_FREQUENCY: f64 = 0.2;
+pub static RECOVERY_CHANCE: f64 = 0.30;
+pub static GAIN_RESISTENCE_CHANCE: f64 = 0.20;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    let mut schedule: Schedule<NetNode> = Schedule::new();
-    let mut state = EpidemicNetworkState::new(WIDTH, HEIGTH, DISCRETIZATION, TOROIDAL);
-
-    let nodes_set = gen_nodes(&mut state, &mut schedule);
-    preferential_attachment_BA!(nodes_set, state.network, NetNode, String, INIT_EDGE);
-
-    for node in state.network.edges.keys() {
-        println!("Node {} has {} edges", node.id, state.network.getEdges(node).unwrap().len());
-    }
-
-    // let p = Parameters::FloatParam(2.1, 3.2, 5.3);
-    /*     let model_output = |&state| {
-            //bam
-            //compute number of infected agents on state.network = infected
-            // compute number of recoverd agents on state.network = recovered
-            return (infected, recoverd);
-        }
-
-        exploration_output = explore!(STEP, schedule, NetNode, state, model_output); */
-    //table exploration_output
-    //each row 
-    // params list + output list
-
-    //inside explore!
-    //model_configurations = compute_paramentes(state)
-    //for params in model_configurations do in parallel
-    //simulate!(STEP....)
-    //sim_output = model_output(state)
-    //end
-    //results.append(sim:_output)
-
-    // exploration_output = explore!(STEP, schedule, NetNode, state, model_output, algorithm);
-
-    simulate!(STEP, schedule, NetNode, state);
+    static STEP: u64 = 10;
+    simulate!(
+        STEP,
+        EpidemicNetworkState::new(WIDTH, HEIGTH, DISCRETIZATION, TOROIDAL),
+        1,
+        Info::VERBOSE
+    );
 }
-
-
-fn gen_nodes(state: &mut EpidemicNetworkState, schedule: &mut Schedule<NetNode>) -> Vec<NetNode> {
-    //Nodes Generation
-
-    let mut nodes_set = Vec::new();
-    let mut rng = rand::thread_rng();
-    for node_id in 0..NUM_NODES {
-        let r1: f64 = rng.gen();
-        let r2: f64 = rng.gen();
-
-        let init_status: NodeStatus = if rng.gen_bool(INITIAL_INFECTED_PROB) {
-            Infected
-        } else {
-            Susceptible
-        };
-
-        let node = NetNode::new(
-            node_id,
-            Real2D {
-                x: WIDTH * r1,
-                y: HEIGTH * r2,
-            },
-            init_status,
-        );
-
-        state.field1.set_object_location(node, node.pos);
-        state.network.network.add_node(&node);
-        schedule.schedule_repeating(node, 0.0, 0);
-
-        nodes_set.push(node);
-    }
-    let t = state.network.network.edges.len();
-    println!("Nodes in the network:\t\t{}", t);
-    nodes_set
-}
-
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 mod visualization;
@@ -116,15 +48,14 @@ mod visualization;
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
     // Initialize the simulation and its visualization here.
-    let schedule: Schedule<NetNode> = Schedule::new();
     let state = EpidemicNetworkState::new(WIDTH, HEIGTH, DISCRETIZATION, TOROIDAL);
 
     let mut app = Visualization::default()
-        .with_window_dimensions(800., 800.)
-        .with_simulation_dimensions(500., 500.)
+        .with_window_dimensions(1000., 700.)
+        .with_simulation_dimensions(WIDTH as f32, HEIGTH as f32)
         .with_background_color(Color::rgb(255., 255., 255.))
-        .setup::<NetNode, VisState>(VisState, state, schedule);
+        .setup::<VisState, EpidemicNetworkState>(VisState, state);
 
-    app.add_system(EpidemicNetwork::render.system());
+    app.add_system(EpidemicNetworkState::render.system());
     app.run();
 }

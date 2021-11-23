@@ -1,122 +1,241 @@
 use crate::model::ant::Ant;
-use crate::model::ants_grid::AntsGrid;
-use crate::model::obstacles_grid::ObstaclesGrid;
-use crate::model::sites_grid::SitesGrid;
-use crate::model::static_objects::StaticObjectType;
 use crate::model::to_food_grid::ToFoodGrid;
 use crate::model::to_home_grid::ToHomeGrid;
+use crate::{
+    FOOD_XMAX, FOOD_XMIN, FOOD_YMAX, FOOD_YMIN, HEIGHT, HOME_XMAX, HOME_XMIN, HOME_YMAX, HOME_YMIN,
+    NUM_AGENT, WIDTH,
+};
+use core::fmt;
+use core::hash::{Hash, Hasher};
+use rust_ab::engine::fields::field::Field;
+use rust_ab::engine::fields::sparse_object_grid_2d::SparseGrid2D;
 use rust_ab::engine::location::Int2D;
+use rust_ab::engine::schedule::Schedule;
+use rust_ab::engine::state::State;
+use rust_ab::rand;
+use rust_ab::rand::Rng;
+use std::any::Any;
 use std::sync::RwLock;
 
-/// The global simulation state. This holds the various grids used for movement, exposing setter methods
-/// so that the state itself will worry about ownership rules by mutating its own fields.
-pub struct State {
-    pub ants_grid: AntsGrid,
-    pub obstacles_grid: ObstaclesGrid,
-    pub sites_grid: SitesGrid,
+// Objects within the field
+#[derive(Copy, Clone, PartialEq, Eq, Hash)]
+pub enum ItemType {
+    Food,
+    Home,
+    Obstacle,
+}
+
+impl fmt::Display for ItemType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            ItemType::Food => write!(f, "Food"),
+            ItemType::Home => write!(f, "Home"),
+            ItemType::Obstacle => write!(f, "Obstacle"),
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct Item {
+    pub id: u32,
+    pub value: ItemType,
+}
+
+impl Hash for Item {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        self.id.hash(state);
+    }
+}
+
+impl Eq for Item {}
+
+impl PartialEq for Item {
+    fn eq(&self, other: &Item) -> bool {
+        self.id == other.id
+    }
+}
+
+impl fmt::Display for Item {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} value {}", self.id, self.value)
+    }
+}
+
+// The global simulation state. This holds the various grids used for movement, exposing setter methods
+// so that the state itself will worry about ownership rules by mutating its own fields.
+pub struct ModelState {
+    pub ants_grid: SparseGrid2D<Ant>,
+    pub obstacles_grid: SparseGrid2D<Item>,
     pub to_food_grid: ToFoodGrid,
     pub to_home_grid: ToHomeGrid,
     pub food_source_found: RwLock<bool>,
     pub food_returned_home: RwLock<bool>,
-    pub step: usize,
+    pub step: u64,
 }
 
-impl rust_ab::engine::state::State for State {
-    fn update(&mut self, step: usize) {
-        self.ants_grid.update();
+impl State for ModelState {
+    fn reset(&mut self) {
+        self.step = 0;
+        self.ants_grid = SparseGrid2D::new(WIDTH, HEIGHT);
+        self.obstacles_grid = SparseGrid2D::new(WIDTH, HEIGHT);
+        self.to_food_grid = ToFoodGrid::new(WIDTH, HEIGHT);
+        self.to_home_grid = ToHomeGrid::new(WIDTH, HEIGHT);
+        self.food_source_found = RwLock::new(false);
+        self.food_returned_home = RwLock::new(false);
+    }
+
+    fn init(&mut self, schedule: &mut Schedule) {
+        self.step = 0;
+        self.ants_grid = SparseGrid2D::new(WIDTH, HEIGHT);
+        self.obstacles_grid = SparseGrid2D::new(WIDTH, HEIGHT);
+        self.to_food_grid = ToFoodGrid::new(WIDTH, HEIGHT);
+        self.to_home_grid = ToHomeGrid::new(WIDTH, HEIGHT);
+        self.food_source_found = RwLock::new(false);
+        self.food_returned_home = RwLock::new(false);
+
+        let mut rng = rand::thread_rng();
+
+        // Food generation
+        let x: i32 = if FOOD_XMIN == FOOD_XMAX {
+            FOOD_XMIN
+        } else {
+            rng.gen_range(FOOD_XMIN..FOOD_XMAX)
+        };
+        let y: i32 = if FOOD_YMIN == FOOD_YMAX {
+            FOOD_YMIN
+        } else {
+            rng.gen_range(FOOD_YMIN..FOOD_YMAX)
+        };
+        let food_position = Int2D { x, y };
+
+        self.obstacles_grid.set_object_location(
+            Item {
+                id: 888888888,
+                value: ItemType::Food,
+            },
+            &food_position,
+        );
+
+        // Nest generation
+        let x: i32 = if HOME_XMIN == HOME_XMAX {
+            HOME_XMIN
+        } else {
+            rng.gen_range(HOME_XMIN..HOME_XMAX)
+        };
+        let y: i32 = if HOME_YMIN == HOME_YMAX {
+            HOME_YMIN
+        } else {
+            rng.gen_range(HOME_YMIN..HOME_YMAX)
+        };
+        let nest_position = Int2D { x, y };
+        self.obstacles_grid.set_object_location(
+            Item {
+                id: 99999999,
+                value: ItemType::Home,
+            },
+            &nest_position,
+        );
+
+        // Obastacles generation
+        /* General formula to calculate an ellipsis, used to draw obstacles.
+           x and y define a specific cell
+           horizontal and vertical define the ellipsis position (bottom left: 0,0)
+           size defines the ellipsis' size (smaller value = bigger ellipsis)
+        */
+        let ellipsis = |x: f32, y: f32, horizontal: f32, vertical: f32, size: f32| -> bool {
+            ((x - horizontal) * size + (y - vertical) * size)
+                * ((x - horizontal) * size + (y - vertical) * size)
+                / 36.
+                + ((x - horizontal) * size - (y - vertical) * size)
+                    * ((x - horizontal) * size - (y - vertical) * size)
+                    / 1024.
+                <= 1.
+        };
+
+        let mut obstacle_id = 0;
+        for i in 0..WIDTH {
+            for j in 0..HEIGHT {
+                // Good obstacle placement for 500x500 simulations
+                // if ellipsis(i as f32, j as f32, 300., 345., 0.407)
+                //    || ellipsis(i as f32, j as f32, 190., 155., 0.407)
+                if ellipsis(i as f32, j as f32, 100., 145., 0.407)
+                    || ellipsis(i as f32, j as f32, 90., 55., 0.407)
+                {
+                    let obstacle_position = Int2D { x: i, y: j };
+                    self.obstacles_grid.set_object_location(
+                        Item {
+                            id: obstacle_id,
+                            value: ItemType::Obstacle,
+                        },
+                        &obstacle_position,
+                    );
+                }
+                obstacle_id += 1;
+            }
+        }
+
+        // Ants generation
+        for ant_id in 0..NUM_AGENT {
+            let x = (HOME_XMAX + HOME_XMIN) / 2;
+            let y = (HOME_YMAX + HOME_YMIN) / 2;
+            let ant_loc = Int2D { x, y };
+            // Generate the ant with an initial reward of 1, so that it starts spreading home pheromones
+            // around the nest, the initial spawn point.
+            let ant = Ant::new(ant_id, ant_loc, false, 1.);
+            self.ants_grid.set_object_location(ant, &ant_loc);
+            schedule.schedule_repeating(Box::new(ant), 0., 0);
+        }
+
+        self.obstacles_grid.update();
+    }
+
+    fn update(&mut self, step: u64) {
+        self.ants_grid.lazy_update();
         self.to_food_grid.update();
         self.to_home_grid.update();
         self.step = step;
     }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_state_mut(&mut self) -> &mut dyn State {
+        self
+    }
+
+    fn as_state(&self) -> &dyn State {
+        self
+    }
 }
 
-impl State {
-    pub fn new(width: i64, height: i64) -> State {
-        State {
-            ants_grid: AntsGrid::new(width, height),
-            obstacles_grid: ObstaclesGrid::new(width, height),
-            sites_grid: SitesGrid::new(width, height),
-            to_food_grid: ToFoodGrid::new(width, height),
-            to_home_grid: ToHomeGrid::new(width, height),
+impl ModelState {
+    pub(crate) fn new() -> ModelState {
+        ModelState {
+            ants_grid: SparseGrid2D::new(WIDTH, HEIGHT),
+            obstacles_grid: SparseGrid2D::new(WIDTH, HEIGHT),
+            to_food_grid: ToFoodGrid::new(WIDTH, HEIGHT),
+            to_home_grid: ToHomeGrid::new(WIDTH, HEIGHT),
             food_source_found: RwLock::new(false),
             food_returned_home: RwLock::new(false),
             step: 0,
         }
     }
 
-    /// Fetch a food pheromone from a particular grid cell.
-    pub fn get_food_pheromone(&self, loc: &Int2D) -> Option<&f64> {
-        self.to_food_grid.grid.get_value_at_pos(loc)
-    }
-
-    /// Set the value of a food pheromone in a particular grid cell.
-    pub fn set_food_pheromone(&self, loc: &Int2D, value: f64) {
-        self.to_food_grid.grid.set_value_at_pos(loc, value);
-    }
-
-    /// Fetch a home pheromone from a particular grid cell.
-    pub fn get_home_pheromone(&self, loc: &Int2D) -> Option<&f64> {
-        self.to_home_grid.grid.get_value_at_pos(loc)
-    }
-
-    /// Set the value of a home pheromone in a particular grid cell.
-    pub fn set_home_pheromone(&self, loc: &Int2D, value: f64) {
-        self.to_home_grid.grid.set_value_at_pos(loc, value);
-    }
-
-    /// Check if a particular grid cell has an obstacle or not. Will return None if the grid cell
-    /// holds no obstacle, Some(StaticObjectType::OBSTACLE) otherwise.
-    pub fn get_obstacle(&self, loc: &Int2D) -> Option<&StaticObjectType> {
-        match self.obstacles_grid.grid.get_object_at_location(loc) {
-            Some(_vec) => Some(&StaticObjectType::OBSTACLE),
-            None => None
-        }
-    }
-
-    /// Set an obstacle in a particular grid cell.
-    pub fn set_obstacle(&self, loc: &Int2D) {
-        self.obstacles_grid
-            .grid
-            .set_object_location(StaticObjectType::OBSTACLE, loc);
-    }
-
-    /// Set the location of an ant to a particular cell.
-    pub fn set_ant_location(&self, ant: &mut Ant, loc: &Int2D) {
-        self.ants_grid.grid.set_object_location(*ant, loc);
-    }
-
-    pub fn get_ant_location(&self, ant: &Ant) -> Option<&Int2D> {
-        self.ants_grid.grid.get_object_location(*ant)
-    }
-
-    pub fn get_ant(&self, ant: &Ant) -> Option<&Ant> {
-        self.ants_grid.grid.get_object(ant)
-    }
-
-    /// Check if a particular grid cell has a site or not. Will return None if the grid cell
-    /// holds no site, Some(StaticObjectType::FOOD) or Some(StaticObjectType::HOME) otherwise.
-    pub fn get_site(&self, loc: &Int2D) -> Option<&StaticObjectType> {
-        match self.sites_grid.grid.get_object_at_location(loc) {
+    // Check if a particular grid cell has an obstacle or not. Will return None if the grid cell holds no obstacle.
+    pub fn get_obstacle(&self, loc: &Int2D) -> Option<Vec<Item>> {
+        match self.obstacles_grid.get_objects(loc) {
             Some(vec) => {
-                if vec.len() > 1 {
-                    panic!("A grid cell contains more than a site, this should not happen!");
+                if vec.first().unwrap().value == ItemType::Obstacle {
+                    Some(vec)
+                } else {
+                    None
                 }
-                vec.first()
-            },
-            None => None
+            }
+            None => None,
         }
-    }
-
-    /// Set a particular site in a grid cell.
-    pub fn set_site(&self, loc: &Int2D, site: StaticObjectType) {
-        self.sites_grid.grid.set_object_location(site, loc);
-    }
-
-    pub fn update_sites(&mut self) {
-        self.sites_grid.update();
-    }
-
-    pub fn update_obstacles(&mut self) {
-        self.obstacles_grid.update();
     }
 }

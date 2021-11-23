@@ -1,22 +1,33 @@
-use crate::model::animals::*;
-use crate::model::state::State;
-use crate::{HEIGHT, WIDTH};
+use core::fmt;
+use rust_ab::{
+    engine::{
+        agent::Agent,
+        location::{Int2D, Location2D},
+        schedule::Schedule,
+        state::State,
+    },
+    rand,
+    rand::Rng,
+};
+use std::hash::{Hash, Hasher};
 
-use rust_ab::engine::location::Int2D;
-use rust_ab::rand;
-use rust_ab::rand::Rng;
+use crate::model::state::{LifeState, WsgState};
+use crate::{ENERGY_CONSUME, GAIN_ENERGY_WOLF, HEIGHT, MOMENTUM_PROBABILITY, WIDTH, WOLF_REPR};
 
-pub const MOMENTUM_PROBABILITY: f64 = 0.8;
+#[derive(Copy, Clone)]
+pub struct Wolf {
+    pub id: u32,
+    pub animal_state: LifeState,
+    pub loc: Int2D,
+    pub last: Option<Int2D>,
+    pub energy: f64,
+    pub gain_energy: f64,
+    pub prob_reproduction: f64,
+}
 
-impl Animal {
-    pub fn new_wolf(
-        id: u128,
-        loc: Int2D,
-        energy: f64,
-        gain_energy: f64,
-        prob_reproduction: f64,
-    ) -> Animal {
-        Animal {
+impl Wolf {
+    pub fn new(id: u32, loc: Int2D, energy: f64, gain_energy: f64, prob_reproduction: f64) -> Wolf {
+        Wolf {
             id,
             loc,
             last: None,
@@ -24,138 +35,132 @@ impl Animal {
             gain_energy,
             prob_reproduction,
             animal_state: LifeState::Alive,
-            species: AnimalSpecies::Wolf,
         }
+    }
+
+    #[allow(dead_code)]
+    pub fn as_agent(self) -> Box<dyn Agent> {
+        Box::new(self)
     }
 }
 
-impl Animal {
-    pub fn wolf_eat(&mut self, state: &State) {
-        if let Some(prey) = state.get_sheep_at_location(&self.loc) {
-            if self.loc.x != prey.loc.x || self.loc.y != prey.loc.y {
-                return;
+impl Agent for Wolf {
+    fn step(&mut self, state: &mut dyn State, schedule: &mut Schedule, _schedule_id: u32) {
+        let state = state.as_any().downcast_ref::<WsgState>().unwrap();
+
+        let x = self.loc.x;
+        let y = self.loc.y;
+        let mut rng = rand::thread_rng();
+
+        let mut moved = false;
+        if self.last != None && rng.gen_bool(MOMENTUM_PROBABILITY) {
+            if let Some(last_pos) = self.last {
+                let xm = x + (x - last_pos.x);
+                let ym = y + (y - last_pos.y);
+                let new_loc = Int2D { x: xm, y: ym };
+                // TRY TO MOVE WITH MOMENTUM_PROBABILITY
+                if xm >= 0 && xm < WIDTH && ym >= 0 && ym < HEIGHT {
+                    self.loc = new_loc;
+                    self.last = Some(Int2D { x, y });
+                    moved = true;
+                }
             }
+        }
+        if !moved {
+            let xmin = if x > 0 { -1 } else { 0 };
+            let xmax = if x < WIDTH - 1 { 1 } else { 0 };
+            let ymin = if y > 0 { -1 } else { 0 };
+            let ymax = if y < HEIGHT - 1 { 1 } else { 0 };
 
-            /*if let Some(loc) = state.get_sheep_location(&prey){
-                if loc.x != prey.loc.x || loc.y != prey.loc.y{
-                    return
+            let nx = if rng.gen_bool(0.5) { xmin } else { xmax };
+            let ny = if rng.gen_bool(0.5) { ymin } else { ymax };
+            self.loc = Int2D {
+                x: x + nx,
+                y: y + ny,
+            };
+            self.last = Some(Int2D { x, y });
+        }
+
+        state.wolves_grid.set_object_location(*self, &self.loc);
+
+        //EAT
+        if state
+            .sheeps_grid
+            .get_objects_unbuffered(&self.loc)
+            .is_none()
+        {
+            if let Some(sheeps) = state.sheeps_grid.get_objects(&self.loc) {
+                for mut sheep in sheeps {
+                    if sheep.animal_state == LifeState::Alive {
+                        sheep.animal_state = LifeState::Dead;
+                        schedule.update_event(sheep.schedule_id, Box::new(sheep), true);
+                        state.sheeps_grid.set_object_location(sheep, &sheep.loc);
+                        self.energy += self.gain_energy;
+                        break;
+                    }
                 }
-                else {println!("same locs")}
-            }else {println!("There is a dead sheep here!"); return;}*/
+            }
+        }
 
-            match prey.animal_state {
-                LifeState::Alive => {
-                    let id_wolf = self.id;
-                    let id_sheep = prey.id;
+        //UPDATE ENERGY
+        self.energy -= ENERGY_CONSUME;
+        if self.energy <= 0.0 {
+            self.animal_state = LifeState::Dead;
+        } else {
+            //REPRODUCE
+            if rng.gen_bool(self.prob_reproduction) {
+                self.energy /= 2.0;
+                let mut new_id = state.next_id.lock().unwrap();
 
-                    let mut prey = *prey;
-                    prey.animal_state = LifeState::Dead;
-                    state.set_sheep_location(&prey, &self.loc);
-                    self.energy += self.gain_energy;
+                //let init_energy = rng.gen_range(0..(2 * GAIN_ENERGY_WOLF as usize));
+                let new_wolf =
+                    Wolf::new(*new_id, self.loc, self.energy, GAIN_ENERGY_WOLF, WOLF_REPR);
 
-                    println!(
-                        "Sheep{} eaten by Wolf{}  at step{}, sheep loc: {} {}, wolf loc: {} {}\n--------",
-                        id_sheep, id_wolf, state.step, prey.loc.x, prey.loc.y, self.loc.x, self.loc.y
-                    );
-
-                    /*
-                    println!("Sheep{} rimossa", prey.id);
-                    if loc.is_some(){
-                        println!("MA COME IS POSSIBLE");
-                    }*/
-                }
-
-                LifeState::Dead => {}
+                schedule.schedule_repeating(Box::new(new_wolf), schedule.time + 1.0, 1);
+                *new_id += 1;
+                state.new_wolves.lock().unwrap().push(new_wolf);
             }
         }
     }
 
-    pub fn wolf_act(&mut self, state: &State) {
-        let x = self.loc.x;
-        let y = self.loc.y;
+    fn is_stopped(&mut self, _state: &mut dyn State) -> bool {
+        self.animal_state == LifeState::Dead
+    }
 
-        let mut rng = rand::thread_rng();
+    fn get_id(&self) -> u32 {
+        self.id
+    }
+}
 
-        let mut found_food: bool = false;
-        let mut prey_loc = self.loc;
+impl Eq for Wolf {}
 
-        for dx in -1..2 {
-            for dy in -1..2 {
-                //Calculate position to check
-                let new_x = dx + x;
-                let new_y = dy + y;
-                let new_int2d = Int2D { x: new_x, y: new_y };
+impl PartialEq for Wolf {
+    fn eq(&self, other: &Wolf) -> bool {
+        self.id == other.id
+    }
+}
 
-                if (dx == 0 && dy == 0)
-                    || new_x < 0
-                    || new_y < 0
-                    || new_x >= WIDTH
-                    || new_y >= HEIGHT
-                {
-                    continue;
-                }
+impl Location2D<Int2D> for Wolf {
+    fn get_location(self) -> Int2D {
+        self.loc
+    }
 
-                let food = state.get_sheep_at_location(&new_int2d);
+    fn set_location(&mut self, loc: Int2D) {
+        self.loc = loc;
+    }
+}
 
-                if food.is_some() {
-                    if let Some(checksum) = state.get_sheep_location(food.unwrap()) {
-                        //println!("loc1: {} {}  - loc2: {} {}", checksum.x, checksum.y, new_int2d.x, new_int2d.y);
-                        if checksum.x != new_int2d.x || checksum.y != new_int2d.y {
-                            // println!("Sheep trace, wrong location, loc1: {} {}  - loc2: {} {}", checksum.x, checksum.y, new_int2d.x, new_int2d.y);
-                            continue;
-                        } else {
-                            //println!("loc1: {} {}  - loc2: {} {}", checksum.x, checksum.y, new_int2d.x, new_int2d.y)
-                        }
-                    } else {
-                        //println!("It's a dead sheep, loc: {} {}", new_int2d.x, new_int2d.y);
-                        continue;
-                    }
+impl Hash for Wolf {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        self.id.hash(state);
+    }
+}
 
-                    match food.unwrap().animal_state {
-                        LifeState::Alive => {
-                            if !found_food {
-                                found_food = true;
-                                prey_loc = (*food.unwrap()).loc;
-                            } else if rng.gen_bool(FOOD_CHOICE) {
-                                prey_loc = (*food.unwrap()).loc;
-                            }
-                        }
-                        LifeState::Dead => {
-                            continue;
-                        }
-                    }
-                }
-            }
-        }
-
-        let mut loc = Int2D { x, y };
-        if found_food {
-            loc = prey_loc;
-        } else if self.last != None && rng.gen_bool(MOMENTUM_PROBABILITY) {
-            if let Some(last_pos) = self.last {
-                let xm = x + (x - last_pos.x);
-                let ym = y + (y - last_pos.y);
-                // Don't go outside the field
-                if xm >= 0 && xm < WIDTH && ym >= 0 && ym < HEIGHT {
-                    loc = Int2D { x: xm, y: ym };
-                }
-            }
-        } else {
-            // All other ideas have failed, just choose a random direction
-            let xd: i64 = rng.gen_range(-1..2);
-            let yd: i64 = rng.gen_range(-1..2);
-            let xm = x + xd;
-            let ym = y + yd;
-            // Don't go outside the field and do not stay still
-            if !(xd == 0 && yd == 0) && xm >= 0 && xm < WIDTH && ym >= 0 && ym < HEIGHT {
-                loc = Int2D { x: xm, y: ym };
-            }
-        }
-
-        if loc.x != x || loc.y != y {
-            self.loc = loc;
-            state.set_wolf_location(self, &loc);
-            self.last = Some(Int2D { x, y });
-        }
+impl fmt::Display for Wolf {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.id)
     }
 }
