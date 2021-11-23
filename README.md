@@ -6,7 +6,6 @@ This repository hosts working examples of agent-based simulations, based on the 
 
 | Model                              | Simulation         | Visualization      |
 | -----------------------------------| ------------------ | ------------------ |
-
 | [Ants Foraging](antsforaging)      | :heavy_check_mark: | :heavy_check_mark: |
 | [Flockers](flockers)               | :heavy_check_mark: | :heavy_check_mark: |
 | [ForestFire](forestfire)           | :heavy_check_mark: | :heavy_check_mark: |
@@ -14,4 +13,3 @@ This repository hosts working examples of agent-based simulations, based on the 
 | [Template](template)               | :heavy_check_mark: | :heavy_check_mark: |
 | [Virus on a Network](virusnetwork) | :heavy_check_mark: | :heavy_check_mark: |
 | [Wolf Sheep Grass](wolfsheepgrass) | :heavy_check_mark: | :heavy_check_mark: |
-
