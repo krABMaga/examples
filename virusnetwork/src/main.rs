@@ -44,13 +44,15 @@ mod visualization;
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
     // Initialize the simulation and its visualization here.
-    let state = EpidemicNetworkState::new(WIDTH, HEIGTH, DISCRETIZATION, TOROIDAL);
+    let dim: (f32, f32) = (500., 500.);
+    let num_nodes = 100;
+    let epidemic_network = EpidemicNetworkState::new(dim, num_nodes, DISCRETIZATION, TOROIDAL);
 
     let mut app = Visualization::default()
         .with_window_dimensions(1000., 700.)
-        .with_simulation_dimensions(WIDTH as f32, HEIGTH as f32)
+        .with_simulation_dimensions(dim.0, dim.1)
         .with_background_color(Color::rgb(255., 255., 255.))
-        .setup::<VisState, EpidemicNetworkState>(VisState, state);
+        .setup::<VisState, EpidemicNetworkState>(VisState, epidemic_network);
 
     app.add_system(EpidemicNetworkState::render.system());
     app.run();

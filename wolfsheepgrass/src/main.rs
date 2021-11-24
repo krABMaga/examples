@@ -46,10 +46,13 @@ use {
 // Main used when a visualization feature is applied
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
-    let state = WsgState::new(WIDTH, HEIGHT);
+    let dim: (i32, i32) = (25, 25);
+    let initial_animals: (u32, u32) = ((60. * 0.6) as u32, (60. * 0.4) as u32);
+
+    let state = WsgState::new(dim, initial_animals);
     let mut app = Visualization::default()
         .with_background_color(Color::rgb(255., 255., 255.))
-        .with_simulation_dimensions(WIDTH as f32, HEIGHT as f32)
+        .with_simulation_dimensions(dim.0 as f32, dim.1 as f32)
         .with_window_dimensions(1000., 700.)
         .setup::<VisState, WsgState>(VisState, state);
     app.add_system(DenseNumberGrid2D::batch_render.system());

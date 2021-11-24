@@ -41,13 +41,13 @@ mod visualization;
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
     // Initialize the simulation and its visualization here.
-    let dim: (i32, i32) = (200, 200);
+    let dim: (i32, i32) = (75, 75);
     let density: f64 = 0.7;
 
     let state = Forest::new(dim, density);
     let mut app = Visualization::default()
         .with_simulation_dimensions(state.dim.0 as f32, state.dim.1 as f32)
-        .with_window_dimensions(720., 720.)
+        .with_window_dimensions(1000., 720.)
         .with_background_color(Color::BLACK)
         .with_name("Forest Fire Model")
         .setup::<ForestVis, Forest>(ForestVis, state);
