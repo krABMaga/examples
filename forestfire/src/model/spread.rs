@@ -1,7 +1,6 @@
 use crate::model::forest::Forest;
 use crate::model::forest::Status;
 use crate::Tree;
-use crate::{HEIGHT, WIDTH};
 use core::fmt;
 use rust_ab::engine::agent::Agent;
 use rust_ab::engine::location::Int2D;
@@ -38,8 +37,8 @@ impl Agent for Spread {
                                 // not toroidal
                                 if loc_n.x < 0
                                     || loc_n.y < 0
-                                    || loc_n.x >= WIDTH
-                                    || loc_n.y >= HEIGHT
+                                    || loc_n.x >= real_state.dim.0
+                                    || loc_n.y >= real_state.dim.1
                                 {
                                     continue;
                                 };

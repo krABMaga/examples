@@ -1,0 +1,3 @@
+Simulation,Run,dim,initial_animals,survived_wolves,survived_sheeps,Run Duration,Step per sec
+0,0,"(800, 800)","(120, 80)",51,493,129.543409ms,77.1942
+1,0,"(1600, 1600)","(240, 160)",104,939,490.737808ms,20.377481

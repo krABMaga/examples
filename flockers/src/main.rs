@@ -6,7 +6,7 @@ mod model;
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
     rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::simulate,
-    rust_ab::Info, rust_ab::ProgressBar, std::time::Duration
+    rust_ab::Info, rust_ab::ProgressBar, std::time::Duration,
 };
 
 // Visualization specific imports
@@ -18,10 +18,6 @@ use {
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 mod visualization;
-
-pub static WIDTH: f32 = 200.;
-pub static HEIGHT: f32 = 200.;
-pub static NUM_AGENTS: u32 = 100;
 
 pub static COHESION: f32 = 0.8;
 pub static AVOIDANCE: f32 = 1.0;
@@ -35,18 +31,23 @@ pub static TOROIDAL: bool = true;
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    pub static STEP: u64 = 10;
-    let state = Flocker::new();
-    simulate!(STEP, state, 1, Info::Normal);
+    let step = 10;
+
+    let dim = (200., 200.);
+    let num_agents = 100;
+    let state = Flocker::new(dim, num_agents);
+    simulate!(step, state, 1, Info::Normal);
 }
 
 // Main used when a visualization feature is applied.
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
-    let state = Flocker::new();
+    let dim = (200., 200.);
+    let num_agents = 100;
+    let state = Flocker::new(dim, num_agents);
     Visualization::default()
         .with_window_dimensions(1000., 700.)
-        .with_simulation_dimensions(WIDTH as f32, HEIGHT as f32)
+        .with_simulation_dimensions(dim.0 as f32, dim.1 as f32)
         .with_background_color(Color::rgb(0., 0., 0.))
         .with_name("Flockers")
         .start::<VisState, Flocker>(VisState, state);

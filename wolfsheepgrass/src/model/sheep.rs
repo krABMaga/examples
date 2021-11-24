@@ -1,7 +1,5 @@
 use crate::model::state::{LifeState, WsgState};
-use crate::{
-    ENERGY_CONSUME, FULL_GROWN, GAIN_ENERGY_SHEEP, HEIGHT, MOMENTUM_PROBABILITY, SHEEP_REPR, WIDTH,
-};
+use crate::{ENERGY_CONSUME, FULL_GROWN, GAIN_ENERGY_SHEEP, MOMENTUM_PROBABILITY, SHEEP_REPR};
 
 use core::fmt;
 use rust_ab::engine::agent::Agent;
@@ -73,7 +71,7 @@ impl Agent for Sheep {
                 let ym = y + (y - last_pos.y);
                 let new_loc = Int2D { x: xm, y: ym };
                 // TRY TO MOVE WITH MOMENTUM_PROBABILITY
-                if xm >= 0 && xm < WIDTH && ym >= 0 && ym < HEIGHT {
+                if xm >= 0 && xm < state.dim.0 && ym >= 0 && ym < state.dim.1 {
                     self.loc = new_loc;
                     self.last = Some(Int2D { x, y });
                     moved = true;
@@ -83,9 +81,9 @@ impl Agent for Sheep {
 
         if !moved {
             let xmin = if x > 0 { -1 } else { 0 };
-            let xmax = if x < WIDTH - 1 { 1 } else { 0 };
+            let xmax = if x < state.dim.0 - 1 { 1 } else { 0 };
             let ymin = if y > 0 { -1 } else { 0 };
-            let ymax = if y < HEIGHT - 1 { 1 } else { 0 };
+            let ymax = if y < state.dim.1 - 1 { 1 } else { 0 };
 
             let nx = if rng.gen_bool(0.5) { xmin } else { xmax };
             let ny = if rng.gen_bool(0.5) { ymin } else { ymax };

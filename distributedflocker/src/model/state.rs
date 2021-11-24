@@ -1,5 +1,5 @@
 use crate::model::bird::Bird;
-use crate::{DISCRETIZATION, HEIGHT, MOMENTUM, NUM_AGENTS, TOROIDAL, WIDTH};
+use crate::{DISCRETIZATION, MOMENTUM, TOROIDAL};
 use rust_ab::engine::fields::field::Field;
 use rust_ab::engine::fields::field_2d::Field2D;
 use rust_ab::engine::location::Real2D;
@@ -12,13 +12,18 @@ use std::any::Any;
 pub struct Flocker {
     pub step: u64,
     pub field1: Field2D<Bird>,
+    pub initial_flockers: u32,
+    pub dim: (f32, f32)
 }
 
 impl Flocker {
-    pub fn new() -> Self {
+    #[allow(dead_code)]
+    pub fn new(dim: (f32, f32), initial_flockers: u32) -> Self {
         Flocker {
             step: 0,
-            field1: Field2D::new(WIDTH, HEIGHT, DISCRETIZATION, TOROIDAL),
+            field1: Field2D::new(dim.0, dim.1, DISCRETIZATION, TOROIDAL),
+            initial_flockers: initial_flockers,
+            dim: dim
         }
     }
 }
@@ -26,19 +31,22 @@ impl Flocker {
 impl State for Flocker {
     fn reset(&mut self) {
         self.step = 0;
-        self.field1 = Field2D::new(WIDTH, HEIGHT, DISCRETIZATION, TOROIDAL);
+        self.field1 = Field2D::new(self.dim.0, self.dim.1, DISCRETIZATION, TOROIDAL);
+        self.initial_flockers = self.initial_flockers;
+        self.dim = self.dim;
+    
     }
 
     fn init(&mut self, schedule: &mut Schedule) {
         let mut rng = rand::thread_rng();
         // Should be moved in the init method on the model exploration changes
-        for bird_id in 0..NUM_AGENTS {
+        for bird_id in 0..self.initial_flockers {
             let r1: f32 = rng.gen();
             let r2: f32 = rng.gen();
             let last_d = Real2D { x: 0., y: 0. };
             let pos = Real2D {
-                x: WIDTH * r1,
-                y: HEIGHT * r2,
+                x: self.dim.0 * r1,
+                y: self.dim.1 * r2,
             };
             let bird = Bird::new(bird_id, pos, last_d);
             self.field1.set_object_location(bird, pos);

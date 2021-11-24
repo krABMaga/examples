@@ -1,5 +1,5 @@
 use crate::model::node::{NetNode, NodeStatus};
-use crate::{HEIGTH, INITIAL_INFECTED_PROB, INIT_EDGES, NUM_NODES, WIDTH};
+use crate::{INITIAL_INFECTED_PROB, INIT_EDGES};
 use rust_ab::engine::fields::network::Network;
 use rust_ab::engine::fields::{field::Field, field_2d::Field2D};
 use rust_ab::engine::location::Real2D;
@@ -13,22 +13,22 @@ pub struct EpidemicNetworkState {
     pub step: u64,
     pub field1: Field2D<NetNode>,
     pub network: Network<NetNode, String>,
-    pub width: f32,
-    pub height: f32,
     pub discretization: f32,
     pub toroidal: bool,
+    pub dim: (f32, f32),
+    pub num_nodes: u32,
 }
 
 impl EpidemicNetworkState {
-    pub fn new(w: f32, h: f32, d: f32, t: bool) -> EpidemicNetworkState {
+    pub fn new(dim: (f32, f32), num_nodes: u32, d: f32, t: bool) -> EpidemicNetworkState {
         EpidemicNetworkState {
             step: 0,
-            field1: Field2D::new(w, h, d, t),
+            field1: Field2D::new(dim.0, dim.1, d, t),
             network: Network::new(false),
-            width: w,
-            height: h,
             discretization: d,
             toroidal: t,
+            dim: dim,
+            num_nodes: num_nodes,
         }
     }
 }
@@ -36,14 +36,16 @@ impl EpidemicNetworkState {
 impl State for EpidemicNetworkState {
     fn reset(&mut self) {
         self.step = 0;
-        self.field1 = Field2D::new(self.width, self.height, self.discretization, self.toroidal);
+        self.field1 = Field2D::new(self.dim.0, self.dim.1, self.discretization, self.toroidal);
         self.network = Network::new(false);
+        self.dim = self.dim;
+        self.num_nodes = self.num_nodes;
     }
 
     fn init(&mut self, schedule: &mut Schedule) {
         let mut node_set = Vec::new();
         let mut rng = rand::thread_rng();
-        for node_id in 0..NUM_NODES {
+        for node_id in 0..self.num_nodes {
             let r1: f32 = rng.gen();
             let r2: f32 = rng.gen();
 
@@ -56,8 +58,8 @@ impl State for EpidemicNetworkState {
             let node = NetNode::new(
                 node_id,
                 Real2D {
-                    x: WIDTH * r1,
-                    y: HEIGTH * r2,
+                    x: self.dim.0 * r1,
+                    y: self.dim.1 * r2,
                 },
                 init_status,
             );

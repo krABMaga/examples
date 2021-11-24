@@ -6,7 +6,7 @@ mod model;
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
     rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::simulate,
-    rust_ab::Info, rust_ab::ProgressBar, std::time::Duration,
+    rust_ab::Info, rust_ab::ProgressBar, std::time::Duration, rust_ab::ExploreMode, rust_ab::*,
 };
 
 // Visualization specific imports
@@ -19,9 +19,9 @@ use {
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 mod visualization;
 
-pub static WIDTH: f32 = 200.;
-pub static HEIGHT: f32 = 200.;
-pub static NUM_AGENTS: u32 = 100;
+// pub static WIDTH: f32 = 200.;
+// pub static HEIGHT: f32 = 200.;
+// pub static NUM_AGENTS: u32 = 100;
 
 pub static COHESION: f32 = 0.8;
 pub static AVOIDANCE: f32 = 1.0;
@@ -44,29 +44,63 @@ fn main() {
     let root_rank = 0;
     let root_process = world.process_at_rank(root_rank);
 
-    let mut x;
-    if world.rank() == root_rank {
-        x = 2_u64.pow(10);
-        println!("Root broadcasting value: {}.", x);
-    } else {
-        x = 0_u64;
-    }
-    root_process.broadcast_into(&mut x);
-    println!("Rank {} received value: {}.", world.rank(), x);
-    assert_eq!(x, 1024);
-    println!();
+    // let mut x;
+    // if world.rank() == root_rank {
+    //     x = 2_u64.pow(10);
+    //     println!("Root broadcasting value: {}.", x);
+    // } else {
+    //     x = 0_u64;
+    // }
+    // root_process.broadcast_into(&mut x);
+    // println!("Rank {} received value: {}.", world.rank(), x);
+    // assert_eq!(x, 1024);
+    // println!();
 
-    let mut a;
-    let n = 4;
-    if world.rank() == root_rank {
-        a = (1..).map(|i| 2_u64.pow(i)).take(n).collect::<Vec<_>>();
-        println!("Root broadcasting value: {:?}.", &a[..]);
-    } else {
-        a = std::iter::repeat(0_u64).take(n).collect::<Vec<_>>();
-    }
-    root_process.broadcast_into(&mut a[..]);
-    println!("Rank {} received value: {:?}.", world.rank(), &a[..]);
-    assert_eq!(&a[..], &[2, 4, 8, 16]);
+    // let mut a;
+    // let n = 4;
+    // if world.rank() == root_rank {
+    //     a = (1..).map(|i| 2_u64.pow(i)).take(n).collect::<Vec<_>>();
+    //     println!("Root broadcasting value: {:?}.", &a[..]);
+    // } else {
+    //     a = std::iter::repeat(0_u64).take(n).collect::<Vec<_>>();
+    // }
+    // root_process.broadcast_into(&mut a[..]);
+    // println!("Rank {} received value: {:?}.", world.rank(), &a[..]);
+    // assert_eq!(&a[..], &[2, 4, 8, 16]);
+
+    let step = 10;
+
+    let initial_flockers = vec![
+        100,
+        200,
+    ];
+
+    let dim = vec![
+        (100., 100.),
+        (150., 150.),
+    ];
+
+    // explore the result of simulation using initial_animals and dim as input
+    // the macro returns a dataframe with the required output
+    let result = explore!(
+        step, // number of step
+        1, // number of repetition of the simulation for each configuration
+        Flocker, // name of the state
+        input { // input to use to configure the state that will change at each time
+            dim:(f32, f32)
+            initial_flockers: u32
+        },
+        output[ // desired output that will be written in the dataframe
+        //     survived_wolves: u32
+        //     survived_sheeps: u32
+        ],
+        ExploreMode::Matched
+    );
+
+    // build the name of the csv for each process
+    let name = format!("{}_{}", "result", world.rank());
+    export_dataframe(&name, &result);
+
 }
 
 // Main used when a visualization feature is applied.

@@ -17,9 +17,6 @@ use {
 use model::state::EpidemicNetworkState;
 mod model;
 
-static NUM_NODES: u32 = 100;
-static WIDTH: f32 = 500.0;
-static HEIGTH: f32 = 500.0;
 static DISCRETIZATION: f32 = 10.0 / 1.5;
 static TOROIDAL: bool = false;
 ///Initial infected nodes
@@ -32,13 +29,12 @@ pub static GAIN_RESISTENCE_CHANCE: f64 = 0.20;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    static STEP: u64 = 10;
-    simulate!(
-        STEP,
-        EpidemicNetworkState::new(WIDTH, HEIGTH, DISCRETIZATION, TOROIDAL),
-        1,
-        Info::Verbose
-    );
+    let step: u64 = 10;
+    let dim: (f32, f32) = (100., 100.);
+    let num_nodes = 100;
+    let epidemic_network = EpidemicNetworkState::new(dim, num_nodes, DISCRETIZATION, TOROIDAL);
+
+    simulate!(step, epidemic_network, 1, Info::Normal);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

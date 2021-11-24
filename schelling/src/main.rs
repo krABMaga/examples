@@ -19,17 +19,23 @@ use {
     rust_ab::visualization::visualization::Visualization,
 };
 
-pub const NUM_AGENTS: u32 = 320;
-pub static STEP: u64 = 10;
 pub const PERC: f32 = 0.5;
-pub static WIDTH: i32 = 100;
-pub static HEIGHT: i32 = 100;
 pub const PERCENT_SIMILAR_WANTED: f32 = 0.7;
+
+/* pub static WIDTH: i32 = 100;
+pub static HEIGHT: i32 = 100;
+pub const NUM_AGENTS: u32 = 320; */
 
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    simulate!(STEP, World::new(), 1, Info::Normal);
+    let step = 10;
+    let dim: (i32, i32) = (100, 100);
+    let num_agents = 320;
+
+    let world = World::new(dim, num_agents);
+
+    simulate!(step, world, 1, Info::Normal);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
@@ -39,13 +45,15 @@ mod visualization;
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
     // Initialize the simulation and its visualization here.
-    let state = World::new();
+    let dim: (i32, i32) = (100, 100);
+    let num_agents = 320;
+    let world = World::new(dim, num_agents);
     let mut app = Visualization::default()
-        .with_simulation_dimensions(WIDTH as f32, HEIGHT as f32)
+        .with_simulation_dimensions(dim.0 as f32, dim.1 as f32)
         .with_window_dimensions(720., 720.)
         .with_background_color(Color::WHITE)
         .with_name("Schelling Model")
-        .setup::<WorldVis, World>(WorldVis, state);
+        .setup::<WorldVis, World>(WorldVis, world);
     app.add_system(SparseGrid2D::<Patch>::render.system());
     app.run();
 }

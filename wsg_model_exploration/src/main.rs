@@ -26,31 +26,14 @@ pub const MOMENTUM_PROBABILITY: f64 = 0.8;
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State,
-    rust_ab::ExploreMode, rust_ab::Info, rust_ab::ProgressBar, rust_ab::*, std::time::Duration,
+    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::ComputationMode,
+    rust_ab::ExploreMode, rust_ab::*, std::time::Duration,
 };
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
     // Parameters that can change
     let step: u64 = 10;
-
-    // initial.animals.0 is the number of sheeps
-    // initial.animals.1 is the number of wolves
-    // let initial_animals: (u32, u32) = ((25600.*0.6) as u32, (25600.*0.4) as u32);
-
-    // dim.0 is the width of the field
-    // dim.1 is the height of the field
-    // let dim: (i32, i32) = (6400, 6400);
-
-    // let state = WsgState::new(
-    //     dim,
-    //     initial_animals
-    // );
-
-    // simulate!(step, state, 1, Info::Verbose);
-
-    // Model exploration
 
     // tuples to use in the exploration
 
@@ -72,25 +55,8 @@ fn main() {
         // (25600, 25600)
     ];
 
-    // explore the result of simulation using initial_animals and dim as input
-    // the macro returns a dataframe with the required output
-    // let result = explore!(
-    //     step, // number of step
-    //     1, // number of repetition of the simulation for each configuration
-    //     WsgState, // name of the state
-    //     input { // input to use to configure the state that will change at each time
-    //         dim:(i32, i32)
-    //         initial_animals:(u32, u32)
-    //     },
-    //     output[ // desired output that will be written in the dataframe
-    //         survived_wolves: u32
-    //         survived_sheeps: u32
-    //     ],
-    //     ExploreMode::Matched
-    // );
-
     // model exploration in parallel, same syntax of explore
-    let result = explore_parallel!(
+    let result = explore!(
         step,
         1,
         WsgState,
@@ -102,11 +68,12 @@ fn main() {
             survived_wolves: u32
             survived_sheeps: u32
         ],
-        ExploreMode::Matched
+        ExploreMode::Matched,
+        ComputationMode::Local
     );
 
     // export the dataframe returned by the model exploration into a csv
-    export_dataframe("result", &result);
+    let _ = export_dataframe("result", &result);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

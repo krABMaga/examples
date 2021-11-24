@@ -1,6 +1,6 @@
 use crate::model::world::World;
 use crate::Patch;
-use crate::{HEIGHT, PERCENT_SIMILAR_WANTED, WIDTH};
+use crate::PERCENT_SIMILAR_WANTED;
 use core::fmt;
 use rust_ab::engine::agent::Agent;
 use rust_ab::engine::location::Int2D;
@@ -35,7 +35,11 @@ impl Agent for Updater {
                             x: x + j - 1,
                             y: y + i - 1,
                         };
-                        if loc_n.x < 0 || loc_n.y < 0 || loc_n.x >= WIDTH || loc_n.y >= HEIGHT {
+                        if loc_n.x < 0
+                            || loc_n.y < 0
+                            || loc_n.x >= real_state.dim.0
+                            || loc_n.y >= real_state.dim.0
+                        {
                             continue;
                         };
 

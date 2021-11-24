@@ -8,7 +8,7 @@ use rust_ab::rand::Rng;
 use std::hash::{Hash, Hasher};
 
 use crate::model::state::Flocker;
-use crate::{AVOIDANCE, COHESION, CONSISTENCY, HEIGHT, JUMP, MOMENTUM, RANDOMNESS, WIDTH,};
+use crate::{AVOIDANCE, COHESION, CONSISTENCY, JUMP, MOMENTUM, RANDOMNESS};
 
 #[derive(Clone, Copy)]
 pub struct Bird {
@@ -22,7 +22,7 @@ impl Bird {
         Bird { id, pos, last_d }
     }
 
-    pub fn avoidance(self, vec: &[Bird]) -> Real2D {
+    pub fn avoidance(self, vec: &[Bird], width: f32, height: f32) -> Real2D {
         if vec.is_empty() {
             let real = Real2D { x: 0.0, y: 0.0 };
             return real;
@@ -35,8 +35,8 @@ impl Bird {
 
         for elem in vec {
             if self != *elem {
-                let dx = toroidal_distance(self.pos.x, elem.pos.x, WIDTH);
-                let dy = toroidal_distance(self.pos.y, elem.pos.y, HEIGHT);
+                let dx = toroidal_distance(self.pos.x, elem.pos.x, width);
+                let dy = toroidal_distance(self.pos.y, elem.pos.y, height);
                 let square = dx * dx + dy * dy;
                 count += 1;
                 x += dx / (square * square + 1.0);
@@ -54,7 +54,7 @@ impl Bird {
         }
     }
 
-    pub fn cohesion(self, vec: &[Bird]) -> Real2D {
+    pub fn cohesion(self, vec: &[Bird], width: f32, height: f32) -> Real2D {
         if vec.is_empty() {
             let real = Real2D { x: 0.0, y: 0.0 };
             return real;
@@ -67,8 +67,8 @@ impl Bird {
 
         for elem in vec {
             if self != *elem {
-                let dx = toroidal_distance(self.pos.x, elem.pos.x, WIDTH);
-                let dy = toroidal_distance(self.pos.y, elem.pos.y, HEIGHT);
+                let dx = toroidal_distance(self.pos.x, elem.pos.x, width);
+                let dy = toroidal_distance(self.pos.y, elem.pos.y, height);
                 count += 1;
                 x += dx;
                 y += dy;
@@ -111,8 +111,6 @@ impl Bird {
 
         for elem in vec {
             if self != *elem {
-                /* let _dx = toroidal_distance(self.pos.x, vec[i].pos.x, WIDTH);
-                let _dy = toroidal_distance(self.pos.y, vec[i].pos.y, HEIGHT); */
                 count += 1;
                 x += elem.last_d.x;
                 y += elem.last_d.y;
@@ -136,8 +134,11 @@ impl Agent for Bird {
         let state = state.as_any().downcast_ref::<Flocker>().unwrap();
         let vec = state.field1.get_neighbors_within_distance(self.pos, 10.0);
 
-        let avoid = self.avoidance(&vec);
-        let cohe = self.cohesion(&vec);
+        let width = state.dim.0;
+        let height = state.dim.1;
+
+        let avoid = self.avoidance(&vec, width, height);
+        let cohe = self.cohesion(&vec, width, height);
         let rand = self.randomness();
         let cons = self.consistency(&vec);
         let mom = self.last_d;
@@ -160,15 +161,14 @@ impl Agent for Bird {
         }
 
         self.last_d = Real2D { x: dx, y: dy };
-        let loc_x = toroidal_transform(self.pos.x + dx, WIDTH);
-        let loc_y = toroidal_transform(self.pos.y + dy, WIDTH);
+        let loc_x = toroidal_transform(self.pos.x + dx, width);
+        let loc_y = toroidal_transform(self.pos.y + dy, width);
 
         self.pos = Real2D { x: loc_x, y: loc_y };
         drop(vec);
         state
             .field1
             .set_object_location(*self, Real2D { x: loc_x, y: loc_y });
-
     }
 
     fn get_id(&self) -> u32 {

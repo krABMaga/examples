@@ -10,7 +10,7 @@ use rust_ab::rand::Rng;
 use std::hash::Hash;
 use std::hash::Hasher;
 
-use crate::{HEIGHT, NUM_AGENTS, PERC, WIDTH};
+use crate::PERC;
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Status {
@@ -59,13 +59,17 @@ impl fmt::Display for Patch {
 pub struct World {
     pub step: u64,
     pub field: SparseGrid2D<Patch>,
+    pub dim: (i32, i32),
+    pub num_agents: u32,
 }
 
 impl World {
-    pub fn new() -> World {
+    pub fn new(dim: (i32, i32), num_agents: u32) -> World {
         World {
             step: 0,
-            field: SparseGrid2D::new(WIDTH, HEIGHT),
+            field: SparseGrid2D::new(dim.0, dim.1),
+            dim,
+            num_agents,
         }
     }
 
@@ -85,20 +89,21 @@ impl State for World {
     }
     fn reset(&mut self) {
         self.step = 0;
-        self.field = SparseGrid2D::new(WIDTH, HEIGHT);
+        self.field = SparseGrid2D::new(self.dim.0, self.dim.1);
+        self.num_agents = self.num_agents;
     }
 
-    fn init(&mut self, schedule: &mut rust_ab::engine::schedule::Schedule) {
+    fn init(&mut self, schedule: &mut Schedule) {
         //println!("init system by state");
         self.step = 0;
 
         let mut rng = rand::thread_rng();
 
-        for i in 0..NUM_AGENTS {
-            let xx: i32 = rng.gen_range(0..WIDTH - 1);
-            let yy: i32 = rng.gen_range(0..HEIGHT - 1);
+        for i in 0..self.num_agents {
+            let xx: i32 = rng.gen_range(0..self.dim.0 - 1);
+            let yy: i32 = rng.gen_range(0..self.dim.1 - 1);
 
-            if i < ((NUM_AGENTS as f32) * PERC).ceil() as u32 {
+            if i < ((self.num_agents as f32) * PERC).ceil() as u32 {
                 self.field.set_object_location(
                     Patch {
                         id: i,

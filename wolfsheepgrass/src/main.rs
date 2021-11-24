@@ -2,8 +2,7 @@ use crate::model::state::WsgState;
 mod model;
 
 pub const ENERGY_CONSUME: f64 = 1.0;
-pub const NUM_WOLVES: u32 = (60. * 0.4) as u32;
-pub const NUM_SHEEPS: u32 = (60. * 0.6) as u32;
+
 pub const FULL_GROWN: u16 = 20;
 
 pub const GAIN_ENERGY_SHEEP: f64 = 5.0;
@@ -14,10 +13,6 @@ pub const WOLF_REPR: f64 = 0.1;
 
 pub const MOMENTUM_PROBABILITY: f64 = 0.8;
 
-pub const WIDTH: i32 = 25;
-pub const HEIGHT: i32 = 25;
-pub const STEP: u64 = 10;
-
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
@@ -27,7 +22,13 @@ use {
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    simulate!(STEP, WsgState::new(WIDTH, HEIGHT), 1, Info::Normal);
+    let step = 10;
+
+    let dim: (i32, i32) = (25, 25);
+    let initial_animals: (u32, u32) = ((60. * 0.6) as u32, (60. * 0.4) as u32);
+
+    let state = WsgState::new(dim, initial_animals);
+    simulate!(step, state, 1, Info::Normal);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
