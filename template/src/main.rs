@@ -28,7 +28,7 @@ pub static TOROIDAL: bool = true;
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
     pub static STEP: u64 = 50;
-    simulate!(STEP, Sea::new(), 1, Info::VERBOSE);
+    simulate!(STEP, Sea::new(), 1, Info::Normal);
 }
 
 // Main used when a visualization feature is applied.

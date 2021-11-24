@@ -37,7 +37,7 @@ fn main() {
         STEP,
         EpidemicNetworkState::new(WIDTH, HEIGTH, DISCRETIZATION, TOROIDAL),
         1,
-        Info::VERBOSE
+        Info::Verbose
     );
 }
 

@@ -37,7 +37,7 @@ pub static TOROIDAL: bool = true;
 fn main() {
     pub static STEP: u64 = 10;
     let state = Flocker::new();
-    simulate!(STEP, state, 1, Info::VERBOSE);
+    simulate!(STEP, state, 1, Info::Normal);
 }
 
 // Main used when a visualization feature is applied.

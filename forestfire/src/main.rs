@@ -27,7 +27,7 @@ pub const DENSITY: f64 = 0.7;
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    simulate!(STEP, Forest::new(), 1, Info::VERBOSE);
+    simulate!(STEP, Forest::new(), 1, Info::Normal);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

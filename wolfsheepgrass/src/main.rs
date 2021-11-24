@@ -27,7 +27,7 @@ use {
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    simulate!(STEP, WsgState::new(WIDTH, HEIGHT), 1, Info::VERBOSE);
+    simulate!(STEP, WsgState::new(WIDTH, HEIGHT), 1, Info::Normal);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
