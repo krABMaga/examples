@@ -19,15 +19,19 @@ use {
     rust_ab::visualization::visualization::Visualization,
 };
 
-pub static STEP: u64 = 10;
+/* pub static STEP: u64 = 10;
 pub static WIDTH: i32 = 6400;
 pub static HEIGHT: i32 = 6400;
-pub const DENSITY: f64 = 0.7;
+pub const DENSITY: f64 = 0.7; */
 
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    simulate!(STEP, Forest::new(), 1, Info::VERBOSE);
+    let step = 10;
+    let dim: (i32, i32) = (200, 200);
+    let density: f64 = 0.7;
+    let forest = Forest::new(dim, density);
+    simulate!(step, forest, 1, Info::Normal);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
@@ -37,10 +41,13 @@ mod visualization;
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
     // Initialize the simulation and its visualization here.
-    let state = Forest::new();
+    let dim: (i32, i32) = (75, 75);
+    let density: f64 = 0.7;
+
+    let state = Forest::new(dim, density);
     let mut app = Visualization::default()
-        .with_simulation_dimensions(WIDTH as f32, HEIGHT as f32)
-        .with_window_dimensions(720., 720.)
+        .with_simulation_dimensions(state.dim.0 as f32, state.dim.1 as f32)
+        .with_window_dimensions(1000., 720.)
         .with_background_color(Color::BLACK)
         .with_name("Forest Fire Model")
         .setup::<ForestVis, Forest>(ForestVis, state);

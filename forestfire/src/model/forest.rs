@@ -10,8 +10,6 @@ use rust_ab::rand::Rng;
 use std::hash::Hash;
 use std::hash::Hasher;
 
-use crate::{DENSITY, HEIGHT, WIDTH};
-
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Status {
     Green,   // tree alive - the fire can spread here
@@ -67,13 +65,17 @@ pub struct Forest {
     pub burned: i32,
     pub burning: i32,
     pub green: i32,
+    pub dim: (i32, i32),
+    pub density: f64,
 }
 
 impl Forest {
-    pub fn new() -> Forest {
+    pub fn new(dim: (i32, i32), density: f64) -> Forest {
         Forest {
             step: 0,
-            field: DenseGrid2D::new(WIDTH, HEIGHT),
+            density,
+            dim,
+            field: DenseGrid2D::new(dim.0, dim.1),
             before_burned: 0,
             before_burning: 0,
             before_green: 0,
@@ -100,7 +102,9 @@ impl State for Forest {
 
     fn reset(&mut self) {
         self.step = 0;
-        self.field = DenseGrid2D::new(WIDTH, HEIGHT);
+        self.field = DenseGrid2D::new(self.dim.0, self.dim.1);
+        self.dim = self.dim;
+        self.density = self.density;
     }
 
     fn init(&mut self, schedule: &mut Schedule) {
@@ -109,9 +113,9 @@ impl State for Forest {
         let mut rng = rand::thread_rng();
         let mut ids = 0;
         // generate the trees to populate the forest
-        for i in 0..WIDTH {
-            for j in 0..HEIGHT {
-                if rng.gen_bool(DENSITY) {
+        for i in 0..self.dim.0 {
+            for j in 0..self.dim.1 {
+                if rng.gen_bool(self.density) {
                     let mut status_tree = Status::Green;
                     if i == 0 {
                         // Set the trees at the left edge on fire

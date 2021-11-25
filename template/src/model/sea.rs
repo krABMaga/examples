@@ -1,5 +1,5 @@
 use super::crab::Crab;
-use crate::{DISCRETIZATION, HEIGHT, NUM_AGENTS, TOROIDAL, WIDTH};
+use crate::{DISCRETIZATION, TOROIDAL};
 use rust_ab::engine::fields::field::Field;
 use rust_ab::{
     engine::{fields::field_2d::Field2D, location::Real2D, schedule::Schedule, state::State},
@@ -11,13 +11,17 @@ use rust_ab::{
 pub struct Sea {
     pub step: u64,
     pub field: Field2D<Crab>,
+    pub dim: (f32, f32),
+    pub num_agents: u32
 }
 
 impl Sea {
-    pub fn new() -> Sea {
+    pub fn new(dim: (f32, f32), num_agents: u32) -> Sea {
         Sea {
             step: 0,
-            field: Field2D::new(WIDTH, HEIGHT, DISCRETIZATION, TOROIDAL),
+            field: Field2D::new(dim.0, dim.1, DISCRETIZATION, TOROIDAL),
+            dim,
+            num_agents
         }
     }
 }
@@ -32,23 +36,24 @@ impl State for Sea {
     /// Put the code that should be executed to reset simulation state
     fn reset(&mut self) {
         self.step = 0;
-        self.field = Field2D::new(WIDTH, HEIGHT, DISCRETIZATION, TOROIDAL);
+        self.field = Field2D::new(self.dim.0, self.dim.1, DISCRETIZATION, TOROIDAL);
+        self.num_agents = self.num_agents;
     }
 
     /// Put the code that should be executed to initialize simulation:
     /// Agent creation and schedule set-up
-    fn init(&mut self, schedule: &mut rust_ab::engine::schedule::Schedule) {
+    fn init(&mut self, schedule: &mut Schedule) {
         self.step = 0;
 
         let mut rng = rand::thread_rng();
 
-        for i in 0..NUM_AGENTS {
+        for i in 0..self.num_agents {
             let r1: f32 = rng.gen();
             let r2: f32 = rng.gen();
             let last_d = Real2D { x: 0., y: 0. };
             let pos = Real2D {
-                x: WIDTH * r1,
-                y: HEIGHT * r2,
+                x: self.dim.0 * r1,
+                y: self.dim.1 * r2,
             };
             let agent = Crab {
                 id: i,

@@ -18,8 +18,9 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rust-ab = { git="https://github.com/rust-ab/rust-ab.git" }
+rust-ab = { path="/Users/ddevin/Documents/VSCode/rust-ab" }
 
 [features]
+parallel = ["rust-ab/parallel"]
 visualization = ["rust-ab/visualization"]
 visualization_wasm = ["rust-ab/visualization_wasm"]
