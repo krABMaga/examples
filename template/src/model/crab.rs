@@ -20,7 +20,7 @@ pub struct Crab {
 
 impl Agent for Crab {
     /// Put the code that should happen for each step, for each agent here.
-    fn step(&mut self, state: &mut dyn State, _schedule: &mut Schedule, _schedule_id: u32) {
+    fn step(&mut self, state: &mut dyn State) {
         let state = state.as_any().downcast_ref::<Sea>().unwrap();
         let mut rng = rand::thread_rng();
 

@@ -33,10 +33,10 @@ pub static TOROIDAL: bool = true;
 fn main() {
     let step = 10;
 
-    let dim = (200., 200.);
+    let dim = (100., 100.);
     let num_agents = 100;
     let state = Flocker::new(dim, num_agents);
-    simulate!(step, state, 1, Info::Normal);
+    simulate!(step, state, 1, Info::Verbose);
 }
 
 // Main used when a visualization feature is applied.

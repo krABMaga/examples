@@ -20,6 +20,7 @@ readme = "README.md"
 [dependencies]
 rust-ab = {path="/Users/ddevin/Documents/VSCode/rust-ab" }
 # The library has to point a specific commit to work
+# more info at: https://github.com/rsmpi/rsmpi/issues/64
 mpi = { git = "https://github.com/bsteinb/rsmpi", rev = "f9aec8b8d82" }
 
 

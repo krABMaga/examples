@@ -15,11 +15,8 @@ pub struct Updater {
 }
 
 impl Agent for Updater {
-    fn step(&mut self, state: &mut dyn State, _schedule: &mut Schedule, _schedule_id: u32) {
+    fn step(&mut self, state: &mut dyn State) {
         let real_state = state.as_any().downcast_ref::<World>().unwrap();
-
-        // let mut empty_bags = RefCell::new(Vec::new());
-
         let updates = RefCell::new(Vec::<(Patch, Int2D)>::new());
 
         real_state.field.iter_objects(|loc, value| {
@@ -58,38 +55,22 @@ impl Agent for Updater {
             }
             let mut updates = updates.borrow_mut();
 
-            //if neighbors == 0.0 || (similar / neighbors) < PERCENT_SIMILAR_WANTED {
             if similar < SIMILAR_WANTED {
-                // agent not ok move to random place
-                // let mut bags = empty_bags.borrow_mut();
-                // if bags.len() == 0 {
-                //     *bags = real_state.field.get_empty_bags();
-                // }
-                // let nindex = rng.gen_range(0..bags.len());
-                // let nloc = bags[nindex];
-                // bags.remove(nindex);
+                
 
                 let nloc = real_state.field.get_random_empty_bag();
                 match nloc {
                     Some(rloc) => {
                         updates.push((*value, rloc));
-                        // println!("Use a random empty bag");
                     }
                     None => {
                         updates.push((*value, *loc));
-                        // println!("Random empty bag not found");
                     }
                 }
-                // real_state.field.set_object_location(*value, &nloc);
-
-                // println!("{:?} set 2", loc);
-                // println!("change loc {:?} {:?}",loc, nloc);
+                
             } else {
                 // agent ok nothing to do
-                // real_state.field.set_object_location(*value, &loc);
                 updates.push((*value, *loc));
-
-                // println!("{:?} set 3", loc);
             }
         });
 

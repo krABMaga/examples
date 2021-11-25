@@ -233,7 +233,7 @@ impl Ant {
 
 impl Agent for Ant {
     /// Each ant deposits a pheromone in its current location, then it steps in the next grid cell.
-    fn step(&mut self, state: &mut dyn State, _schedule: &mut Schedule, _schedule_id: u32) {
+    fn step(&mut self, state: &mut dyn State) {
         let state = state.as_any().downcast_ref::<ModelState>().unwrap();
         self.deposit_pheromone(state);
         self.act(state);

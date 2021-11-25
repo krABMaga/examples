@@ -19,7 +19,6 @@ pub struct Sheep {
     pub energy: f64,
     pub gain_energy: f64,
     pub prob_reproduction: f64,
-    pub schedule_id: u32,
 }
 
 impl Sheep {
@@ -38,7 +37,6 @@ impl Sheep {
             gain_energy,
             prob_reproduction,
             animal_state: LifeState::Alive,
-            schedule_id: 0,
         }
     }
 
@@ -49,11 +47,9 @@ impl Sheep {
 }
 
 impl Agent for Sheep {
-    fn step(&mut self, state: &mut dyn State, schedule: &mut Schedule, schedule_id: u32) {
+    fn step(&mut self, state: &mut dyn State) {
         let state = state.as_any().downcast_ref::<WsgState>().unwrap();
-        if self.schedule_id == 0 {
-            self.schedule_id = schedule_id;
-        }
+
         // CHECK IF I AM DEAD
         if self.animal_state == LifeState::Dead {
             return;
@@ -124,7 +120,7 @@ impl Agent for Sheep {
                     SHEEP_REPR,
                 );
 
-                schedule.schedule_repeating(Box::new(new_sheep), schedule.time + 1.0, 0);
+                //schedule.schedule_repeating(Box::new(new_sheep), schedule.time + 1.0, 0);
                 *new_id += 1;
                 state.new_sheeps.lock().unwrap().push(new_sheep);
             }
