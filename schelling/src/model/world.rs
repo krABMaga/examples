@@ -91,6 +91,7 @@ impl State for World {
         self.step = 0;
         self.field = SparseGrid2D::new(self.dim.0, self.dim.1);
         self.num_agents = self.num_agents;
+        self.dim = self.dim;
     }
 
     fn init(&mut self, schedule: &mut Schedule) {

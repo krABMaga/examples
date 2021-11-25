@@ -6,7 +6,8 @@ mod model;
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
     rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::simulate,
-    rust_ab::Info, rust_ab::ProgressBar, std::time::Duration, rust_ab::ExploreMode, rust_ab::*,
+    rust_ab::ComputationMode, rust_ab::ExploreMode, rust_ab::Info, rust_ab::ProgressBar,
+    rust_ab::*, std::time::Duration,
 };
 
 // Visualization specific imports
@@ -35,81 +36,62 @@ pub static TOROIDAL: bool = true;
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    // pub static STEP: u64 = 10;
-    // let state = Flocker::new();
-    // simulate!(STEP, state, 1, Info::Verbose);
-
-    let universe = mpi::initialize().unwrap();
-    let world = universe.world();
-    let root_rank = 0;
-    let root_process = world.process_at_rank(root_rank);
-
-    // let mut x;
-    // if world.rank() == root_rank {
-    //     x = 2_u64.pow(10);
-    //     println!("Root broadcasting value: {}.", x);
-    // } else {
-    //     x = 0_u64;
-    // }
-    // root_process.broadcast_into(&mut x);
-    // println!("Rank {} received value: {}.", world.rank(), x);
-    // assert_eq!(x, 1024);
-    // println!();
-
-    // let mut a;
-    // let n = 4;
-    // if world.rank() == root_rank {
-    //     a = (1..).map(|i| 2_u64.pow(i)).take(n).collect::<Vec<_>>();
-    //     println!("Root broadcasting value: {:?}.", &a[..]);
-    // } else {
-    //     a = std::iter::repeat(0_u64).take(n).collect::<Vec<_>>();
-    // }
-    // root_process.broadcast_into(&mut a[..]);
-    // println!("Rank {} received value: {:?}.", world.rank(), &a[..]);
-    // assert_eq!(&a[..], &[2, 4, 8, 16]);
-
     let step = 10;
 
-    let initial_flockers = vec![
-        100,
-        200,
-    ];
+    let dim = (12800., 12800.);
+    let num_agents = 153600;
+    let state = Flocker::new(dim, num_agents);
+    simulate!(step, state, 1, Info::Normal);
 
-    let dim = vec![
-        (100., 100.),
-        (150., 150.),
-    ];
+    // let universe = mpi::initialize().unwrap();
+    // let world = universe.world();
+    // let root_rank = 0;
+    // let root_process = world.process_at_rank(root_rank);
 
-    // explore the result of simulation using initial_animals and dim as input
-    // the macro returns a dataframe with the required output
-    let result = explore!(
-        step, // number of step
-        1, // number of repetition of the simulation for each configuration
-        Flocker, // name of the state
-        input { // input to use to configure the state that will change at each time
-            dim:(f32, f32)
-            initial_flockers: u32
-        },
-        output[ // desired output that will be written in the dataframe
-        //     survived_wolves: u32
-        //     survived_sheeps: u32
-        ],
-        ExploreMode::Matched
-    );
+    // let step = 10;
 
-    // build the name of the csv for each process
-    let name = format!("{}_{}", "result", world.rank());
-    export_dataframe(&name, &result);
+    // let initial_flockers = vec![
+    //     100,
+    //     200,
+    // ];
 
+    // let dim = vec![
+    //     (100., 100.),
+    //     (150., 150.),
+    // ];
+
+    // // explore the result of simulation using initial_animals and dim as input
+    // // the macro returns a dataframe with the required output
+    // let result = explore!(
+    //     step, // number of step
+    //     1, // number of repetition of the simulation for each configuration
+    //     Flocker, // name of the state
+    //     input { // input to use to configure the state that will change at each time
+    //         dim:(f32, f32)
+    //         initial_flockers: u32
+    //     },
+    //     output[ // desired output that will be written in the dataframe
+    //     //     survived_wolves: u32
+    //     //     survived_sheeps: u32
+    //     ],
+    //     ExploreMode::Matched,
+    //     ComputationMode::Local
+    // );
+
+    // // build the name of the csv for each process
+    // let name = format!("{}_{}", "result", world.rank());
+    // export_dataframe(&name, &result);
 }
 
 // Main used when a visualization feature is applied.
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
-    let state = Flocker::new();
+    let dim = (200., 200.);
+    let num_agents = 100;
+    let state = Flocker::new(dim, num_agents);
     Visualization::default()
         .with_window_dimensions(1000., 700.)
-        .with_simulation_dimensions(WIDTH as f32, HEIGHT as f32)
+        .with_simulation_dimensions(dim.0, dim.1)
         .with_background_color(Color::rgb(0., 0., 0.))
         .with_name("Flockers")
         .start::<VisState, Flocker>(VisState, state);

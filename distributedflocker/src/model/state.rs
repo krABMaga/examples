@@ -13,7 +13,7 @@ pub struct Flocker {
     pub step: u64,
     pub field1: Field2D<Bird>,
     pub initial_flockers: u32,
-    pub dim: (f32, f32)
+    pub dim: (f32, f32),
 }
 
 impl Flocker {
@@ -23,7 +23,7 @@ impl Flocker {
             step: 0,
             field1: Field2D::new(dim.0, dim.1, DISCRETIZATION, TOROIDAL),
             initial_flockers: initial_flockers,
-            dim: dim
+            dim: dim,
         }
     }
 }
@@ -34,7 +34,6 @@ impl State for Flocker {
         self.field1 = Field2D::new(self.dim.0, self.dim.1, DISCRETIZATION, TOROIDAL);
         self.initial_flockers = self.initial_flockers;
         self.dim = self.dim;
-    
     }
 
     fn init(&mut self, schedule: &mut Schedule) {

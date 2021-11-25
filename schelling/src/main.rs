@@ -20,7 +20,7 @@ use {
 };
 
 pub const PERC: f32 = 0.5;
-pub const PERCENT_SIMILAR_WANTED: f32 = 0.7;
+pub const SIMILAR_WANTED: u32 = 3;
 
 /* pub static WIDTH: i32 = 100;
 pub static HEIGHT: i32 = 100;
@@ -30,7 +30,7 @@ pub const NUM_AGENTS: u32 = 320; */
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
     let step = 10;
-    let dim: (i32, i32) = (100, 100);
+    let dim: (i32, i32) = (20, 20);
     let num_agents = 320;
 
     let world = World::new(dim, num_agents);
@@ -45,7 +45,7 @@ mod visualization;
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
     // Initialize the simulation and its visualization here.
-    let dim: (i32, i32) = (100, 100);
+    let dim: (i32, i32) = (20, 20);
     let num_agents = 320;
     let world = World::new(dim, num_agents);
     let mut app = Visualization::default()

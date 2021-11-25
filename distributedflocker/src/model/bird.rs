@@ -22,81 +22,81 @@ impl Bird {
         Bird { id, pos, last_d }
     }
 
-    pub fn avoidance(self, vec: &[Bird], width: f32, height: f32) -> Real2D {
-        if vec.is_empty() {
-            let real = Real2D { x: 0.0, y: 0.0 };
-            return real;
-        }
+    // pub fn avoidance(self, vec: &[Bird], width: f32, height: f32) -> Real2D {
+    //     if vec.is_empty() {
+    //         let real = Real2D { x: 0.0, y: 0.0 };
+    //         return real;
+    //     }
 
-        let mut x = 0.0;
-        let mut y = 0.0;
+    //     let mut x = 0.0;
+    //     let mut y = 0.0;
 
-        let mut count = 0;
+    //     let mut count = 0;
 
-        for elem in vec {
-            if self != *elem {
-                let dx = toroidal_distance(self.pos.x, elem.pos.x, width);
-                let dy = toroidal_distance(self.pos.y, elem.pos.y, height);
-                let square = dx * dx + dy * dy;
-                count += 1;
-                x += dx / (square * square + 1.0);
-                y += dy / (square * square + 1.0);
-            }
-        }
-        if count > 0 {
-            x /= count as f32;
-            y /= count as f32;
-        }
+    //     for elem in vec {
+    //         if self != *elem {
+    //             let dx = toroidal_distance(self.pos.x, elem.pos.x, width);
+    //             let dy = toroidal_distance(self.pos.y, elem.pos.y, height);
+    //             let square = dx * dx + dy * dy;
+    //             count += 1;
+    //             x += dx / (square * square + 1.0);
+    //             y += dy / (square * square + 1.0);
+    //         }
+    //     }
+    //     if count > 0 {
+    //         x /= count as f32;
+    //         y /= count as f32;
+    //     }
 
-        Real2D {
-            x: 400.0 * x,
-            y: 400.0 * y,
-        }
-    }
+    //     Real2D {
+    //         x: 400.0 * x,
+    //         y: 400.0 * y,
+    //     }
+    // }
 
-    pub fn cohesion(self, vec: &[Bird], width: f32, height: f32) -> Real2D {
-        if vec.is_empty() {
-            let real = Real2D { x: 0.0, y: 0.0 };
-            return real;
-        }
+    // pub fn cohesion(self, vec: &[Bird], width: f32, height: f32) -> Real2D {
+    //     if vec.is_empty() {
+    //         let real = Real2D { x: 0.0, y: 0.0 };
+    //         return real;
+    //     }
 
-        let mut x = 0.0;
-        let mut y = 0.0;
+    //     let mut x = 0.0;
+    //     let mut y = 0.0;
 
-        let mut count = 0;
+    //     let mut count = 0;
 
-        for elem in vec {
-            if self != *elem {
-                let dx = toroidal_distance(self.pos.x, elem.pos.x, width);
-                let dy = toroidal_distance(self.pos.y, elem.pos.y, height);
-                count += 1;
-                x += dx;
-                y += dy;
-            }
-        }
-        if count > 0 {
-            x /= count as f32;
-            y /= count as f32;
-        }
-        Real2D {
-            x: -x / 10.0,
-            y: -y / 10.0,
-        }
-    }
+    //     for elem in vec {
+    //         if self != *elem {
+    //             let dx = toroidal_distance(self.pos.x, elem.pos.x, width);
+    //             let dy = toroidal_distance(self.pos.y, elem.pos.y, height);
+    //             count += 1;
+    //             x += dx;
+    //             y += dy;
+    //         }
+    //     }
+    //     if count > 0 {
+    //         x /= count as f32;
+    //         y /= count as f32;
+    //     }
+    //     Real2D {
+    //         x: -x / 10.0,
+    //         y: -y / 10.0,
+    //     }
+    // }
 
-    pub fn randomness(self) -> Real2D {
-        let mut rng = rand::thread_rng();
-        let r1: f32 = rng.gen();
-        let x = r1 * 2.0 - 1.0;
-        let r2: f32 = rng.gen();
-        let y = r2 * 2.0 - 1.0;
+    // pub fn randomness(self) -> Real2D {
+    //     let mut rng = rand::thread_rng();
+    //     let r1: f32 = rng.gen();
+    //     let x = r1 * 2.0 - 1.0;
+    //     let r2: f32 = rng.gen();
+    //     let y = r2 * 2.0 - 1.0;
 
-        let square = (x * x + y * y).sqrt();
-        Real2D {
-            x: 0.05 * x / square,
-            y: 0.05 * y / square,
-        }
-    }
+    //     let square = (x * x + y * y).sqrt();
+    //     Real2D {
+    //         x: 0.05 * x / square,
+    //         y: 0.05 * y / square,
+    //     }
+    // }
 
     pub fn consistency(self, vec: &[Bird], width: f32, height: f32) -> Real2D {
         if vec.is_empty() {
@@ -136,25 +136,105 @@ impl Agent for Bird {
         let state = state.as_any().downcast_ref::<Flocker>().unwrap();
         let vec = state.field1.get_neighbors_within_distance(self.pos, 10.0);
 
-
         let width = state.dim.0;
         let height = state.dim.1;
 
-        let avoid = self.avoidance(&vec, width, height);
-        let cohe = self.cohesion(&vec, width, height);
-        let rand = self.randomness();
-        let cons = self.consistency(&vec, width, height);
+        //let avoid = self.avoidance(&vec, width, height);
+        // let cohe = self.cohesion(&vec, width, height);
+        // let rand = self.randomness();
+        // let cons = self.consistency(&vec, width, height);
+
+        let mut avoidance = Real2D { x: 0.0, y: 0.0 };
+
+        let mut cohesion = Real2D { x: 0.0, y: 0.0 };
+        let mut randomness = Real2D { x: 0.0, y: 0.0 };
+        let mut consistency = Real2D { x: 0.0, y: 0.0 };
+
+        if !vec.is_empty() {
+            //avoidance
+            let mut x_avoid = 0.0;
+            let mut y_avoid = 0.0;
+            let mut x_cohe = 0.0;
+            let mut y_cohe = 0.0;
+            let mut x_cons = 0.0;
+            let mut y_cons = 0.0;
+            let mut count = 0;
+
+            for elem in &vec {
+                if self.id != elem.id {
+                    let dx = toroidal_distance(self.pos.x, elem.pos.x, width);
+                    let dy = toroidal_distance(self.pos.y, elem.pos.y, height);
+                    count += 1;
+
+                    //avoidance calculation
+                    let square = dx * dx + dy * dy;
+                    x_avoid += dx / (square * square + 1.0);
+                    y_avoid += dy / (square * square + 1.0);
+
+                    //cohesion calculation
+                    x_cohe += dx;
+                    y_cohe += dy;
+
+                    //consistency calculation
+                    x_cons += elem.last_d.x;
+                    y_cons += elem.last_d.y;
+                }
+            }
+
+            if count > 0 {
+                x_avoid /= count as f32;
+                y_avoid /= count as f32;
+                x_cohe /= count as f32;
+                y_cohe /= count as f32;
+                x_cons /= count as f32;
+                y_cons /= count as f32;
+
+                consistency = Real2D {
+                    x: x_cons / count as f32,
+                    y: y_cons / count as f32,
+                };
+            } else {
+                consistency = Real2D {
+                    x: x_cons,
+                    y: y_cons,
+                };
+            }
+
+            avoidance = Real2D {
+                x: 400.0 * x_avoid,
+                y: 400.0 * y_avoid,
+            };
+
+            cohesion = Real2D {
+                x: -x_cohe / 10.0,
+                y: -y_cohe / 10.0,
+            };
+
+            //randomness
+            let mut rng = rand::thread_rng();
+            let r1: f32 = rng.gen();
+            let x_rand = r1 * 2.0 - 1.0;
+            let r2: f32 = rng.gen();
+            let y_rand = r2 * 2.0 - 1.0;
+
+            let square = (x_rand * x_rand + y_rand * y_rand).sqrt();
+            randomness = Real2D {
+                x: 0.05 * x_rand / square,
+                y: 0.05 * y_rand / square,
+            };
+        }
+
         let mom = self.last_d;
 
-        let mut dx = COHESION * cohe.x
-            + AVOIDANCE * avoid.x
-            + CONSISTENCY * cons.x
-            + RANDOMNESS * rand.x
+        let mut dx = COHESION * cohesion.x
+            + AVOIDANCE * avoidance.x
+            + CONSISTENCY * consistency.x
+            + RANDOMNESS * randomness.x
             + MOMENTUM * mom.x;
-        let mut dy = COHESION * cohe.y
-            + AVOIDANCE * avoid.y
-            + CONSISTENCY * cons.y
-            + RANDOMNESS * rand.y
+        let mut dy = COHESION * cohesion.y
+            + AVOIDANCE * avoidance.y
+            + CONSISTENCY * consistency.y
+            + RANDOMNESS * randomness.y
             + MOMENTUM * mom.y;
 
         let dis = (dx * dx + dy * dy).sqrt();

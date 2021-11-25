@@ -1,6 +1,6 @@
 use crate::model::world::World;
 use crate::Patch;
-use crate::PERCENT_SIMILAR_WANTED;
+use crate::SIMILAR_WANTED;
 use core::fmt;
 use rust_ab::engine::agent::Agent;
 use rust_ab::engine::location::Int2D;
@@ -25,8 +25,8 @@ impl Agent for Updater {
         real_state.field.iter_objects(|loc, value| {
             let x = loc.x;
             let y = loc.y;
-            let mut neighbors = 0.0;
-            let mut similar = 0.0;
+            //let mut neighbors = 0.0;
+            let mut similar = 0;
 
             for i in 0..3 {
                 for j in 0..3 {
@@ -48,17 +48,18 @@ impl Agent for Updater {
                             None => continue,
                         };
 
-                        neighbors += 1.0;
+                        //neighbors += 1.0;
 
                         if value.value == neighbor.value {
-                            similar += 1.0;
+                            similar += 1;
                         }
                     }
                 }
             }
             let mut updates = updates.borrow_mut();
 
-            if neighbors == 0.0 || (similar / neighbors) < PERCENT_SIMILAR_WANTED {
+            //if neighbors == 0.0 || (similar / neighbors) < PERCENT_SIMILAR_WANTED {
+            if similar < SIMILAR_WANTED {
                 // agent not ok move to random place
                 // let mut bags = empty_bags.borrow_mut();
                 // if bags.len() == 0 {
