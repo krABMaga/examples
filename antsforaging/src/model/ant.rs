@@ -10,7 +10,6 @@ use crate::model::state::*;
 use crate::{
     HEIGHT, MOMENTUM_PROBABILITY, RANDOM_ACTION_PROBABILITY, REWARD, UPDATE_CUTDOWN, WIDTH,
 };
-use rust_ab::engine::schedule::Schedule;
 
 // A struct representing an ant, with an id, a position, whether it's holding food or not and the
 // current reward, used to increase the pheromone on the location of the ant if a site is reached.
