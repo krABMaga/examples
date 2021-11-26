@@ -1,0 +1,28 @@
+[package]
+name = "dflockers"
+version = "0.2.0"
+authors = [
+    "Carmine Spagnuolo <spagnuolocarmine@gmail.com>", 
+    "Alessia Antelmi <aantelmi@unisa.it>", 
+    "Matteo D'Auria <matdauria@unisa.it>", 
+    "Daniele De Vinco <danieledevinco1996@gmail.com", 
+    "Francesco Foglia <frafonia@gmail.com>", 
+    "Pasquale Caramante <pasqcaramante@gmail.com>", 
+    "Luca Postiglione <lucapostiglione10@gmail.com>", 
+    "Giuseppe D'Ambrosio <giuseppe.dambrosio14@gmail.com>"
+]
+edition = "2018"
+license = "MIT"
+readme = "README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rust-ab = {path="/Users/ddevin/Documents/VSCode/rust-ab" }
+# The library has to point a specific commit to work
+mpi = { git = "https://github.com/bsteinb/rsmpi", rev = "f9aec8b8d82" }
+
+
+[features]
+visualization = ["rust-ab/visualization"]
+visualization_wasm = ["rust-ab/visualization_wasm"]
