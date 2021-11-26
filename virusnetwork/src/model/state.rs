@@ -27,8 +27,8 @@ impl EpidemicNetworkState {
             network: Network::new(false),
             discretization: d,
             toroidal: t,
-            dim: dim,
-            num_nodes: num_nodes,
+            dim,
+            num_nodes,
         }
     }
 }
@@ -38,8 +38,6 @@ impl State for EpidemicNetworkState {
         self.step = 0;
         self.field1 = Field2D::new(self.dim.0, self.dim.1, self.discretization, self.toroidal);
         self.network = Network::new(false);
-        self.dim = self.dim;
-        self.num_nodes = self.num_nodes;
     }
 
     fn init(&mut self, schedule: &mut Schedule) {

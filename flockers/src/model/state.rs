@@ -22,8 +22,8 @@ impl Flocker {
         Flocker {
             step: 0,
             field1: Field2D::new(dim.0, dim.1, DISCRETIZATION, TOROIDAL),
-            initial_flockers: initial_flockers,
-            dim: dim,
+            initial_flockers,
+            dim,
         }
     }
 }
@@ -32,8 +32,6 @@ impl State for Flocker {
     fn reset(&mut self) {
         self.step = 0;
         self.field1 = Field2D::new(self.dim.0, self.dim.1, DISCRETIZATION, TOROIDAL);
-        self.initial_flockers = self.initial_flockers;
-        self.dim = self.dim;
     }
 
     fn init(&mut self, schedule: &mut Schedule) {

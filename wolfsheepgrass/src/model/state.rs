@@ -53,7 +53,6 @@ pub struct WsgState {
 impl State for WsgState {
     fn reset(&mut self) {
         self.step = 0;
-        self.dim = self.dim;
         self.wolves_grid = DenseGrid2D::new(self.dim.0, self.dim.1);
         self.sheeps_grid = DenseGrid2D::new(self.dim.0, self.dim.1);
         self.grass_field = DenseNumberGrid2D::new(self.dim.0, self.dim.1);
@@ -108,7 +107,7 @@ impl State for WsgState {
         self
     }
 
-    fn before_step(&mut self, schedule: &mut Schedule) {
+    fn before_step(&mut self, _schedule: &mut Schedule) {
         self.new_sheeps.lock().unwrap().clear();
         self.new_wolves.lock().unwrap().clear();
     }
@@ -128,17 +127,11 @@ impl State for WsgState {
         let mut sheeps = 0;
         let mut wolves = 0;
         for n in agents {
-            match n.downcast_ref::<Sheep>() {
-                Some(_p) => {
-                    sheeps += 1;
-                }
-                None => {}
+            if let Some(_p) = n.downcast_ref::<Sheep>() {
+                sheeps += 1;
             }
-            match n.downcast_ref::<Wolf>() {
-                Some(_l) => {
-                    wolves += 1;
-                }
-                None => {}
+            if let Some(_p) = n.downcast_ref::<Wolf>() {
+                wolves += 1;
             }
         }
 
@@ -231,7 +224,7 @@ fn generate_wolves(state: &mut WsgState, schedule: &mut Schedule) {
 impl WsgState {
     pub fn new(dim: (i32, i32), initial_animals: (u32, u32)) -> WsgState {
         WsgState {
-            dim: dim,
+            dim,
             wolves_grid: DenseGrid2D::new(dim.0, dim.1),
             sheeps_grid: DenseGrid2D::new(dim.0, dim.1),
             grass_field: DenseNumberGrid2D::new(dim.0, dim.1),
@@ -240,7 +233,7 @@ impl WsgState {
             eaten_grass: Arc::new(Mutex::new(Vec::new())),
             new_sheeps: Arc::new(Mutex::new(Vec::new())),
             new_wolves: Arc::new(Mutex::new(Vec::new())),
-            initial_animals: initial_animals,
+            initial_animals,
             survived_wolves: initial_animals.1,
             survived_sheeps: initial_animals.0,
             killed_sheeps: Arc::new(Mutex::new(HashSet::new())),

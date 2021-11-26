@@ -37,7 +37,6 @@ impl State for Sea {
     fn reset(&mut self) {
         self.step = 0;
         self.field = Field2D::new(self.dim.0, self.dim.1, DISCRETIZATION, TOROIDAL);
-        self.num_agents = self.num_agents;
     }
 
     /// Put the code that should be executed to initialize simulation:

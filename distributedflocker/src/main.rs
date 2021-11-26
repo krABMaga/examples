@@ -5,8 +5,8 @@ mod model;
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::simulate,
-    rust_ab::ComputationMode, rust_ab::ExploreMode, rust_ab::Info, rust_ab::ProgressBar,
+    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State,
+    rust_ab::ComputationMode, rust_ab::ExploreMode,
     rust_ab::*, std::time::Duration,
 };
 
@@ -37,7 +37,6 @@ pub static TOROIDAL: bool = true;
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
     let step = 10;
-
     // let dim = (12800., 12800.);
     // let num_agents = 153600;
     // let state = Flocker::new(dim, num_agents);
@@ -46,9 +45,7 @@ fn main() {
     let universe = mpi::initialize().unwrap();
     let world = universe.world();
     let root_rank = 0;
-    let root_process = world.process_at_rank(root_rank);
-
-    let step = 10;
+    let _root_process = world.process_at_rank(root_rank);
 
     let initial_flockers = vec![
         100,
@@ -80,7 +77,7 @@ fn main() {
 
     // build the name of the csv for each process
     let name = format!("{}_{}", "result", world.rank());
-    export_dataframe(&name, &result);
+    let _res = export_dataframe(&name, &result);
 }
 
 // Main used when a visualization feature is applied.
