@@ -44,7 +44,6 @@ pub struct WsgState {
     pub new_sheeps: Arc<Mutex<Vec<Sheep>>>,
     pub new_wolves: Arc<Mutex<Vec<Wolf>>>,
     pub killed_sheeps: Arc<Mutex<HashSet<Sheep>>>,
-    //initial.animals.0 SHEEP initial.animals.1 WOLF
     pub initial_animals: (u32, u32),
     pub survived_wolves: u32,
     pub survived_sheeps: u32,
@@ -144,27 +143,31 @@ impl State for WsgState {
         self.survived_sheeps = sheeps;
         self.survived_wolves = wolves;
 
-        let mut grasses = 0;
-        for i in 0..self.dim.0 {
-            for j in 0..self.dim.1 {
-                match self.grass_field.get_value(&Int2D { x: i, y: j }) {
-                    Some(v) => {
-                        // println!("Grass {:?} has value {:?}", Int2D { x: i, y: j }, v);
-                        if v == FULL_GROWN {
-                            grasses += 1;
-                        }
-                    }
-                    None => {
-                        //  println!("Grass {:?} not found", Int2D { x: i, y: j });
-                    }
-                }
-            }
-        }
+        // let mut grasses = 0;
+        // for i in 0..self.dim.0 {
+        //     for j in 0..self.dim.1 {
+        //         match self
+        //             .grass_field
+        //             .get_value(&Int2D { x: i, y: j })
+        //         {
+        //             Some(v) => {
+        //                 // println!("Grass {:?} has value {:?}", Int2D { x: i, y: j }, v);
+        //                 if v == FULL_GROWN {
+        //                     grasses += 1;
+        //                 }
+        //             }
+        //             None => {
+        //                 //  println!("Grass {:?} not found", Int2D { x: i, y: j });
+        //             }
+        //         }
+        //     }
+        // }
 
-        println!(
-            "Number of sheeps: {:?} - wolves: {:?} - full growth grasses: {:?} at step {:?}\n",
-            sheeps, wolves, grasses, schedule.step
-        );
+        // println!(
+        //     "Number of sheeps: {:?} - wolves: {:?} - full growth grasses: {:?} at step {:?}\n",
+        //     sheeps, wolves, grasses, schedule.step
+        // );
+
     }
 }
 
