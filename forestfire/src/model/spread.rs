@@ -15,12 +15,12 @@ pub struct Spread {
 }
 
 impl Agent for Spread {
-    fn step(&mut self, state: &mut dyn State, schedule: &mut Schedule, _schedule_id: u32) {
+    fn step(&mut self, state: &mut dyn State) {
         let real_state = state.as_any().downcast_ref::<Forest>().unwrap();
 
         let updates = RefCell::new(Vec::<(Tree, Int2D)>::new());
         real_state.field.iter_objects(|pos, &(mut value)| {
-            if pos.x <= schedule.step as i32 + 1 {
+            if pos.x <= real_state.step as i32 + 1 {
                 let x = pos.x;
                 let y = pos.y;
                 if value.status == Status::Green {

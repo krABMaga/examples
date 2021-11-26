@@ -35,6 +35,7 @@ fn main() {
 
     let dim = (200., 200.);
     let num_agents = 100;
+  
     let state = Flocker::new(dim, num_agents);
     simulate!(step, state, 1, Info::Normal);
 }

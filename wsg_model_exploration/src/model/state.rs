@@ -7,6 +7,7 @@ use super::sheep::Sheep;
 use super::wolf::Wolf;
 use crate::{FULL_GROWN, GAIN_ENERGY_SHEEP, GAIN_ENERGY_WOLF, SHEEP_REPR, WOLF_REPR};
 use core::fmt;
+use hashbrown::HashSet;
 use rust_ab::engine::fields::grid_option::GridOption;
 use rust_ab::rand;
 use rust_ab::rand::Rng;
@@ -42,7 +43,7 @@ pub struct WsgState {
     pub eaten_grass: Arc<Mutex<Vec<Int2D>>>,
     pub new_sheeps: Arc<Mutex<Vec<Sheep>>>,
     pub new_wolves: Arc<Mutex<Vec<Wolf>>>,
-    //initial.animals.0 SHEEP initial.animals.1 WOLF
+    pub killed_sheeps: Arc<Mutex<HashSet<Sheep>>>,
     pub initial_animals: (u32, u32),
     pub survived_wolves: u32,
     pub survived_sheeps: u32,
@@ -59,6 +60,7 @@ impl State for WsgState {
         self.eaten_grass = Arc::new(Mutex::new(Vec::new()));
         self.new_sheeps = Arc::new(Mutex::new(Vec::new()));
         self.new_wolves = Arc::new(Mutex::new(Vec::new()));
+        self.killed_sheeps = Arc::new(Mutex::new(HashSet::new()));
         self.initial_animals = (self.initial_animals.0, self.initial_animals.1);
         self.survived_wolves = self.initial_animals.1;
         self.survived_sheeps = self.initial_animals.0;
@@ -104,13 +106,21 @@ impl State for WsgState {
         self
     }
 
-    fn before_step(&mut self, _schedule: &mut Schedule) {
+    fn before_step(&mut self, schedule: &mut Schedule) {
         self.new_sheeps.lock().unwrap().clear();
         self.new_wolves.lock().unwrap().clear();
     }
 
     fn after_step(&mut self, schedule: &mut Schedule) {
         self.eaten_grass.lock().unwrap().clear();
+
+        for sheep in self.new_sheeps.lock().unwrap().iter() {
+            schedule.schedule_repeating(Box::new(*sheep), schedule.time + 1.0, 0);
+        }
+
+        for wolf in self.new_wolves.lock().unwrap().iter() {
+            schedule.schedule_repeating(Box::new(*wolf), schedule.time + 1.0, 1);
+        }
 
         let agents = schedule.get_all_events();
         let mut sheeps = 0;
@@ -157,6 +167,7 @@ impl State for WsgState {
         //     "Number of sheeps: {:?} - wolves: {:?} - full growth grasses: {:?} at step {:?}\n",
         //     sheeps, wolves, grasses, schedule.step
         // );
+
     }
 }
 
@@ -234,32 +245,7 @@ impl WsgState {
             initial_animals: initial_animals,
             survived_wolves: initial_animals.1,
             survived_sheeps: initial_animals.0,
+            killed_sheeps: Arc::new(Mutex::new(HashSet::new())),
         }
     }
-
-    // pub fn new(width: i32,
-    //     height: i32,
-    //     num_wolves: u32,
-    //     num_sheeps: u32,
-    //     energy_consume: f64,
-    //     full_grown: u16,
-    //     gain_energy_sheep: f64,
-    //     gain_energy_wolf: f64,
-    //     sheep_repr: f64,
-    //     wolf_repr: f64) -> WsgState {
-
-    //     WsgState {
-    //         wolves_grid: DenseGrid2D::new(width, height),
-    //         sheeps_grid: DenseGrid2D::new(width, height),
-    //         grass_field: DenseNumberGrid2D::new(width, height),
-    //         step: 0,
-    //         next_id: Arc::new(Mutex::new(NUM_WOLVES + NUM_SHEEPS)),
-    //         eaten_grass: Arc::new(Mutex::new(Vec::new())),
-    //         new_sheeps: Arc::new(Mutex::new(Vec::new())),
-    //         new_wolves: Arc::new(Mutex::new(Vec::new())),
-    //         num: (NUM_WOLVES, NUM_SHEEPS),
-    //         survived_wolves: NUM_WOLVES,
-    //         survived_sheeps: NUM_SHEEPS,
-    //     }
-    // }
 }

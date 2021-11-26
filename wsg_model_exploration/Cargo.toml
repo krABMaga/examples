@@ -19,6 +19,7 @@ readme = "README.md"
 
 [dependencies]
 rust-ab = { path="/Users/ddevin/Documents/VSCode/rust-ab" }
+hashbrown = "0.*"
 
 [features]
 visualization = ["rust-ab/visualization"]

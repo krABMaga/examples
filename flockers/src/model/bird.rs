@@ -2,7 +2,7 @@ use core::fmt;
 use rust_ab::engine::agent::Agent;
 use rust_ab::engine::fields::field_2d::{toroidal_distance, toroidal_transform};
 use rust_ab::engine::location::{Location2D, Real2D};
-use rust_ab::engine::{schedule::Schedule, state::State};
+use rust_ab::engine::state::State;
 use rust_ab::rand;
 use rust_ab::rand::Rng;
 use std::hash::{Hash, Hasher};
@@ -24,7 +24,8 @@ impl Bird {
 }
 
 impl Agent for Bird {
-    fn step(&mut self, state: &mut dyn State, _schedule: &mut Schedule, _schedule_id: u32) {
+
+    fn step(&mut self, state: &mut dyn State) {
         let state = state.as_any().downcast_ref::<Flocker>().unwrap();
         let vec = state.field1.get_neighbors_within_distance(self.pos, 10.0);
 

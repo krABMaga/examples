@@ -36,6 +36,7 @@ fn main() {
     let world = World::new(dim, num_agents);
 
     simulate!(step, world, 1, Info::Normal);
+
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

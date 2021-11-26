@@ -45,7 +45,7 @@ impl Wolf {
 }
 
 impl Agent for Wolf {
-    fn step(&mut self, state: &mut dyn State, schedule: &mut Schedule, _schedule_id: u32) {
+    fn step(&mut self, state: &mut dyn State) {
         let state = state.as_any().downcast_ref::<WsgState>().unwrap();
 
         let x = self.loc.x;
@@ -84,18 +84,15 @@ impl Agent for Wolf {
         state.wolves_grid.set_object_location(*self, &self.loc);
 
         //EAT
-        if state
-            .sheeps_grid
-            .get_objects_unbuffered(&self.loc)
-            .is_none()
-        {
-            if let Some(sheeps) = state.sheeps_grid.get_objects(&self.loc) {
-                for mut sheep in sheeps {
+        if let Some(sheeps) = state.sheeps_grid.get_objects(&self.loc) {
+            for mut sheep in sheeps {
+                if state.killed_sheeps.lock().unwrap().get(&sheep).is_none() {
                     if sheep.animal_state == LifeState::Alive {
+                        println!("magnat {}", sheep.id);
                         sheep.animal_state = LifeState::Dead;
-                        schedule.update_event(sheep.schedule_id, Box::new(sheep), true);
                         state.sheeps_grid.set_object_location(sheep, &sheep.loc);
                         self.energy += self.gain_energy;
+                        state.killed_sheeps.lock().unwrap().insert(sheep);
                         break;
                     }
                 }
@@ -116,7 +113,7 @@ impl Agent for Wolf {
                 let new_wolf =
                     Wolf::new(*new_id, self.loc, self.energy, GAIN_ENERGY_WOLF, WOLF_REPR);
 
-                schedule.schedule_repeating(Box::new(new_wolf), schedule.time + 1.0, 1);
+                //schedule.schedule_repeating(Box::new(new_wolf), schedule.time + 1.0, 1);
                 *new_id += 1;
                 state.new_wolves.lock().unwrap().push(new_wolf);
             }

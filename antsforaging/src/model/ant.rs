@@ -10,7 +10,6 @@ use crate::model::state::*;
 use crate::{
     HEIGHT, MOMENTUM_PROBABILITY, RANDOM_ACTION_PROBABILITY, REWARD, UPDATE_CUTDOWN, WIDTH,
 };
-use rust_ab::engine::schedule::Schedule;
 
 // A struct representing an ant, with an id, a position, whether it's holding food or not and the
 // current reward, used to increase the pheromone on the location of the ant if a site is reached.
@@ -233,7 +232,7 @@ impl Ant {
 
 impl Agent for Ant {
     /// Each ant deposits a pheromone in its current location, then it steps in the next grid cell.
-    fn step(&mut self, state: &mut dyn State, _schedule: &mut Schedule, _schedule_id: u32) {
+    fn step(&mut self, state: &mut dyn State) {
         let state = state.as_any().downcast_ref::<ModelState>().unwrap();
         self.deposit_pheromone(state);
         self.act(state);

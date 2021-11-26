@@ -7,6 +7,7 @@ use super::sheep::Sheep;
 use super::wolf::Wolf;
 use crate::{FULL_GROWN, GAIN_ENERGY_SHEEP, GAIN_ENERGY_WOLF, SHEEP_REPR, WOLF_REPR};
 use core::fmt;
+use hashbrown::HashSet;
 use rust_ab::engine::fields::grid_option::GridOption;
 use rust_ab::rand;
 use rust_ab::rand::Rng;
@@ -42,7 +43,8 @@ pub struct WsgState {
     pub eaten_grass: Arc<Mutex<Vec<Int2D>>>,
     pub new_sheeps: Arc<Mutex<Vec<Sheep>>>,
     pub new_wolves: Arc<Mutex<Vec<Wolf>>>,
-    //initial.animals.0 SHEEP initial.animals.1 WOLF
+    pub killed_sheeps: Arc<Mutex<HashSet<Sheep>>>,
+
     pub initial_animals: (u32, u32),
     pub survived_wolves: u32,
     pub survived_sheeps: u32,
@@ -59,6 +61,8 @@ impl State for WsgState {
         self.eaten_grass = Arc::new(Mutex::new(Vec::new()));
         self.new_sheeps = Arc::new(Mutex::new(Vec::new()));
         self.new_wolves = Arc::new(Mutex::new(Vec::new()));
+        self.killed_sheeps = Arc::new(Mutex::new(HashSet::new()));
+
         self.initial_animals = (self.initial_animals.0, self.initial_animals.1);
         self.survived_wolves = self.initial_animals.1;
         self.survived_sheeps = self.initial_animals.0;
@@ -104,13 +108,21 @@ impl State for WsgState {
         self
     }
 
-    fn before_step(&mut self, _schedule: &mut Schedule) {
+    fn before_step(&mut self, schedule: &mut Schedule) {
         self.new_sheeps.lock().unwrap().clear();
         self.new_wolves.lock().unwrap().clear();
     }
 
     fn after_step(&mut self, schedule: &mut Schedule) {
         self.eaten_grass.lock().unwrap().clear();
+
+        for sheep in self.new_sheeps.lock().unwrap().iter() {
+            schedule.schedule_repeating(Box::new(*sheep), schedule.time + 1.0, 0);
+        }
+
+        for wolf in self.new_wolves.lock().unwrap().iter() {
+            schedule.schedule_repeating(Box::new(*wolf), schedule.time + 1.0, 1);
+        }
 
         let agents = schedule.get_all_events();
         let mut sheeps = 0;
@@ -133,30 +145,27 @@ impl State for WsgState {
         self.survived_sheeps = sheeps;
         self.survived_wolves = wolves;
 
-        // let mut grasses = 0;
-        // for i in 0..self.dim.0 {
-        //     for j in 0..self.dim.1 {
-        //         match self
-        //             .grass_field
-        //             .get_value(&Int2D { x: i, y: j })
-        //         {
-        //             Some(v) => {
-        //                 // println!("Grass {:?} has value {:?}", Int2D { x: i, y: j }, v);
-        //                 if v == FULL_GROWN {
-        //                     grasses += 1;
-        //                 }
-        //             }
-        //             None => {
-        //                 //  println!("Grass {:?} not found", Int2D { x: i, y: j });
-        //             }
-        //         }
-        //     }
-        // }
+//         let mut grasses = 0;
+//         for i in 0..self.dim.0 {
+//             for j in 0..self.dim.1 {
+//                 match self.grass_field.get_value(&Int2D { x: i, y: j }) {
+//                     Some(v) => {
+//                         // println!("Grass {:?} has value {:?}", Int2D { x: i, y: j }, v);
+//                         if v == FULL_GROWN {
+//                             grasses += 1;
+//                         }
+//                     }
+//                     None => {
+//                         //  println!("Grass {:?} not found", Int2D { x: i, y: j });
+//                     }
+//                 }
+//             }
+//         }
 
-        // println!(
-        //     "Number of sheeps: {:?} - wolves: {:?} - full growth grasses: {:?} at step {:?}\n",
-        //     sheeps, wolves, grasses, schedule.step
-        // );
+//         println!(
+//             "Number of sheeps: {:?} - wolves: {:?} - full growth grasses: {:?} at step {:?}\n",
+//             sheeps, wolves, grasses, schedule.step
+//         );
     }
 }
 
@@ -234,6 +243,8 @@ impl WsgState {
             initial_animals: initial_animals,
             survived_wolves: initial_animals.1,
             survived_sheeps: initial_animals.0,
+            killed_sheeps: Arc::new(Mutex::new(HashSet::new())),
+
         }
     }
 }

@@ -43,7 +43,7 @@ impl NetNode {
 }
 
 impl Agent for NetNode {
-    fn step(&mut self, state: &mut dyn State, _schedule: &mut Schedule, _schedule_id: u32) {
+    fn step(&mut self, state: &mut dyn State) {
         let state = state
             .as_any()
             .downcast_ref::<EpidemicNetworkState>()

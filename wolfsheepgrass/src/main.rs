@@ -22,6 +22,7 @@ use {
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
+
     let step = 10;
 
     let dim: (i32, i32) = (25, 25);
@@ -47,6 +48,7 @@ use {
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
     let dim: (i32, i32) = (25, 25);
+
     let initial_animals: (u32, u32) = ((60. * 0.6) as u32, (60. * 0.4) as u32);
 
     let state = WsgState::new(dim, initial_animals);
