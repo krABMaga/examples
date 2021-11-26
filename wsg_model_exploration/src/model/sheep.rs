@@ -4,7 +4,6 @@ use crate::{ENERGY_CONSUME, FULL_GROWN, GAIN_ENERGY_SHEEP, MOMENTUM_PROBABILITY,
 use core::fmt;
 use rust_ab::engine::agent::Agent;
 use rust_ab::engine::location::{Int2D, Location2D};
-use rust_ab::engine::schedule::Schedule;
 use rust_ab::engine::state::State;
 use rust_ab::rand;
 use rust_ab::rand::Rng;

@@ -103,8 +103,6 @@ impl State for Forest {
     fn reset(&mut self) {
         self.step = 0;
         self.field = DenseGrid2D::new(self.dim.0, self.dim.1);
-        self.dim = self.dim;
-        self.density = self.density;
     }
 
     fn init(&mut self, schedule: &mut Schedule) {

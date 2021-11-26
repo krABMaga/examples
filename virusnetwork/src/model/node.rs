@@ -3,7 +3,7 @@ use std::{
     hash::{Hash, Hasher},
 };
 
-use rust_ab::engine::{schedule::Schedule, state::State};
+use rust_ab::engine::state::State;
 use rust_ab::rand;
 use rust_ab::{
     engine::{
