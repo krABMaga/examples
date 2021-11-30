@@ -23,6 +23,19 @@ pub const MOMENTUM_PROBABILITY: f64 = 0.8;
 // pub const HEIGHT: i32 = 6400;
 // pub const STEP: u64 = 10;
 
+#[cfg(feature = "distributed")] 
+#[macro_use]
+extern crate memoffset;
+
+#[cfg(feature = "distributed")] 
+use {
+    mpi::{
+        datatype::UserDatatype,
+        traits::*,
+        Address,
+    },
+};
+
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
@@ -37,22 +50,39 @@ fn main() {
 
     // tuples to use in the exploration
 
-    let initial_animals = vec![
-        ((200. * 0.6) as u32, (200. * 0.4) as u32),
-        ((400. * 0.6) as u32, (400. * 0.4) as u32),
-        // ((800. * 0.6) as u32, (800. * 0.4) as u32),
-        // ((1600. * 0.6) as u32, (1600. * 0.4) as u32),
-        // ((3200.*0.6) as u32, (3200.*0.4) as u32),
-        // ((6400.*0.6) as u32, (6400.*0.4) as u32)
+    // let initial_animals = vec![
+    //     ((200. * 0.6) as u32,
+    //     ((400. * 0.6) as u32,
+    //     // ((800. * 0.6) as u32, (800. * 0.4) as u32),
+    //     // ((1600. * 0.6) as u32, (1600. * 0.4) as u32),
+    //     // ((3200.*0.6) as u32, (3200.*0.4) as u32),
+    //     // ((6400.*0.6) as u32, (6400.*0.4) as u32)
+    // ];
+    let initial_sheeps = vec![
+        (200. * 0.6) as u32,
+        (400. * 0.6) as u32,
     ];
 
-    let dim = vec![
-        (800, 800),
-        (1600, 1600),
-        // (3200, 3200),
-        // (6400, 6400),
-        // (12800, 12800),
-        // (25600, 25600)
+    let initial_wolves = vec![
+        (200. * 0.4) as u32,
+        (400. * 0.4) as u32,
+    ];
+
+    // let dim = vec![
+    //     (800, 800),
+    //     (1600, 1600),
+    //     // (3200, 3200),
+    //     // (6400, 6400),
+    //     // (12800, 12800),
+    //     // (25600, 25600)
+    // ];
+    let width = vec![
+        800, 
+        1600,
+    ];
+    let height = vec![
+        800, 
+        1600,
     ];
 
     // model exploration in parallel, same syntax of explore
@@ -61,15 +91,17 @@ fn main() {
         1,
         WsgState,
         input { // input to use to configure the state that will change at each time
-            dim:(i32, i32)
-            initial_animals:(u32, u32)
+            width: i32
+            height: i32
+            initial_sheeps: u32
+            initial_wolves: u32
         },
         output[ // desired output that will be written in the dataframe
             survived_wolves: u32
             survived_sheeps: u32
         ],
         ExploreMode::Matched,
-        ComputationMode::Local
+        ComputationMode::Local,
     );
 
     // export the dataframe returned by the model exploration into a csv
