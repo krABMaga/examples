@@ -101,7 +101,7 @@ fn main() {
             survived_sheeps: u32
         ],
         ExploreMode::Matched,
-        ComputationMode::Local,
+        ComputationMode::Sequential,
     );
 
     // export the dataframe returned by the model exploration into a csv

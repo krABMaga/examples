@@ -50,11 +50,11 @@ fn main() {
 
     let step = 10;
 
-    let universe = mpi::initialize().unwrap();
-    let world = universe.world();
-    let root_rank = 0;
-    let root_process = world.process_at_rank(root_rank);
-    let my_rank = world.rank();
+    // let universe = mpi::initialize().unwrap();
+    // let world = universe.world();
+    // let root_rank = 0;
+    // let root_process = world.process_at_rank(root_rank);
+    // let my_rank = world.rank();
 
     let initial_flockers = vec![
         100,
@@ -87,10 +87,11 @@ fn main() {
         7000.,
     ];
 
-    let num_procs = world.size() as u32;
+    //let num_procs = world.size() as u32;
+    
     // explore the result of simulation using initial_animals and dim as input
     // the macro returns a dataframe with the required output
-    let result = explore!(
+    explore!(
         step, // number of step
         1, // number of repetition of the simulation for each configuration
         Flocker, // name of the state
@@ -103,33 +104,39 @@ fn main() {
         //     survived_wolves: u32
         //     survived_sheeps: u32
         ],
-        ExploreMode::Distributed,
-        ComputationMode::Distributed,
-        my_rank: i32,
-        num_procs: u32
+        ExploreMode::Matched, //una lista di configurazioni N
+        ComputationMode::Distributed,// N/P a ogni processo
+        //my_rank: i32,
+        //num_procs: u32
     );
 
+    //resuls is not None only on proc with rank 0
+    //if result.isSome()
+    //{
+        //fa cose
+    //}
 
-    if world.rank() == root_rank {
-        let size = width.len();
-        // t is thereceiver buffer
-        // ex: EXAUSTIVE
-        // let mut t = vec![result[0]; (world.size() as usize * width.len() * height.len() * initial_flockers.len())];
-        // ex: MATCHED
-        // let mut t = vec![result[0]; world.size() as usize * 4];
-        // ex: DISTRIBUTED
-        let mut t = vec![result[0]; size];
 
-        root_process.gather_into_root(&result[..], &mut t[..]);
+    // if world.rank() == root_rank {
+    //     let size = width.len() * (world.size() as usize);
+    //     // t is thereceiver buffer
+    //     // ex: EXAUSTIVE
+    //     // let mut t = vec![result[0]; (world.size() as usize * width.len() * height.len() * initial_flockers.len())];
+    //     // ex: MATCHED
+    //     // let mut t = vec![result[0]; world.size() as usize * 4];
+    //     // ex: DISTRIBUTED
+    //     let mut t = vec![result[0]; size];
 
-        //build csv from all processes
-        let name = format!("{}", "result_complex");
-        let _res = export_dataframe(&name, &t);
+    //     root_process.gather_into_root(&result[..], &mut t[..]);
 
-    } else {
-        //every proc send to root every row
-        root_process.gather_into(&result[..]);
-    }
+    //     //build csv from all processes
+    //     let name = format!("{}", "result_complex");
+    //     let _res = export_dataframe(&name, &t);
+
+    // } else {
+    //     //every proc send to root every row
+    //     root_process.gather_into(&result[..]);
+    // }
 }
 
 // Main used when a visualization feature is applied.
