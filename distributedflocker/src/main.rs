@@ -14,6 +14,7 @@ use {
         Address,
     },
 };
+
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
@@ -49,49 +50,27 @@ pub static TOROIDAL: bool = true;
 fn main() {
 
     let step = 10;
+    let initial_flockers = vec![100, 200, 300, 400];
+    let width = vec![400., 500., 600., 700.];
+    let height = vec![400., 500., 600., 700.];
 
-    // let universe = mpi::initialize().unwrap();
-    // let world = universe.world();
-    // let root_rank = 0;
-    // let root_process = world.process_at_rank(root_rank);
-    // let my_rank = world.rank();
+    // let mut width: Vec<f32> = Vec::new();
+    // let mut height: Vec<f32> = Vec::new();
+    // let mut initial_flockers: Vec<u32> = Vec::new();
 
-    let initial_flockers = vec![
-        100,
-        200,
-        300,
-        400,
-        1000,
-        2000,
-        3000,
-        4000,
-    ];
-    let width = vec![
-        400., 
-        500.,
-        600.,
-        700.,
-        4000., 
-        5000.,
-        6000.,
-        7000.,
-    ];
-    let height = vec![
-        400., 
-        500.,
-        600.,
-        700.,
-        4000., 
-        5000.,
-        6000.,
-        7000.,
-    ];
-
-    //let num_procs = world.size() as u32;
+    // test reading from csv
     
-    // explore the result of simulation using initial_animals and dim as input
+    //read_from_csv!("data.csv", width: f32, height: f32, initial_flockers: u32);
+    
+    
+    // println!("{:?}", initial_flockers);
+    // println!("{:?}", width);
+    // println!("{:?}", height);
+
+    // explore the result of simulation using some input
     // the macro returns a dataframe with the required output
-    explore!(
+    // only the master return a usable dataframe
+    let dataframe = explore!(
         step, // number of step
         1, // number of repetition of the simulation for each configuration
         Flocker, // name of the state
@@ -105,38 +84,18 @@ fn main() {
         //     survived_sheeps: u32
         ],
         ExploreMode::Matched, //una lista di configurazioni N
-        ComputationMode::Distributed,// N/P a ogni processo
+        ComputationMode::DistributedMPI,// N/P a ogni processo
         //my_rank: i32,
         //num_procs: u32
     );
+    
+    if !dataframe.is_empty() {
+        //i'm the master 
+        //build csv from all processes
+        let name = format!("{}", "result_main");
+        let _res = export_dataframe(&name, &dataframe);
+    }
 
-    //resuls is not None only on proc with rank 0
-    //if result.isSome()
-    //{
-        //fa cose
-    //}
-
-
-    // if world.rank() == root_rank {
-    //     let size = width.len() * (world.size() as usize);
-    //     // t is thereceiver buffer
-    //     // ex: EXAUSTIVE
-    //     // let mut t = vec![result[0]; (world.size() as usize * width.len() * height.len() * initial_flockers.len())];
-    //     // ex: MATCHED
-    //     // let mut t = vec![result[0]; world.size() as usize * 4];
-    //     // ex: DISTRIBUTED
-    //     let mut t = vec![result[0]; size];
-
-    //     root_process.gather_into_root(&result[..], &mut t[..]);
-
-    //     //build csv from all processes
-    //     let name = format!("{}", "result_complex");
-    //     let _res = export_dataframe(&name, &t);
-
-    // } else {
-    //     //every proc send to root every row
-    //     root_process.gather_into(&result[..]);
-    // }
 }
 
 // Main used when a visualization feature is applied.
