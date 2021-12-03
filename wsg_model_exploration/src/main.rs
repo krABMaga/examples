@@ -3,18 +3,17 @@ mod model;
 
 // Immutable parameters
 // Or default parameters
-
-pub const ENERGY_CONSUME: f64 = 1.0;
-
 pub const FULL_GROWN: u16 = 20;
+pub const MOMENTUM_PROBABILITY: f64 = 0.8;
 
+
+// Mutable parameters in the fitness
+pub const ENERGY_CONSUME: f64 = 1.0;
 pub const GAIN_ENERGY_SHEEP: f64 = 5.0;
 pub const GAIN_ENERGY_WOLF: f64 = 13.0;
-
 pub const SHEEP_REPR: f64 = 0.2;
 pub const WOLF_REPR: f64 = 0.1;
 
-pub const MOMENTUM_PROBABILITY: f64 = 0.8;
 
 // pub const INITIAL_NUM_WOLVES: u32 = (1600. * 0.4) as u32;
 // pub const INITIAL_NUM_SHEEPS: u32 = (1600. * 0.6) as u32;
@@ -49,6 +48,9 @@ fn main() {
     let step: u64 = 10;
 
     // tuples to use in the exploration
+
+    // fissati sheep wolf width e height
+    // si variano gli altri
 
     // let initial_animals = vec![
     //     ((200. * 0.6) as u32,

@@ -50,19 +50,23 @@ pub static TOROIDAL: bool = true;
 fn main() {
 
     let step = 10;
-    let initial_flockers = vec![100, 200, 300, 400];
-    let width = vec![400., 500., 600., 700.];
-    let height = vec![400., 500., 600., 700.];
+    // let initial_flockers = vec![100, 200, 300, 400];
+    // let width = vec![400., 500., 600., 700.];
+    // let height = vec![400., 500., 600., 700.];
 
     // let mut width: Vec<f32> = Vec::new();
     // let mut height: Vec<f32> = Vec::new();
     // let mut initial_flockers: Vec<u32> = Vec::new();
 
-    // test reading from csv
-    
-    //read_from_csv!("data.csv", width: f32, height: f32, initial_flockers: u32);
-    
-    
+    /* test reading from csv
+        first parameter is the path to the csv file
+        other parameters are the names of the columns
+        the macro will create a tuple with an array for each column to match the types
+        then you have to assign the values to the variables to pass them to the simulation
+    */
+
+    let (width, height, initial_flockers) = load_csv!("data.csv", width: f32, height: f32, initial_flockers: u32);
+
     // println!("{:?}", initial_flockers);
     // println!("{:?}", width);
     // println!("{:?}", height);
@@ -92,8 +96,8 @@ fn main() {
     if !dataframe.is_empty() {
         //i'm the master 
         //build csv from all processes
-        let name = format!("{}", "result_main");
-        let _res = export_dataframe(&name, &dataframe);
+        let name = format!("{}", "result_main_00");
+        let _res = write_csv(&name, &dataframe);
     }
 
 }
