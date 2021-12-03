@@ -107,7 +107,7 @@ fn main() {
     );
 
     // export the dataframe returned by the model exploration into a csv
-    let _ = export_dataframe("result", &result);
+    let _ = write_csv("result", &result);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
