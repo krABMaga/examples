@@ -31,11 +31,6 @@ impl Agent for Bird {
         let width = state.width;
         let height = state.height;
 
-        //let avoid = self.avoidance(&vec, width, height);
-        // let cohe = self.cohesion(&vec, width, height);
-        // let rand = self.randomness();
-        // let cons = self.consistency(&vec, width, height);
-
         let mut avoidance = Real2D { x: 0.0, y: 0.0 };
 
         let mut cohesion = Real2D { x: 0.0, y: 0.0 };

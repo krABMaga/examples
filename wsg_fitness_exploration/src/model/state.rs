@@ -5,9 +5,9 @@ use rust_ab::engine::{
 
 use super::sheep::Sheep;
 use super::wolf::Wolf;
-use crate::{FULL_GROWN, GAIN_ENERGY_SHEEP, GAIN_ENERGY_WOLF, SHEEP_REPR, WOLF_REPR};
+use crate::{FULL_GROWN, INITIAL_NUM_SHEEPS, INITIAL_NUM_WOLVES, WIDTH, HEIGHT};
 use core::fmt;
-use rust_ab::hashbrown::HashSet;
+use hashbrown::HashSet;
 use rust_ab::engine::fields::grid_option::GridOption;
 use rust_ab::rand;
 use rust_ab::rand::Rng;
@@ -34,8 +34,6 @@ impl fmt::Display for LifeState {
 }
 
 pub struct WsgState {
-    pub width: i32,
-    pub height: i32,
     pub wolves_grid: DenseGrid2D<Wolf>,
     pub sheeps_grid: DenseGrid2D<Sheep>,
     pub grass_field: DenseNumberGrid2D<u16>,
@@ -44,28 +42,31 @@ pub struct WsgState {
     pub eaten_grass: Arc<Mutex<Vec<Int2D>>>,
     pub new_sheeps: Arc<Mutex<Vec<Sheep>>>,
     pub new_wolves: Arc<Mutex<Vec<Wolf>>>,
-    pub killed_sheeps: Arc<Mutex<HashSet<Sheep>>>,
-    //pub initial_animals: (u32, u32),
-    pub initial_sheeps: u32,
-    pub initial_wolves: u32,
+    pub killed_sheeps: Arc<Mutex<HashSet<Sheep>>>,    
     pub survived_wolves: u32,
     pub survived_sheeps: u32,
+    pub energy_consume: f32,
+    pub gain_energy_sheep: f32,
+    pub gain_energy_wolf: f32,
+    pub sheep_repr: f32,
+    pub wolf_repr: f32,
+    pub fitness: f32,
 }
 
 impl State for WsgState {
     fn reset(&mut self) {
         self.step = 0;
-        self.wolves_grid = DenseGrid2D::new(self.width, self.height);
-        self.sheeps_grid = DenseGrid2D::new(self.width, self.height);
-        self.grass_field = DenseNumberGrid2D::new(self.width, self.height);
-        self.next_id = Arc::new(Mutex::new(self.initial_sheeps + self.initial_wolves));
+        self.wolves_grid = DenseGrid2D::new(WIDTH, HEIGHT);
+        self.sheeps_grid = DenseGrid2D::new(WIDTH, HEIGHT);
+        self.grass_field = DenseNumberGrid2D::new(WIDTH, HEIGHT);
+        self.next_id = Arc::new(Mutex::new(INITIAL_NUM_SHEEPS + INITIAL_NUM_WOLVES));
         self.eaten_grass = Arc::new(Mutex::new(Vec::new()));
         self.new_sheeps = Arc::new(Mutex::new(Vec::new()));
         self.new_wolves = Arc::new(Mutex::new(Vec::new()));
         self.killed_sheeps = Arc::new(Mutex::new(HashSet::new()));
-        //self.initial_animals = (self.initial_sheeps, self.initial_wolves);
-        self.survived_wolves = self.initial_wolves;
-        self.survived_sheeps = self.initial_sheeps;
+        //self.initial_animals = (INITIAL_NUM_SHEEPS, INITIAL_NUM_WOLVES);
+        self.survived_wolves = INITIAL_NUM_WOLVES;
+        self.survived_sheeps = INITIAL_NUM_SHEEPS;
     }
 
     fn init(&mut self, schedule: &mut Schedule) {
@@ -140,8 +141,8 @@ impl State for WsgState {
         self.survived_wolves = wolves;
 
         // let mut grasses = 0;
-        // for i in 0..self.width {
-        //     for j in 0..self.height {
+        // for i in 0..WIDTH {
+        //     for j in 0..HEIGHT {
         //         match self
         //             .grass_field
         //             .get_value(&Int2D { x: i, y: j })
@@ -165,11 +166,49 @@ impl State for WsgState {
         // );
 
     }
+
+    fn end_condition(&mut self, schedule: &mut Schedule) -> bool {
+        
+        // calculate fitness function for the number of wolves and sheeps
+        
+
+        let agents = schedule.get_all_events();
+        let mut sheeps: f32 = 0.;
+        let mut wolves: f32 = 0.;
+        let mut num_sheeps: f32 = 0.;
+        let mut num_wolves: f32 = 0.;
+
+        for n in agents {
+            if let Some(s) = n.downcast_ref::<Sheep>() {
+                sheeps += s.energy;
+                num_sheeps += 1.;
+            }
+            if let Some(w) = n.downcast_ref::<Wolf>() {
+                wolves += w.energy;
+                num_wolves += 1.;
+            }
+        }
+
+        if sheeps == 0. || wolves == 0. {
+            self.fitness = 0.;
+            return true;
+        }
+
+        //let fitness = 1. / ((wolves - sheeps).abs() - (INITIAL_NUM_WOLVES as f32 - INITIAL_NUM_SHEEPS as f32).abs()).abs();
+        //let fitness = 1. / ((wolves - sheeps).abs() / (INITIAL_NUM_WOLVES as f32 - INITIAL_NUM_SHEEPS as f32).abs());
+        let fitness = (sheeps + wolves) * (1. / (1. + (num_sheeps - num_wolves).abs()));
+        
+
+        // let fitness = (INITIAL_NUM_WOLVES as f32 - INITIAL_NUM_SHEEPS as f32).abs() / (wolves - sheeps).abs() ;
+        self.fitness = fitness;
+        false
+        //fitness <= 0.3
+    }
 }
 
 fn generate_grass(state: &mut WsgState) {
-    (0..state.height).into_iter().for_each(|x| {
-        (0..state.width).into_iter().for_each(|y| {
+    (0..HEIGHT).into_iter().for_each(|x| {
+        (0..WIDTH).into_iter().for_each(|y| {
             let mut rng = rand::thread_rng();
             let fully_growth = rng.gen_bool(0.5);
             if fully_growth {
@@ -189,18 +228,18 @@ fn generate_grass(state: &mut WsgState) {
 fn generate_sheeps(state: &mut WsgState, schedule: &mut Schedule) {
     let mut rng = rand::thread_rng();
 
-    for id in 0..state.initial_sheeps {
+    for id in 0..INITIAL_NUM_SHEEPS {
         let loc = Int2D {
-            x: rng.gen_range(0..state.width),
-            y: rng.gen_range(0..state.height),
+            x: rng.gen_range(0..WIDTH),
+            y: rng.gen_range(0..HEIGHT),
         };
-        let init_energy = rng.gen_range(0..(2 * GAIN_ENERGY_SHEEP as usize));
+        let init_energy = rng.gen_range(0..(2 * state.gain_energy_sheep as usize));
         let sheep = Sheep::new(
-            id + state.initial_wolves,
+            id + INITIAL_NUM_WOLVES,
             loc,
-            init_energy as f64,
-            GAIN_ENERGY_SHEEP,
-            SHEEP_REPR,
+            init_energy as f32,
+            state.gain_energy_sheep,
+            state.sheep_repr,
         );
         state.sheeps_grid.set_object_location(sheep, &loc);
 
@@ -210,14 +249,14 @@ fn generate_sheeps(state: &mut WsgState, schedule: &mut Schedule) {
 
 fn generate_wolves(state: &mut WsgState, schedule: &mut Schedule) {
     let mut rng = rand::thread_rng();
-    for id in 0..state.initial_wolves {
+    for id in 0..INITIAL_NUM_WOLVES {
         let loc = Int2D {
-            x: rng.gen_range(0..state.width),
-            y: rng.gen_range(0..state.height),
+            x: rng.gen_range(0..WIDTH),
+            y: rng.gen_range(0..HEIGHT),
         };
-        let init_energy = rng.gen_range(0..(2 * GAIN_ENERGY_WOLF as usize));
+        let init_energy = rng.gen_range(0..(2 * state.gain_energy_wolf as usize));
 
-        let wolf = Wolf::new(id, loc, init_energy as f64, GAIN_ENERGY_WOLF, WOLF_REPR);
+        let wolf = Wolf::new(id, loc, init_energy as f32, state.gain_energy_wolf, state.wolf_repr);
         state.wolves_grid.set_object_location(wolf, &loc);
 
         // Sheep have an higher ordering than wolves. This is so that if a wolf kills one, in the next step
@@ -227,23 +266,31 @@ fn generate_wolves(state: &mut WsgState, schedule: &mut Schedule) {
 }
 
 impl WsgState {
-    pub fn new(width: i32, height: i32, initial_sheeps: u32, initial_wolves: u32) -> WsgState {
+    pub fn new(
+        energy_consume: f32, 
+        gain_energy_sheep: f32, 
+        gain_energy_wolf: f32,
+        sheep_repr: f32,
+        wolf_repr: f32) -> WsgState {
+
         WsgState {
-            width,
-            height,
-            wolves_grid: DenseGrid2D::new(width, height),
-            sheeps_grid: DenseGrid2D::new(width, height),
-            grass_field: DenseNumberGrid2D::new(width, height),
+            wolves_grid: DenseGrid2D::new(WIDTH, HEIGHT),
+            sheeps_grid: DenseGrid2D::new(WIDTH, HEIGHT),
+            grass_field: DenseNumberGrid2D::new(WIDTH, HEIGHT),
             step: 0,
-            next_id: Arc::new(Mutex::new(initial_wolves + initial_sheeps)),
+            next_id: Arc::new(Mutex::new(INITIAL_NUM_WOLVES + INITIAL_NUM_SHEEPS)),
             eaten_grass: Arc::new(Mutex::new(Vec::new())),
             new_sheeps: Arc::new(Mutex::new(Vec::new())),
             new_wolves: Arc::new(Mutex::new(Vec::new())),
-            initial_sheeps,
-            initial_wolves,
-            survived_wolves: initial_wolves,
-            survived_sheeps: initial_sheeps,
+            survived_wolves: INITIAL_NUM_WOLVES,
+            survived_sheeps: INITIAL_NUM_SHEEPS,
             killed_sheeps: Arc::new(Mutex::new(HashSet::new())),
+            energy_consume,
+            gain_energy_sheep,
+            gain_energy_wolf,
+            sheep_repr,
+            wolf_repr,
+            fitness: 0.,
         }
     }
 }

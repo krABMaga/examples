@@ -19,7 +19,6 @@ pub struct Flocker {
 
 impl Flocker {
     #[allow(dead_code)]
-    //pub fn new(dim: (f32, f32), initial_flockers: u32) -> Self {
     pub fn new(width: f32, height: f32, initial_flockers: u32) -> Self {
         Flocker {
             step: 0,
@@ -34,7 +33,6 @@ impl Flocker {
 impl State for Flocker {
     fn reset(&mut self) {
         self.step = 0;
-        //self.field1 = Field2D::new(self.width, self.height, DISCRETIZATION, TOROIDAL);
         self.field1 = Field2D::new(self.width, self.height, DISCRETIZATION, TOROIDAL);
     }
 
