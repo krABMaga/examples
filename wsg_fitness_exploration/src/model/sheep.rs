@@ -1,5 +1,5 @@
 use crate::model::state::{LifeState, WsgState};
-use crate::{FULL_GROWN, MOMENTUM_PROBABILITY, WIDTH, HEIGHT};
+use crate::{ENERGY_CONSUME, HEIGHT, MOMENTUM_PROBABILITY, WIDTH};
 
 use core::fmt;
 use rust_ab::engine::agent::Agent;
@@ -94,7 +94,7 @@ impl Agent for Sheep {
         //EAT
         if state.grass_field.get_value_unbuffered(&self.loc).is_none() {
             if let Some(grass_val) = state.grass_field.get_value(&self.loc) {
-                if grass_val >= FULL_GROWN {
+                if grass_val >= state.full_grown {
                     state.grass_field.set_value_location(0, &self.loc);
                     self.energy += self.gain_energy;
                 }
@@ -102,7 +102,7 @@ impl Agent for Sheep {
         }
 
         //UPDATE ENERGY
-        self.energy -= state.energy_consume;
+        self.energy -= ENERGY_CONSUME;
         if self.energy <= 0.0 {
             self.animal_state = LifeState::Dead;
         } else {

@@ -5,10 +5,10 @@ use rust_ab::engine::{
 
 use super::sheep::Sheep;
 use super::wolf::Wolf;
-use crate::{FULL_GROWN, INITIAL_NUM_SHEEPS, INITIAL_NUM_WOLVES, WIDTH, HEIGHT};
+use crate::{ENERGY_CONSUME, HEIGHT, INITIAL_NUM_SHEEPS, INITIAL_NUM_WOLVES, WIDTH};
 use core::fmt;
-use rust_ab::hashbrown::HashSet;
 use rust_ab::engine::fields::grid_option::GridOption;
+use rust_ab::hashbrown::HashSet;
 use rust_ab::rand;
 use rust_ab::rand::Rng;
 use std::any::Any;
@@ -33,7 +33,6 @@ impl fmt::Display for LifeState {
     }
 }
 
-
 pub struct WsgState {
     pub wolves_grid: DenseGrid2D<Wolf>,
     pub sheeps_grid: DenseGrid2D<Sheep>,
@@ -43,27 +42,35 @@ pub struct WsgState {
     pub eaten_grass: Arc<Mutex<Vec<Int2D>>>,
     pub new_sheeps: Arc<Mutex<Vec<Sheep>>>,
     pub new_wolves: Arc<Mutex<Vec<Wolf>>>,
-    pub killed_sheeps: Arc<Mutex<HashSet<Sheep>>>,    
+    pub killed_sheeps: Arc<Mutex<HashSet<Sheep>>>,
     pub survived_wolves: u32,
     pub survived_sheeps: u32,
-    pub energy_consume: f32,
     pub gain_energy_sheep: f32,
     pub gain_energy_wolf: f32,
     pub sheep_repr: f32,
     pub wolf_repr: f32,
     pub fitness: f32,
+    pub full_grown: u16,
 }
-
 
 impl fmt::Display for WsgState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "WsgState 
+        write!(
+            f,
+            "WsgState 
         fitness: {} |
-        energy_consume: {} |
         gain_energy_sheep: {} |
         gain_enery_wolf: {} |
         sheep_repr: {} |
-        wolf_repr: {}", self.fitness, self.energy_consume, self.gain_energy_sheep, self.gain_energy_wolf, self.sheep_repr, self.wolf_repr)
+        wolf_repr: {} | 
+        full_grown: {}",
+            self.fitness,
+            self.gain_energy_sheep,
+            self.gain_energy_wolf,
+            self.sheep_repr,
+            self.wolf_repr,
+            self.full_grown
+        )
     }
 }
 
@@ -94,7 +101,7 @@ impl State for WsgState {
             self.grass_field.apply_to_all_values(
                 |grass| {
                     let growth = *grass;
-                    if growth < FULL_GROWN {
+                    if growth < self.full_grown {
                         growth + 1
                     } else {
                         growth
@@ -178,11 +185,9 @@ impl State for WsgState {
         //     "Number of sheeps: {:?} - wolves: {:?} - full growth grasses: {:?} at step {:?}\n",
         //     sheeps, wolves, grasses, schedule.step
         // );
-
     }
 
     fn end_condition(&mut self, schedule: &mut Schedule) -> bool {
-
         let agents = schedule.get_all_events();
         let mut num_sheeps: f32 = 0.;
         let mut num_wolves: f32 = 0.;
@@ -212,9 +217,9 @@ fn generate_grass(state: &mut WsgState) {
             if fully_growth {
                 state
                     .grass_field
-                    .set_value_location(FULL_GROWN, &Int2D { x, y });
+                    .set_value_location(state.full_grown, &Int2D { x, y });
             } else {
-                let grass_init_value = rng.gen_range(0..FULL_GROWN + 1);
+                let grass_init_value = rng.gen_range(0..state.full_grown + 1);
                 state
                     .grass_field
                     .set_value_location(grass_init_value, &Int2D { x, y });
@@ -254,7 +259,13 @@ fn generate_wolves(state: &mut WsgState, schedule: &mut Schedule) {
         };
         let init_energy = rng.gen_range(0..(2 * state.gain_energy_wolf as usize));
 
-        let wolf = Wolf::new(id, loc, init_energy as f32, state.gain_energy_wolf, state.wolf_repr);
+        let wolf = Wolf::new(
+            id,
+            loc,
+            init_energy as f32,
+            state.gain_energy_wolf,
+            state.wolf_repr,
+        );
         state.wolves_grid.set_object_location(wolf, &loc);
 
         // Sheep have an higher ordering than wolves. This is so that if a wolf kills one, in the next step
@@ -265,12 +276,12 @@ fn generate_wolves(state: &mut WsgState, schedule: &mut Schedule) {
 
 impl WsgState {
     pub fn new(
-        energy_consume: f32, 
-        gain_energy_sheep: f32, 
+        gain_energy_sheep: f32,
         gain_energy_wolf: f32,
         sheep_repr: f32,
-        wolf_repr: f32) -> WsgState {
-
+        wolf_repr: f32,
+        full_grown: u16,
+    ) -> WsgState {
         WsgState {
             wolves_grid: DenseGrid2D::new(WIDTH, HEIGHT),
             sheeps_grid: DenseGrid2D::new(WIDTH, HEIGHT),
@@ -283,12 +294,12 @@ impl WsgState {
             survived_wolves: INITIAL_NUM_WOLVES,
             survived_sheeps: INITIAL_NUM_SHEEPS,
             killed_sheeps: Arc::new(Mutex::new(HashSet::new())),
-            energy_consume,
             gain_energy_sheep,
             gain_energy_wolf,
             sheep_repr,
             wolf_repr,
             fitness: 0.,
+            full_grown,
         }
     }
 }

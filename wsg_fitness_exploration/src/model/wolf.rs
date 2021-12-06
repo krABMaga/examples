@@ -11,7 +11,7 @@ use rust_ab::{
 use std::hash::{Hash, Hasher};
 
 use crate::model::state::{LifeState, WsgState};
-use crate::{MOMENTUM_PROBABILITY, WIDTH, HEIGHT};
+use crate::{ENERGY_CONSUME, HEIGHT, MOMENTUM_PROBABILITY, WIDTH};
 
 #[derive(Copy, Clone)]
 pub struct Wolf {
@@ -86,18 +86,19 @@ impl Agent for Wolf {
         if let Some(sheeps) = state.sheeps_grid.get_objects(&self.loc) {
             for mut sheep in sheeps {
                 if state.killed_sheeps.lock().unwrap().get(&sheep).is_none()
-                    && sheep.animal_state == LifeState::Alive {
-                        sheep.animal_state = LifeState::Dead;
-                        state.sheeps_grid.set_object_location(sheep, &sheep.loc);
-                        self.energy += self.gain_energy;
-                        state.killed_sheeps.lock().unwrap().insert(sheep);
-                        break;
-                    }
+                    && sheep.animal_state == LifeState::Alive
+                {
+                    sheep.animal_state = LifeState::Dead;
+                    state.sheeps_grid.set_object_location(sheep, &sheep.loc);
+                    self.energy += self.gain_energy;
+                    state.killed_sheeps.lock().unwrap().insert(sheep);
+                    break;
+                }
             }
         }
 
         //UPDATE ENERGY
-        self.energy -= state.energy_consume;
+        self.energy -= ENERGY_CONSUME;
         if self.energy <= 0.0 {
             self.animal_state = LifeState::Dead;
         } else {
@@ -107,8 +108,13 @@ impl Agent for Wolf {
                 let mut new_id = state.next_id.lock().unwrap();
 
                 //let init_energy = rng.gen_range(0..(2 * GAIN_ENERGY_WOLF as usize));
-                let new_wolf =
-                    Wolf::new(*new_id, self.loc, self.energy, state.gain_energy_wolf, state.wolf_repr);
+                let new_wolf = Wolf::new(
+                    *new_id,
+                    self.loc,
+                    self.energy,
+                    state.gain_energy_wolf,
+                    state.wolf_repr,
+                );
 
                 //schedule.schedule_repeating(Box::new(new_wolf), schedule.time + 1.0, 1);
                 *new_id += 1;

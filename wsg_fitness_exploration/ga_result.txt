@@ -1,0 +1,416 @@
+Population at gen 1
+- individual #0: WsgState 
+        fitness: 28.587141 |
+        energy_consume: 1.2923983 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #1: WsgState 
+        fitness: 42.693306 |
+        energy_consume: 1.3467807 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #2: WsgState 
+        fitness: 16.837364 |
+        energy_consume: 1.2139281 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #3: WsgState 
+        fitness: 20.110346 |
+        energy_consume: 1.4127283 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #4: WsgState 
+        fitness: 23.9361 |
+        energy_consume: 1.3954749 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #5: WsgState 
+        fitness: 35.981316 |
+        energy_consume: 1.5284772 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #6: WsgState 
+        fitness: 24.332035 |
+        energy_consume: 1.0748987 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #7: WsgState 
+        fitness: 22.692993 |
+        energy_consume: 1.4864056 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+------------------------------
+Population at gen 2
+- individual #0: WsgState 
+        fitness: 19.5087 |
+        energy_consume: 1.3467807 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #1: WsgState 
+        fitness: 24.567533 |
+        energy_consume: 1.5770011 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #2: WsgState 
+        fitness: 14.032132 |
+        energy_consume: 1.2923983 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #3: WsgState 
+        fitness: 15.815774 |
+        energy_consume: 1.0748987 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+------------------------------
+Population at gen 3
+- individual #0: WsgState 
+        fitness: 14.405089 |
+        energy_consume: 1.5770011 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #1: WsgState 
+        fitness: 19.68028 |
+        energy_consume: 1.4618909 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+------------------------------
+Population at gen 1
+- individual #0: WsgState 
+        fitness: 60.634598 |
+        energy_consume: 1.8430878 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #1: WsgState 
+        fitness: 14.697812 |
+        energy_consume: 1.8270494 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #2: WsgState 
+        fitness: 34.756237 |
+        energy_consume: 1.3839085 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #3: WsgState 
+        fitness: 18.96712 |
+        energy_consume: 1.6089871 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #4: WsgState 
+        fitness: 36.328148 |
+        energy_consume: 1.2061986 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #5: WsgState 
+        fitness: 46.29087 |
+        energy_consume: 1.6093307 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #6: WsgState 
+        fitness: 23.276232 |
+        energy_consume: 1.5277095 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #7: WsgState 
+        fitness: 60.341278 |
+        energy_consume: 1.6384137 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+------------------------------
+Population at gen 2
+- individual #0: WsgState 
+        fitness: 183.98967 |
+        energy_consume: 1.8430878 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #1: WsgState 
+        fitness: 85.84464 |
+        energy_consume: 1.7407508 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #2: WsgState 
+        fitness: 8.521409 |
+        energy_consume: 1.6093307 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #3: WsgState 
+        fitness: 22.34615 |
+        energy_consume: 1.2061986 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+------------------------------
+Population at gen 3
+- individual #0: WsgState 
+        fitness: 36.45403 |
+        energy_consume: 1.8430878 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #1: WsgState 
+        fitness: 21.084715 |
+        energy_consume: 1.7919192 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+------------------------------
+Population at gen 1
+- individual #0: WsgState 
+        fitness: 19.94251 |
+        energy_consume: 1.3036097 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #1: WsgState 
+        fitness: 28.31123 |
+        energy_consume: 1.1027579 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #2: WsgState 
+        fitness: 34.943703 |
+        energy_consume: 1.4314961 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #3: WsgState 
+        fitness: 64.42577 |
+        energy_consume: 1.5511487 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #4: WsgState 
+        fitness: 17.839397 |
+        energy_consume: 1.3162762 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #5: WsgState 
+        fitness: 35.05716 |
+        energy_consume: 1.1795923 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #6: WsgState 
+        fitness: 27.575487 |
+        energy_consume: 1.6991086 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #7: WsgState 
+        fitness: 92.30038 |
+        energy_consume: 1.9482126 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+------------------------------
+Population at gen 2
+- individual #0: WsgState 
+        fitness: 439.5325 |
+        energy_consume: 1.9482126 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #1: WsgState 
+        fitness: 22.87908 |
+        energy_consume: 1.7496806 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #2: WsgState 
+        fitness: 16.805809 |
+        energy_consume: 1.1795923 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #3: WsgState 
+        fitness: 16.225706 |
+        energy_consume: 1.4314961 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+------------------------------
+Population at gen 3
+- individual #0: WsgState 
+        fitness: 11.84047 |
+        energy_consume: 1.9482126 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+- individual #1: WsgState 
+        fitness: 11.610533 |
+        energy_consume: 1.7987936 |
+        gain_energy_sheep: 5 |
+        gain_enery_wolf: 13 |
+        sheep_repr: 0.2 |
+        wolf_repr: 0.1 
+------------------------------
+Population at gen 1
+- individual #0: WsgState 
+        fitness: 0 |
+        gain_energy_sheep: 12.190293 |
+        gain_enery_wolf: 46.65236 |
+        sheep_repr: 0.17716146 |
+        wolf_repr: 0.18820868 | 
+        full_grown: 90 
+- individual #1: WsgState 
+        fitness: 0 |
+        gain_energy_sheep: 17.314243 |
+        gain_enery_wolf: 13.349548 |
+        sheep_repr: 0.13141544 |
+        wolf_repr: 0.014992931 | 
+        full_grown: 52 
+- individual #2: WsgState 
+        fitness: 0 |
+        gain_energy_sheep: 14.94733 |
+        gain_enery_wolf: 12.044887 |
+        sheep_repr: 0.13274318 |
+        wolf_repr: 0.07018546 | 
+        full_grown: 63 
+- individual #3: WsgState 
+        fitness: 0 |
+        gain_energy_sheep: 10.284654 |
+        gain_enery_wolf: 26.967485 |
+        sheep_repr: 0.1361866 |
+        wolf_repr: 0.07106699 | 
+        full_grown: 54 
+- individual #4: WsgState 
+        fitness: 0 |
+        gain_energy_sheep: 48.27859 |
+        gain_enery_wolf: 41.012405 |
+        sheep_repr: 0.15228558 |
+        wolf_repr: 0.09502911 | 
+        full_grown: 58 
+- individual #5: WsgState 
+        fitness: 0 |
+        gain_energy_sheep: 33.692314 |
+        gain_enery_wolf: 33.29123 |
+        sheep_repr: 0.13203274 |
+        wolf_repr: 0.076398626 | 
+        full_grown: 51 
+- individual #6: WsgState 
+        fitness: 0 |
+        gain_energy_sheep: 19.74767 |
+        gain_enery_wolf: 35.485817 |
+        sheep_repr: 0.14011946 |
+        wolf_repr: 0.0841349 | 
+        full_grown: 47 
+- individual #7: WsgState 
+        fitness: 0 |
+        gain_energy_sheep: 37.47011 |
+        gain_enery_wolf: 35.30506 |
+        sheep_repr: 0.0869539 |
+        wolf_repr: 0.048084315 | 
+        full_grown: 88 
+------------------------------
+Population at gen 2
+- individual #0: WsgState 
+        fitness: 0 |
+        gain_energy_sheep: 12.190293 |
+        gain_enery_wolf: 46.65236 |
+        sheep_repr: 0.17716146 |
+        wolf_repr: 0.18820868 | 
+        full_grown: 90 
+- individual #1: WsgState 
+        fitness: 0 |
+        gain_energy_sheep: 17.314243 |
+        gain_enery_wolf: 13.349548 |
+        sheep_repr: 0.13141544 |
+        wolf_repr: 0.014992931 | 
+        full_grown: 52 
+- individual #2: WsgState 
+        fitness: 0 |
+        gain_energy_sheep: 14.94733 |
+        gain_enery_wolf: 12.044887 |
+        sheep_repr: 0.13274318 |
+        wolf_repr: 0.07018546 | 
+        full_grown: 63 
+- individual #3: WsgState 
+        fitness: 0 |
+        gain_energy_sheep: 10.284654 |
+        gain_enery_wolf: 26.967485 |
+        sheep_repr: 0.1361866 |
+        wolf_repr: 0.07106699 | 
+        full_grown: 54 
+------------------------------
+Population at gen 3
+- individual #0: WsgState 
+        fitness: 0 |
+        gain_energy_sheep: 12.190293 |
+        gain_enery_wolf: 46.65236 |
+        sheep_repr: 0.17716146 |
+        wolf_repr: 0.18820868 | 
+        full_grown: 90 
+- individual #1: WsgState 
+        fitness: 0 |
+        gain_energy_sheep: 17.314243 |
+        gain_enery_wolf: 13.349548 |
+        sheep_repr: 0.13141544 |
+        wolf_repr: 0.014992931 | 
+        full_grown: 52 
+------------------------------
