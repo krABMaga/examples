@@ -1,5 +1,5 @@
-﻿[package]
-name = "wolfsheepgrass"
+[package]
+name = "flockersmpi"
 version = "0.2.0"
 authors = [
     "Carmine Spagnuolo <spagnuolocarmine@gmail.com>", 
@@ -18,7 +18,7 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rust-ab = { path="/Users/ddevin/Documents/VSCode/rust-ab" }
+rust-ab = {path="/Users/ddevin/Documents/VSCode/rust-ab" }
 
 [features]
 explore = ["rust-ab/explore"]

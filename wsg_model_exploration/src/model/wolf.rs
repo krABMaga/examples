@@ -58,7 +58,7 @@ impl Agent for Wolf {
                 let ym = y + (y - last_pos.y);
                 let new_loc = Int2D { x: xm, y: ym };
                 // TRY TO MOVE WITH MOMENTUM_PROBABILITY
-                if xm >= 0 && xm < state.dim.0 && ym >= 0 && ym < state.dim.1 {
+                if xm >= 0 && xm < state.width && ym >= 0 && ym < state.height {
                     self.loc = new_loc;
                     self.last = Some(Int2D { x, y });
                     moved = true;
@@ -67,9 +67,9 @@ impl Agent for Wolf {
         }
         if !moved {
             let xmin = if x > 0 { -1 } else { 0 };
-            let xmax = if x < state.dim.0 - 1 { 1 } else { 0 };
+            let xmax = if x < state.width - 1 { 1 } else { 0 };
             let ymin = if y > 0 { -1 } else { 0 };
-            let ymax = if y < state.dim.1 - 1 { 1 } else { 0 };
+            let ymax = if y < state.height - 1 { 1 } else { 0 };
 
             let nx = if rng.gen_bool(0.5) { xmin } else { xmax };
             let ny = if rng.gen_bool(0.5) { ymin } else { ymax };
@@ -87,7 +87,6 @@ impl Agent for Wolf {
             for mut sheep in sheeps {
                 if state.killed_sheeps.lock().unwrap().get(&sheep).is_none()
                     && sheep.animal_state == LifeState::Alive {
-                        println!("magnat {}", sheep.id);
                         sheep.animal_state = LifeState::Dead;
                         state.sheeps_grid.set_object_location(sheep, &sheep.loc);
                         self.energy += self.gain_energy;
