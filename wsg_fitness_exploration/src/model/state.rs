@@ -5,7 +5,7 @@ use rust_ab::engine::{
 
 use super::sheep::Sheep;
 use super::wolf::Wolf;
-use crate::{ENERGY_CONSUME, HEIGHT, INITIAL_NUM_SHEEPS, INITIAL_NUM_WOLVES, WIDTH};
+use crate::{HEIGHT, INITIAL_NUM_SHEEPS, INITIAL_NUM_WOLVES, WIDTH};
 use core::fmt;
 use rust_ab::engine::fields::grid_option::GridOption;
 use rust_ab::hashbrown::HashSet;
