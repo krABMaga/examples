@@ -13,13 +13,13 @@ use crate::{AVOIDANCE, COHESION, CONSISTENCY, JUMP, MOMENTUM, RANDOMNESS};
 #[derive(Clone, Copy)]
 pub struct Bird {
     pub id: u32,
-    pub pos: Real2D,
+    pub loc: Real2D,
     pub last_d: Real2D,
 }
 
 impl Bird {
-    pub fn new(id: u32, pos: Real2D, last_d: Real2D) -> Self {
-        Bird { id, pos, last_d }
+    pub fn new(id: u32, loc: Real2D, last_d: Real2D) -> Self {
+        Bird { id, loc, last_d }
     }
 }
 
@@ -27,7 +27,7 @@ impl Agent for Bird {
 
     fn step(&mut self, state: &mut dyn State) {
         let state = state.as_any().downcast_ref::<Flocker>().unwrap();
-        let vec = state.field1.get_neighbors_within_distance(self.pos, 10.0);
+        let vec = state.field1.get_neighbors_within_distance(self.loc, 10.0);
 
         let width = state.dim.0;
         let height = state.dim.1;
@@ -50,8 +50,8 @@ impl Agent for Bird {
 
             for elem in &vec {
                 if self.id != elem.id {
-                    let dx = toroidal_distance(self.pos.x, elem.pos.x, width);
-                    let dy = toroidal_distance(self.pos.y, elem.pos.y, height);
+                    let dx = toroidal_distance(self.loc.x, elem.loc.x, width);
+                    let dy = toroidal_distance(self.loc.y, elem.loc.y, height);
                     count += 1;
 
                     //avoidance calculation
@@ -132,10 +132,10 @@ impl Agent for Bird {
         }
 
         self.last_d = Real2D { x: dx, y: dy };
-        let loc_x = toroidal_transform(self.pos.x + dx, width);
-        let loc_y = toroidal_transform(self.pos.y + dy, width);
+        let loc_x = toroidal_transform(self.loc.x + dx, width);
+        let loc_y = toroidal_transform(self.loc.y + dy, width);
 
-        self.pos = Real2D { x: loc_x, y: loc_y };
+        self.loc = Real2D { x: loc_x, y: loc_y };
         drop(vec);
         state
             .field1
@@ -166,16 +166,16 @@ impl PartialEq for Bird {
 
 impl Location2D<Real2D> for Bird {
     fn get_location(self) -> Real2D {
-        self.pos
+        self.loc
     }
 
     fn set_location(&mut self, loc: Real2D) {
-        self.pos = loc;
+        self.loc = loc;
     }
 }
 
 impl fmt::Display for Bird {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} pos {}", self.id, self.pos)
+        write!(f, "{} loc {}", self.id, self.loc)
     }
 }

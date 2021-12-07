@@ -12,7 +12,7 @@ use std::hash::{Hash, Hasher};
 #[derive(Clone, Copy)]
 pub struct Crab {
     pub id: u32,
-    pub pos: Real2D,
+    pub loc: Real2D,
     pub last_d: Real2D,
     pub dir_x: f32,
     pub dir_y: f32,
@@ -31,9 +31,9 @@ impl Agent for Crab {
             self.dir_y -= 1.0;
         }
 
-        let loc_x = toroidal_transform(self.pos.x + self.dir_x, state.field.width);
-        let loc_y = toroidal_transform(self.pos.y + self.dir_y, state.field.heigth);
-        self.pos = Real2D { x: loc_x, y: loc_y };
+        let loc_x = toroidal_transform(self.loc.x + self.dir_x, state.field.width);
+        let loc_y = toroidal_transform(self.loc.y + self.dir_y, state.field.heigth);
+        self.loc = Real2D { x: loc_x, y: loc_y };
 
         state
             .field
@@ -62,11 +62,11 @@ impl Hash for Crab {
 
 impl Location2D<Real2D> for Crab {
     fn get_location(self) -> Real2D {
-        self.pos
+        self.loc
     }
 
     fn set_location(&mut self, loc: Real2D) {
-        self.pos = loc;
+        self.loc = loc;
     }
 }
 

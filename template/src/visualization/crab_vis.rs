@@ -20,13 +20,13 @@ impl AgentRender for CrabVis {
     }
 
     /// Specify where the agent should be rendered in the window.
-    fn position(&self, agent: &Box<dyn Agent>, state: &Box<&dyn State>) -> (f32, f32, f32) {
+    fn location(&self, agent: &Box<dyn Agent>, state: &Box<&dyn State>) -> (f32, f32, f32) {
         let state = state.as_any().downcast_ref::<Sea>().unwrap();
         let agent = agent.downcast_ref::<Crab>().unwrap();
         let loc = state.field.get_location(*agent);
         match loc {
-            Some(pos) => (pos.x as f32, pos.y as f32, 0.),
-            None => (agent.pos.x as f32, agent.pos.y as f32, 0.),
+            Some(loc) => (loc.x as f32, loc.y as f32, 0.),
+            None => (agent.loc.x as f32, agent.loc.y as f32, 0.),
         }
     }
 
@@ -54,14 +54,14 @@ impl AgentRender for CrabVis {
         state: &Box<&dyn State>,
         _visible: &mut Visible,
     ) {
-        // This snippet updates the agent position, scale and rotation for each frame.
-        let (pos_x, pos_y, z) = self.position(agent, state);
+        // This snippet updates the agent location, scale and rotation for each frame.
+        let (loc_x, loc_y, z) = self.location(agent, state);
         let rotation = self.rotation(agent, state);
         let (scale_x, scale_y) = self.scale(agent, state);
 
         let translation = &mut transform.translation;
-        translation.x = pos_x;
-        translation.y = pos_y;
+        translation.x = loc_x;
+        translation.y = loc_y;
         translation.z = z;
         transform.scale.x = scale_x;
         transform.scale.y = scale_y;

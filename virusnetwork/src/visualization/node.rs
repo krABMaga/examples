@@ -30,10 +30,10 @@ impl AgentRender for NetNodeVis {
         }
     }
 
-    /// The position must always be fetched through the state, since that will be the one actually updated
+    /// The location must always be fetched through the state, since that will be the one actually updated
     /// by the RustAB schedule. All objects will be rendered on the 0. z, except pheromones, which will be
     /// put on a lower z-axis.
-    fn position(&self, agent: &Box<dyn Agent>, state: &Box<&dyn State>) -> (f32, f32, f32) {
+    fn location(&self, agent: &Box<dyn Agent>, state: &Box<&dyn State>) -> (f32, f32, f32) {
         let state = state
             .as_any()
             .downcast_ref::<EpidemicNetworkState>()
@@ -56,7 +56,7 @@ impl AgentRender for NetNodeVis {
         0.
     }
 
-    /// Simply update the transform based on the position chosen
+    /// Simply update the transform based on the location chosen
     fn update(
         &mut self,
         _agent: &Box<dyn Agent>,

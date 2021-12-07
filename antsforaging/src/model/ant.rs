@@ -11,15 +11,15 @@ use crate::{
     HEIGHT, MOMENTUM_PROBABILITY, RANDOM_ACTION_PROBABILITY, REWARD, UPDATE_CUTDOWN, WIDTH,
 };
 
-// A struct representing an ant, with an id, a position, whether it's holding food or not and the
+// A struct representing an ant, with an id, a location, whether it's holding food or not and the
 // current reward, used to increase the pheromone on the location of the ant if a site is reached.
 #[derive(Copy, Clone)]
 pub struct Ant {
     // An unique id.
     pub id: u32,
-    // The position of the agent.
+    // The location of the agent.
     pub loc: Int2D,
-    // Last position of the agent, starts as None
+    // Last location of the agent, starts as None
     pub last: Option<Int2D>,
     // False means the agent will try to find food by following food pheromones if possible, or by
     // flooding the grid until it is found. True means the agent will try to return home by using the
@@ -157,10 +157,10 @@ impl Ant {
 
         if max == 0. && self.last != None {
             // No tips from pheromones, consider stepping in the same direction
-            if let Some(last_pos) = self.last {
+            if let Some(last_loc) = self.last {
                 if rng.gen_bool(MOMENTUM_PROBABILITY) {
-                    let xm = x + (x - last_pos.x);
-                    let ym = y + (y - last_pos.y);
+                    let xm = x + (x - last_loc.x);
+                    let ym = y + (y - last_loc.y);
                     // Don't go outside the field or in an obstacle
                     if xm >= 0
                         && xm < WIDTH

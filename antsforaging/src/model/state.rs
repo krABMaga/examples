@@ -109,14 +109,14 @@ impl State for ModelState {
         } else {
             rng.gen_range(FOOD_YMIN..FOOD_YMAX)
         };
-        let food_position = Int2D { x, y };
+        let food_location = Int2D { x, y };
 
         self.obstacles_grid.set_object_location(
             Item {
                 id: 888888888,
                 value: ItemType::Food,
             },
-            &food_position,
+            &food_location,
         );
 
         // Nest generation
@@ -130,19 +130,19 @@ impl State for ModelState {
         } else {
             rng.gen_range(HOME_YMIN..HOME_YMAX)
         };
-        let nest_position = Int2D { x, y };
+        let nest_location = Int2D { x, y };
         self.obstacles_grid.set_object_location(
             Item {
                 id: 99999999,
                 value: ItemType::Home,
             },
-            &nest_position,
+            &nest_location,
         );
 
         // Obastacles generation
         /* General formula to calculate an ellipsis, used to draw obstacles.
            x and y define a specific cell
-           horizontal and vertical define the ellipsis position (bottom left: 0,0)
+           horizontal and vertical define the ellipsis location (bottom left: 0,0)
            size defines the ellipsis' size (smaller value = bigger ellipsis)
         */
         let ellipsis = |x: f32, y: f32, horizontal: f32, vertical: f32, size: f32| -> bool {
@@ -164,13 +164,13 @@ impl State for ModelState {
                 if ellipsis(i as f32, j as f32, 100., 145., 0.407)
                     || ellipsis(i as f32, j as f32, 90., 55., 0.407)
                 {
-                    let obstacle_position = Int2D { x: i, y: j };
+                    let obstacle_location = Int2D { x: i, y: j };
                     self.obstacles_grid.set_object_location(
                         Item {
                             id: obstacle_id,
                             value: ItemType::Obstacle,
                         },
-                        &obstacle_position,
+                        &obstacle_location,
                     );
                 }
                 obstacle_id += 1;

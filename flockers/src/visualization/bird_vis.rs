@@ -15,13 +15,13 @@ impl AgentRender for BirdVis {
         SpriteType::Emoji(String::from("bird"))
     }
 
-    fn position(&self, agent: &Box<dyn Agent>, state: &Box<&dyn State>) -> (f32, f32, f32) {
+    fn location(&self, agent: &Box<dyn Agent>, state: &Box<&dyn State>) -> (f32, f32, f32) {
         let state = state.as_any().downcast_ref::<Flocker>().unwrap();
         let agent = agent.downcast_ref::<Bird>().unwrap();
         let loc = state.field1.get_location(*agent);
         match loc {
             Some(loc) => (loc.x as f32, loc.y as f32, 0.),
-            None => (agent.pos.x as f32, agent.pos.y as f32, 0.),
+            None => (agent.loc.x as f32, agent.loc.y as f32, 0.),
         }
     }
 
@@ -48,13 +48,13 @@ impl AgentRender for BirdVis {
         state: &Box<&dyn State>,
         _visible: &mut Visible,
     ) {
-        let (pos_x, pos_y, z) = self.position(agent, state);
+        let (loc_x, loc_y, z) = self.location(agent, state);
         let rotation = self.rotation(agent, state);
         let (scale_x, scale_y) = self.scale(agent, state);
 
         let translation = &mut transform.translation;
-        translation.x = pos_x;
-        translation.y = pos_y;
+        translation.x = loc_x;
+        translation.y = loc_y;
         translation.z = z;
         transform.scale.x = scale_x;
         transform.scale.y = scale_y;

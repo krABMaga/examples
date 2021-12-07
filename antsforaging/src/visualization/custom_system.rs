@@ -11,8 +11,8 @@ use rust_ab::engine::fields::sparse_object_grid_2d::SparseGrid2D;
 use rust_ab::visualization::fields::object_grid_2d::RenderObjectGrid2D;
 
 impl BatchRender<ModelState> for ToHomeGrid {
-    fn get_pixel(&self, pos: &Int2D) -> [u8; 4] {
-        match self.grid.get_value(pos) {
+    fn get_pixel(&self, loc: &Int2D) -> [u8; 4] {
+        match self.grid.get_value(loc) {
             Some(val) => {
                 let cell = val;
 
@@ -43,8 +43,8 @@ impl BatchRender<ModelState> for ToHomeGrid {
 }
 
 impl BatchRender<ModelState> for ToFoodGrid {
-    fn get_pixel(&self, pos: &Int2D) -> [u8; 4] {
-        match self.grid.get_value(pos) {
+    fn get_pixel(&self, loc: &Int2D) -> [u8; 4] {
+        match self.grid.get_value(loc) {
             Some(val) => {
                 let cell = val;
 
@@ -75,15 +75,15 @@ impl BatchRender<ModelState> for ToFoodGrid {
 }
 
 impl RenderObjectGrid2D<ModelState, Item> for SparseGrid2D<Item> {
-    fn get_sparse_grid(state: &ModelState) -> Option<&SparseGrid2D<Item>> {
+    fn fetch_sparse_grid(state: &ModelState) -> Option<&SparseGrid2D<Item>> {
         Some(&state.obstacles_grid)
     }
 
-    fn get_dense_grid(_state: &ModelState) -> Option<&DenseGrid2D<Item>> {
+    fn fetch_dense_grid(_state: &ModelState) -> Option<&DenseGrid2D<Item>> {
         None
     }
 
-    fn get_emoji_obj(_state: &ModelState, obj: &Item) -> String {
+    fn fetch_emoji(_state: &ModelState, obj: &Item) -> String {
         match obj.value {
             ItemType::Home => "house".to_string(),
             ItemType::Food => "candy".to_string(),
@@ -101,11 +101,11 @@ impl RenderObjectGrid2D<ModelState, Item> for SparseGrid2D<Item> {
         }
     }
 
-    fn get_pos_obj(state: &ModelState, obj: &Item) -> Option<Int2D> {
+    fn fetch_loc(state: &ModelState, obj: &Item) -> Option<Int2D> {
         state.obstacles_grid.get_location(*obj)
     }
 
-    fn get_rotation_obj(_state: &ModelState, _obj: &Item) -> f32 {
+    fn fetch_rotation(_state: &ModelState, _obj: &Item) -> f32 {
         0.0
     }
 }
