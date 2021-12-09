@@ -46,7 +46,7 @@ fn main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        ComputationMode::Parallel,
+        ComputationMode::DistributedMPI,
         parameters{
             gain_energy_sheep: f32
             gain_energy_wolf: f32
