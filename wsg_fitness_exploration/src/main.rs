@@ -9,9 +9,9 @@ pub const MOMENTUM_PROBABILITY: f64 = 0.8;
 pub const ENERGY_CONSUME: f32 = 1.0;
 
 pub const MUTATION_RATE: f64 = 0.05;
-pub const DESIRED_FITNESS: f32 = 0.925;
+pub const DESIRED_FITNESS: f32 = 0.90;
 pub const MAX_GENERATION: u32 = 10;
-pub const POPULATION: u32 = 25;
+pub const POPULATION: u32 = 4;
 
 // Mutable parameters in the fitness
 // pub const FULL_GROWN: u16 = 20;
@@ -36,7 +36,7 @@ use {
 
 fn main() {
     // macro used to execute model exploration using a genetic algorithm
-    explore_ga!(
+    let result = explore_ga!(
         init_population,
         fitness,
         selection,
@@ -46,7 +46,7 @@ fn main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        ComputationMode::DistributedMPI,
+        ComputationMode::Parallel,
         parameters{
             gain_energy_sheep: f32
             gain_energy_wolf: f32
@@ -55,6 +55,13 @@ fn main() {
             full_grown: u16
         }
     );
+
+    if !result.is_empty() {
+        // I'm the master
+        // build csv from all procexplore_result
+        let name = format!("{}", "explore_result");
+        let _res = write_csv(&name, &result);
+    }
 }
 
 // function that initialize the populatin
@@ -95,8 +102,8 @@ fn selection(population: &mut Vec<WsgState>) {
     // build an array containing the fintess values in order to be used for the
     // weighted selection
     let mut weight = Vec::new();
-
     for i in 0..len {
+        println!("individual {} fitness {}", i, population[i].fitness);
         weight.push((population[i].fitness * 100.).floor() as u32);
     }
 
@@ -243,6 +250,7 @@ fn fitness(state: &mut WsgState, schedule: Schedule) -> f32 {
     let average;
 
     if num_wolves == 0. || num_sheeps == 0. {
+        println!("Num of animals is zero");
         average = 0.;
     } else {
         average = (perc_sheeps + perc_wolves) / 2.;
