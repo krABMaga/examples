@@ -75,20 +75,6 @@ impl fmt::Display for WsgState {
 }
 
 impl State for WsgState {
-    fn reset(&mut self) {
-        self.step = 0;
-        self.wolves_grid = DenseGrid2D::new(WIDTH, HEIGHT);
-        self.sheeps_grid = DenseGrid2D::new(WIDTH, HEIGHT);
-        self.grass_field = DenseNumberGrid2D::new(WIDTH, HEIGHT);
-        self.next_id = Arc::new(Mutex::new(INITIAL_NUM_SHEEPS + INITIAL_NUM_WOLVES));
-        self.eaten_grass = Arc::new(Mutex::new(Vec::new()));
-        self.new_sheeps = Arc::new(Mutex::new(Vec::new()));
-        self.new_wolves = Arc::new(Mutex::new(Vec::new()));
-        self.killed_sheeps = Arc::new(Mutex::new(HashSet::new()));
-        //self.initial_animals = (INITIAL_NUM_SHEEPS, INITIAL_NUM_WOLVES);
-        self.survived_wolves = INITIAL_NUM_WOLVES;
-        self.survived_sheeps = INITIAL_NUM_SHEEPS;
-    }
 
     fn init(&mut self, schedule: &mut Schedule) {
         generate_grass(self);

@@ -1,3 +1,11 @@
+use rand::distributions::weighted::WeightedIndex;
+use rand::seq::SliceRandom;
+
+use rust_ab::{
+    *,
+    engine::{schedule::Schedule, state::State},
+};
+
 use crate::model::sheep::Sheep;
 use crate::model::state::WsgState;
 use crate::model::wolf::Wolf;
@@ -19,13 +27,6 @@ pub const INITIAL_NUM_SHEEPS: u32 = (100. * 0.6) as u32;
 pub const WIDTH: i32 = 25;
 pub const HEIGHT: i32 = 25;
 pub const STEP: u64 = 200;
-
-use rand::distributions::weighted::WeightedIndex;
-use rand::seq::SliceRandom;
-use {
-    rust_ab::engine::{schedule::Schedule, state::State},
-    rust_ab::*,
-};
 
 fn main() {
     // macro used to execute model exploration using a genetic algorithm
@@ -73,6 +74,7 @@ fn init_population() -> Vec<WsgState> {
         let wolf_repr = rng.gen_range(0.0..=0.2);
         let full_grown = rng.gen_range(10..40);
 
+        // create the individual
         let state = WsgState::new(
             gain_energy_sheep,
             gain_energy_wolf,

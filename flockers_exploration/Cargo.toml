@@ -1,5 +1,5 @@
 [package]
-name = "flockersmpi"
+name = "flockersexploration"
 version = "0.2.0"
 authors = [
     "Carmine Spagnuolo <spagnuolocarmine@gmail.com>", 
