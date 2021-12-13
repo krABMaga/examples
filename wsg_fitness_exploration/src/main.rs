@@ -11,14 +11,7 @@ pub const ENERGY_CONSUME: f32 = 1.0;
 pub const MUTATION_RATE: f64 = 0.05;
 pub const DESIRED_FITNESS: f32 = 0.92;
 pub const MAX_GENERATION: u32 = 3;
-pub const POPULATION: u32 = 4;
-
-// Mutable parameters in the fitness
-// pub const FULL_GROWN: u16 = 20;
-// pub const GAIN_ENERGY_SHEEP: f64 = 5.0;
-// pub const GAIN_ENERGY_WOLF: f64 = 13.0;
-// pub const SHEEP_REPR: f64 = 0.2;
-// pub const WOLF_REPR: f64 = 0.1;
+pub const POPULATION: u32 = 7;
 
 pub const INITIAL_NUM_WOLVES: u32 = (100. * 0.4) as u32;
 pub const INITIAL_NUM_SHEEPS: u32 = (100. * 0.6) as u32;
@@ -59,7 +52,7 @@ fn main() {
     if !result.is_empty() {
         // I'm the master
         // build csv from all procexplore_result
-        let name = format!("{}", "explore_result");
+        let name ="explore_result".to_string();
         let _res = write_csv(&name, &result);
     }
 }
@@ -99,15 +92,16 @@ fn selection(population: &mut Vec<WsgState>) {
     // weighted tournament selection
     let mut rng = rand::thread_rng();
     let mut len = population.len();
+
     // build an array containing the fintess values in order to be used for the
     // weighted selection
+
     let mut weight = Vec::new();
-    for i in 0..len {
-        println!("individual {} fitness {}", i, population[i].fitness);
-        weight.push((population[i].fitness * 100.).floor() as u32);
+    for individual in population.iter_mut() {
+        weight.push((individual.fitness * 100.).floor() as u32);
     }
 
-    len = len/2;
+    len /= 2;
     // iterate through the population
     for _ in 0..len {
         let dist = WeightedIndex::new(&weight).unwrap();

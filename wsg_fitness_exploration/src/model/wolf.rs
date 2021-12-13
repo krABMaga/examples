@@ -58,7 +58,7 @@ impl Agent for Wolf {
                 let ym = y + (y - last_pos.y);
                 let new_loc = Int2D { x: xm, y: ym };
                 // TRY TO MOVE WITH MOMENTUM_PROBABILITY
-                if xm >= 0 && xm < WIDTH && ym >= 0 && ym < HEIGHT {
+                if (0..WIDTH).contains(&xm) && (0..HEIGHT).contains(&ym) {
                     self.loc = new_loc;
                     self.last = Some(Int2D { x, y });
                     moved = true;
