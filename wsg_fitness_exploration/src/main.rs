@@ -9,8 +9,8 @@ pub const MOMENTUM_PROBABILITY: f64 = 0.8;
 pub const ENERGY_CONSUME: f32 = 1.0;
 
 pub const MUTATION_RATE: f64 = 0.05;
-pub const DESIRED_FITNESS: f32 = 0.90;
-pub const MAX_GENERATION: u32 = 10;
+pub const DESIRED_FITNESS: f32 = 0.92;
+pub const MAX_GENERATION: u32 = 3;
 pub const POPULATION: u32 = 4;
 
 // Mutable parameters in the fitness
@@ -25,7 +25,7 @@ pub const INITIAL_NUM_SHEEPS: u32 = (100. * 0.6) as u32;
 
 pub const WIDTH: i32 = 25;
 pub const HEIGHT: i32 = 25;
-pub const STEP: u64 = 500;
+pub const STEP: u64 = 200;
 
 use rand::distributions::weighted::WeightedIndex;
 use rand::seq::SliceRandom;
@@ -46,7 +46,7 @@ fn main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        ComputationMode::Parallel,
+        ComputationMode::DistributedMPI,
         parameters{
             gain_energy_sheep: f32
             gain_energy_wolf: f32
@@ -98,7 +98,7 @@ fn init_population() -> Vec<WsgState> {
 fn selection(population: &mut Vec<WsgState>) {
     // weighted tournament selection
     let mut rng = rand::thread_rng();
-    let len = population.len();
+    let mut len = population.len();
     // build an array containing the fintess values in order to be used for the
     // weighted selection
     let mut weight = Vec::new();
@@ -107,8 +107,9 @@ fn selection(population: &mut Vec<WsgState>) {
         weight.push((population[i].fitness * 100.).floor() as u32);
     }
 
+    len = len/2;
     // iterate through the population
-    for _ in 0..len / 2 {
+    for _ in 0..len {
         let dist = WeightedIndex::new(&weight).unwrap();
         let parent_idx_one = dist.sample(&mut rng);
         let parent_idx_two;
@@ -129,33 +130,14 @@ fn selection(population: &mut Vec<WsgState>) {
             weight.remove(parent_idx_two);
         }
     }
-
-    /*
-    // random tournament selection
-    let len = population.len();
-    let mut rng = rand::thread_rng();
-
-    // iterate through the population
-    for _ in 0..len/2{
-        // select two random individuals
-        let mut parent_idx = rng.gen_range(0..population.len());
-
-        // choose the individuals with the highest fitness
-        if population[parent_idx].fitness < population[parent_idx+1].fitness {
-            population.remove(parent_idx);
-        } else {
-            population.remove(parent_idx+1);
-        }
-    }
-    */
 }
 
 fn crossover(population: &mut Vec<WsgState>) {
-    let len = population.len();
     let mut rng = rand::thread_rng();
 
+    let additional_individuals = POPULATION as usize - population.len() ;
     // iterate through the population
-    for _ in 0..len {
+    for _ in 0..additional_individuals {
         // select two random individuals
         let mut idx_one = rng.gen_range(0..population.len());
         let idx_two = rng.gen_range(0..population.len());
@@ -198,21 +180,6 @@ fn mutation(state: &mut WsgState) {
 }
 
 fn fitness(state: &mut WsgState, schedule: Schedule) -> f32 {
-    /*
-    D = desired population
-
-    PERC(wolf|sheep) =
-    if mean(agent) <= D(agent)
-        media(agent) / D(agent)
-    else
-        1 - ( (abs(D(agent) - mean(agent))) / MAX_AGENT - D(agent) )
-
-    AVG =
-    if wolf = 0 || sheep = 0
-        0
-    else
-        (PERC(wolf) + PERC(sheep)) / 2
-    */
 
     let desired_sheeps = 1000.;
     let desired_wolves = 200.;
