@@ -6,6 +6,16 @@ use rust_ab::engine::state::State;
 use rust_ab::rand;
 use rust_ab::rand::Rng;
 use std::hash::{Hash, Hasher};
+extern crate mpi;
+
+
+extern crate memoffset;
+use memoffset::offset_of;
+use mpi::{
+    datatype::{UncommittedUserDatatype, UserDatatype},
+    traits::*,
+    Address,
+};
 
 use crate::model::state::Flocker;
 use crate::{AVOIDANCE, COHESION, CONSISTENCY, JUMP, MOMENTUM, RANDOMNESS};
@@ -15,21 +25,25 @@ pub struct Bird {
     pub id: u32,
     pub pos: Real2D,
     pub last_d: Real2D,
+    pub migrated: bool,
 }
 
 impl Bird {
     pub fn new(id: u32, pos: Real2D, last_d: Real2D) -> Self {
-        Bird { id, pos, last_d }
+        Bird { id, pos, last_d, migrated:false}
     }
 }
 
+
 impl Agent for Bird {
+
     fn step(&mut self, state: &mut dyn State) {
         let state = state.as_any().downcast_ref::<Flocker>().unwrap();
+        // println!("{} in process {}",self,state.universe.world().rank()+1);
         let vec = state.field1.get_neighbors_within_distance(self.pos, 10.0);
 
-        let width = state.width;
-        let height = state.height;
+        let width = state.dim.0;
+        let height = state.dim.1;
 
         let mut avoidance = Real2D { x: 0.0, y: 0.0 };
 
@@ -136,13 +150,39 @@ impl Agent for Bird {
 
         self.pos = Real2D { x: loc_x, y: loc_y };
         drop(vec);
+
+        if self.pos.x <= state.partition.0 + 10.0 {
+            if self.pos.x < state.partition.0{
+                // println!("{} migrated to left",self);
+                self.migrated = true;
+            }
+
+            // println!("{} in left aoi",self);
+            state.l_aoi.lock().unwrap().push(*self);
+            
+        }
+        if self.pos.x >= state.partition.1 - 10.0 {
+            if self.pos.x >= state.partition.1{
+                // println!("{} migrated to right",self);
+                self.migrated = true;
+            }
+            // println!("{} in right aoi",self);
+            state.r_aoi.lock().unwrap().push(*self);
+            
+        }
+
         state
             .field1
             .set_object_location(*self, Real2D { x: loc_x, y: loc_y });
+        
     }
 
     fn get_id(&self) -> u32 {
         self.id
+    }
+
+    fn is_stopped(&mut self,_state: &mut dyn State) -> bool{
+        self.migrated
     }
 }
 
@@ -176,5 +216,38 @@ impl Location2D<Real2D> for Bird {
 impl fmt::Display for Bird {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} pos {}", self.id, self.pos)
+    }
+}
+
+//custom mpi datatype
+unsafe impl Equivalence for Bird{
+    type Out = UserDatatype;
+    fn equivalent_datatype() -> Self::Out{
+        let real_2d = UncommittedUserDatatype::structured(
+            &[1,1],
+            &[
+                offset_of!(Real2D,x) as Address,
+                offset_of!(Real2D,y) as Address
+            ],
+            &[f32::equivalent_datatype(),f32::equivalent_datatype()]
+
+        );
+
+        UserDatatype::structured(
+            &[1,1,1,1],
+            &[
+                offset_of!(Bird, id) as Address,
+                offset_of!(Bird, pos) as Address,
+                offset_of!(Bird,last_d) as Address,
+                offset_of!(Bird,migrated) as Address
+            ],
+            &[
+                u32::equivalent_datatype().into(),
+                real_2d.as_ref(),
+                real_2d.as_ref(),
+                bool::equivalent_datatype().into()
+            ]
+        )
+
     }
 }

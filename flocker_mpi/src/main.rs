@@ -1,5 +1,6 @@
 mod model;
 use crate::model::state::Flocker;
+extern crate mpi;
 
 use {rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::*};
 
@@ -12,6 +13,7 @@ pub static JUMP: f32 = 0.7;
 pub static DISCRETIZATION: f32 = 10.0 / 1.5;
 pub static TOROIDAL: bool = true;
 
+#[cfg(feature="explore")]
 fn main() {
     let step = 10;
 
@@ -51,3 +53,16 @@ fn main() {
         let _res = write_csv(&name, &dataframe);
     }
 }
+
+#[cfg(not(feature="explore"))]
+fn main() {
+    let universe = mpi::initialize().unwrap();
+    let step = 100;
+    let dim = (200., 200.);
+    let num_agents = 50000;
+    
+    let state = Flocker::new(dim,num_agents,universe);
+
+    simulate!(step,state,1,Info::Normal);
+}
+
