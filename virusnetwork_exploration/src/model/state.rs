@@ -1,5 +1,5 @@
 use crate::model::node::{NetNode, NodeStatus};
-use crate::{INITIAL_INFECTED_PROB, NUM_NODES, DISCRETIZATION, TOROIDAL, WIDTH, HEIGHT};
+use crate::{INITIAL_RESISTENT_PROB, NUM_NODES, DISCRETIZATION, TOROIDAL, WIDTH, HEIGHT};
 use rust_ab::engine::fields::network::{Network, Edge, EdgeOptions};
 use rust_ab::engine::fields::{field::Field, field_2d::Field2D};
 use rust_ab::engine::schedule::Schedule;
@@ -75,7 +75,7 @@ impl State for EpidemicNetworkState {
                 None => panic!("Node with id {} not found!", node_id),
             };
  
-            if rng.gen_bool(INITIAL_INFECTED_PROB) {
+            if rng.gen_bool(INITIAL_RESISTENT_PROB) {
                 self.positions.push(1);
             } else {
                 self.positions.push(0);
@@ -83,15 +83,27 @@ impl State for EpidemicNetworkState {
  
             match self.positions[node_id as usize] {
                 0 => node.status = NodeStatus::Susceptible,
-                1 => node.status = NodeStatus::Infected,
+                1 => node.status = NodeStatus::Resistent,
                 _ => ()
             }
+            
             self.network.update_node(node);
-
+        
             self.field1.set_object_location(node, node.loc);
             schedule.schedule_repeating(Box::new(node), 0.0, 0);
         }
 
+        loop{
+            let infected = rng.gen_range(0..NUM_NODES);
+            
+            if self.positions[infected as usize] == 0 {
+                let mut node = self.network.get_object(infected ).unwrap();
+                node.status = NodeStatus::Infected;
+                self.network.update_node(node);
+                self.field1.set_object_location(node, node.loc);
+                break;
+            }
+        }
     }
 
     fn update(&mut self, step: u64) {
