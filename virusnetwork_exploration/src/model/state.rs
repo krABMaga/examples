@@ -1,8 +1,7 @@
 use crate::model::node::{NetNode, NodeStatus};
-use crate::{INITIAL_INFECTED_PROB, INIT_EDGES, NUM_NODES, DISCRETIZATION, TOROIDAL, WIDTH, HEIGHT};
+use crate::{INITIAL_INFECTED_PROB, NUM_NODES, DISCRETIZATION, TOROIDAL, WIDTH, HEIGHT};
 use rust_ab::engine::fields::network::{Network, Edge, EdgeOptions};
 use rust_ab::engine::fields::{field::Field, field_2d::Field2D};
-use rust_ab::engine::location::Real2D;
 use rust_ab::engine::schedule::Schedule;
 use rust_ab::engine::state::State;
 use rust_ab::rand;
@@ -14,6 +13,8 @@ pub struct EpidemicNetworkState {
     pub field1: Field2D<NetNode>,
     pub network: Network<NetNode, String>,
     pub positions: Vec<u32>,
+    pub node_set: Vec<NetNode>,
+    pub edge_set: Vec<Vec<Edge<String>>>,
     pub fitness: f32,
 }
 
@@ -24,13 +25,15 @@ impl EpidemicNetworkState {
             step: 0,
             field1: Field2D::new(WIDTH, HEIGHT, DISCRETIZATION, TOROIDAL),
             network: Network::new(false),
-            positions: Vec::new(),
+            positions: Vec::with_capacity(NUM_NODES as usize),
+            node_set: Vec::new(),
+            edge_set: Vec::new(),
             fitness: 0.,
         }
     }
 
     pub fn set_network(&mut self, node_set: &mut Vec<NetNode>, edge_set: &mut Vec<Vec<Edge<String>>>) {
-        
+
         for i in 0..NUM_NODES{
             self.network.add_node(node_set[i as usize]);
         }
@@ -46,19 +49,38 @@ impl EpidemicNetworkState {
         }
 
         self.network.update();
+
+        self.node_set = node_set.to_vec();
+        self.edge_set = edge_set.to_vec();
     }
+
+    pub fn get_network(&self) 
+        -> (Vec<NetNode>, Vec<Vec<Edge<String>>>){
+            (self.node_set.clone(), self.edge_set.clone())
+        }
+
 }
 
 impl State for EpidemicNetworkState {
 
     fn init(&mut self, schedule: &mut Schedule) {
 
+        self.positions.clear();
+
+        let mut rng = rand::thread_rng();
+        
         for node_id in 0..NUM_NODES{
             let mut node = match self.network.get_object(node_id){
                 Some(node) => node,
                 None => panic!("Node with id {} not found!", node_id),
             };
-            
+ 
+            if rng.gen_bool(INITIAL_INFECTED_PROB) {
+                self.positions.push(1);
+            } else {
+                self.positions.push(0);
+            };
+ 
             match self.positions[node_id as usize] {
                 0 => node.status = NodeStatus::Susceptible,
                 1 => node.status = NodeStatus::Infected,
@@ -131,7 +153,7 @@ impl State for EpidemicNetworkState {
         }
 
         if infected == 0{
-            println!("No more infected nodes at step {}, exiting.", schedule.step);
+            // println!("No more infected nodes at step {}, exiting.", schedule.step);
             return true;
         }
         false

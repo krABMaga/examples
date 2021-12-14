@@ -18,8 +18,8 @@ pub const ENERGY_CONSUME: f32 = 1.0;
 
 pub const MUTATION_RATE: f64 = 0.05;
 pub const DESIRED_FITNESS: f32 = 0.92;
-pub const MAX_GENERATION: u32 = 3;
-pub const POPULATION: u32 = 7;
+pub const MAX_GENERATION: u32 = 10;
+pub const POPULATION: u32 = 100;
 
 pub const INITIAL_NUM_WOLVES: u32 = (100. * 0.4) as u32;
 pub const INITIAL_NUM_SHEEPS: u32 = (100. * 0.6) as u32;
@@ -30,7 +30,7 @@ pub const STEP: u64 = 200;
 
 fn main() {
     // macro used to execute model exploration using a genetic algorithm
-    let result = explore_ga!(
+    let result = explore_ga_parallel!(
         init_population,
         fitness,
         selection,
@@ -40,7 +40,7 @@ fn main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        ComputationMode::Parallel,
+        // ComputationMode::Parallel,
         parameters{
             gain_energy_sheep: f32
             gain_energy_wolf: f32
@@ -213,7 +213,7 @@ fn fitness(state: &mut WsgState, schedule: Schedule) -> f32 {
     let average;
 
     if num_wolves == 0. || num_sheeps == 0. {
-        println!("Num of animals is zero");
+        // println!("Number of animals is zero at step {}", schedule.step);
         average = 0.;
     } else {
         average = (perc_sheeps + perc_wolves) / 2.;

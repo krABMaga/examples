@@ -1,9 +1,8 @@
 use rand::distributions::weighted::WeightedIndex;
-use rand::seq::SliceRandom;
 
 use rust_ab::{
     *,
-    engine::{schedule::Schedule, location::Real2D, state::State, fields::{network::Network,field::Field} },
+    engine::{schedule::Schedule, location::Real2D, state::State, fields::network::Network},
     rand::Rng,
 };
 
@@ -16,27 +15,27 @@ static DISCRETIZATION: f32 = 10.0 / 1.5;
 static TOROIDAL: bool = false;
 
 ///Initial infected nodes
-pub static INITIAL_INFECTED_PROB: f64 = 0.1;
+pub static INITIAL_INFECTED_PROB: f64 = 0.3;
 pub static INIT_EDGES: usize = 1;
 pub static VIRUS_SPREAD_CHANCE: f64 = 0.3;
 pub static VIRUS_CHECK_FREQUENCY: f64 = 0.2;
 pub static RECOVERY_CHANCE: f64 = 0.30;
 pub static GAIN_RESISTENCE_CHANCE: f64 = 0.20;
 
-pub static NUM_NODES: u32 = 100;
+pub const NUM_NODES: u32 = 500;
 
 pub const MUTATION_RATE: f64 = 0.05;
 pub const DESIRED_FITNESS: f32 = 0.95;
 pub const MAX_GENERATION: u32 = 10;
-pub const POPULATION: u32 = 10;
+pub const POPULATION: u32 = 100;
 
-pub const WIDTH: f32 = 100.;
-pub const HEIGHT: f32 = 100.;
+pub const WIDTH: f32 = 150.;
+pub const HEIGHT: f32 = 150.;
 pub const STEP: u64 = 100;
 
 fn main() {
     
-    let result = explore_ga!(
+    let result = explore_ga_sequential!(
         init_population,
         fitness,
         selection,
@@ -46,9 +45,8 @@ fn main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        ComputationMode::Sequential,
         parameters{
-            // positions: [u32]
+            positions: Vec<u32>
         }
     );
 
@@ -67,21 +65,12 @@ fn init_population() -> Vec<EpidemicNetworkState> {
     let mut network: Network<NetNode, String> = Network::new(false);
 
     let mut node_set = Vec::new();
-    let mut positions = Vec::new();
-    
+
     let mut rng = rand::thread_rng();
 
     for node_id in 0..NUM_NODES {
         let r1: f32 = rng.gen();
         let r2: f32 = rng.gen();
-
-        let mut rng = rand::thread_rng();
-        let mut init_status: NodeStatus;
-        if rng.gen_bool(INITIAL_INFECTED_PROB) {
-            positions.push(1);
-        } else {
-            positions.push(0);
-        };
 
         let node = NetNode::new(
             node_id,
@@ -112,7 +101,6 @@ fn init_population() -> Vec<EpidemicNetworkState> {
         // create the individual
         let mut state = EpidemicNetworkState::new();
         state.set_network(&mut node_set, &mut edge_set);
-        state.positions = positions.clone();
         population.push(state);
     }
    
@@ -188,33 +176,15 @@ fn crossover(population: &mut Vec<EpidemicNetworkState>) {
         new_positions.append(&mut positions_two);
         
         // create a new individual
+
         let mut new_individual = EpidemicNetworkState::new();
+        let (mut node_set, mut edge_set) = population[idx_one].get_network();
 
-        let mut node_set = Vec::new();
-        
-        for node_id in 0..NUM_NODES{
-            let node =  population[idx_one].network.get_object(node_id).unwrap();
-            node_set.push(node);
-            new_individual.network.add_node(node);
-        }
-
-        println!("Crossover edge_set started");
-        let mut edge_set = vec![Vec::new()];
-        for i in 0..NUM_NODES{
-            match population[idx_one].network.get_edges(node_set[i as usize]){
-                Some(edges) => edge_set.push(edges),
-                None => println!("Not adding the edge!")
-            }
-        }
-        println!("Crossover edge_set done {}", edge_set.len());
-        
         new_individual.set_network(&mut node_set, &mut edge_set);
-        println!("Crossover set network done");
         new_individual.positions = new_positions;
-
+        
         population.push(new_individual);
     }
-    println!("End of crossover");
 }
 
 fn mutation(state: &mut EpidemicNetworkState) {
@@ -222,20 +192,19 @@ fn mutation(state: &mut EpidemicNetworkState) {
 
     // mutate one random parameter with assigning random value
     if rng.gen_bool(MUTATION_RATE) {
-        // let switch = rng.gen_range(0..3);
-        // match switch {
-        //     0 => ,
-        //     1 => ,
-        //     2 => ,
-        //     _ => panic!("Invalid mutation switch"),
-        // }
+        let to_change = rng.gen_range(0..NUM_NODES as usize);
+        if state.positions[to_change] == 0 {
+            state.positions[to_change] = 1;
+        } else {
+            state.positions[to_change] = 0;
+        }
     }
 }
 
 fn fitness(state: &mut EpidemicNetworkState, schedule: Schedule) -> f32 {
 
-    let mut susceptible: usize = 0;
-    let mut infected: usize = 0;
+    let mut _susceptible: usize = 0;
+    let mut _infected: usize = 0;
     let mut resistent: usize = 0;
 
     let agents = schedule.get_all_events();
@@ -244,10 +213,10 @@ fn fitness(state: &mut EpidemicNetworkState, schedule: Schedule) -> f32 {
         let agent = n.downcast_ref::<NetNode>().unwrap();
         match agent.status {
             NodeStatus::Susceptible => {
-                susceptible += 1;
+                _susceptible += 1;
             }
             NodeStatus::Infected => {
-                infected += 1;
+                _infected += 1;
             }
             NodeStatus::Resistent => {
                 resistent += 1;
