@@ -1,6 +1,6 @@
 use crate::model::node::{NetNode, NodeStatus};
 use crate::{INITIAL_INFECTED_PROB, INIT_EDGES, NUM_NODES, DISCRETIZATION, TOROIDAL, WIDTH, HEIGHT};
-use rust_ab::engine::fields::network::Network;
+use rust_ab::engine::fields::network::{Network, Edge, EdgeOptions};
 use rust_ab::engine::fields::{field::Field, field_2d::Field2D};
 use rust_ab::engine::location::Real2D;
 use rust_ab::engine::schedule::Schedule;
@@ -19,8 +19,7 @@ pub struct EpidemicNetworkState {
 
 impl EpidemicNetworkState {
 
-    pub fn new() -> EpidemicNetworkState 
-    {
+    pub fn new() -> EpidemicNetworkState {
         EpidemicNetworkState {
             step: 0,
             field1: Field2D::new(WIDTH, HEIGHT, DISCRETIZATION, TOROIDAL),
@@ -30,34 +29,47 @@ impl EpidemicNetworkState {
         }
     }
 
-    // pub fn new(network : &Network<NetNode, String>) -> EpidemicNetworkState {
-    //     EpidemicNetworkState {
-    //         step: 0,
-    //         field1: Field2D::new(WIDTH, HEIGHT, DISCRETIZATION, TOROIDAL),
-    //         network,
-    //         positions: Vec::new(),
-    //         fitness: 0.,
-    //     }
-    // }
+    pub fn set_network(&mut self, node_set: &mut Vec<NetNode>, edge_set: &mut Vec<Vec<Edge<String>>>) {
+        
+        for i in 0..NUM_NODES{
+            self.network.add_node(node_set[i as usize]);
+        }
+        self.network.update();
+
+        for i in 0..NUM_NODES{
+            for j in 0..edge_set[i as usize].len(){
+                let edge = &edge_set[i as usize][j];
+                let node_u = self.network.get_object(edge.u).unwrap();
+                let node_v = self.network.get_object(edge.v).unwrap();
+                self.network.add_edge(node_u, node_v, EdgeOptions::Simple);
+            }
+        }
+
+        self.network.update();
+    }
 }
 
 impl State for EpidemicNetworkState {
 
     fn init(&mut self, schedule: &mut Schedule) {
-        for node_id in 0..NUM_NODES {
+
+        for node_id in 0..NUM_NODES{
+            let mut node = match self.network.get_object(node_id){
+                Some(node) => node,
+                None => panic!("Node with id {} not found!", node_id),
+            };
             
-            for vec in self.field1.rbags.borrow_mut().iter_mut() {
-                for node in vec.iter_mut() {
-                    if node.status == NodeStatus::Infected {
-                        self.positions.push(1);
-                    } else {
-                        self.positions.push(0);
-                    }                
-                }
+            match self.positions[node_id as usize] {
+                0 => node.status = NodeStatus::Susceptible,
+                1 => node.status = NodeStatus::Infected,
+                _ => ()
             }
-            
+            self.network.update_node(node);
+
+            self.field1.set_object_location(node, node.loc);
+            schedule.schedule_repeating(Box::new(node), 0.0, 0);
         }
-        
+
     }
 
     fn update(&mut self, step: u64) {
@@ -78,34 +90,34 @@ impl State for EpidemicNetworkState {
         self
     }
 
-    fn after_step(&mut self, _schedule: &mut Schedule) {
-        // let mut susceptible: usize = 0;
-        // let mut infected: usize = 0;
-        // let mut resistent: usize = 0;
-        // let agents = schedule.get_all_events();
+    // fn before_step(&mut self, schedule: &mut Schedule) {
+    //     let mut susceptible: usize = 0;
+    //     let mut infected: usize = 0;
+    //     let mut resistent: usize = 0;
+    //     let agents = schedule.get_all_events();
 
-        // for n in agents {
-        //     let agent = n.downcast_ref::<NetNode>().unwrap();
-        //     match agent.status {
-        //         NodeStatus::Susceptible => {
-        //             susceptible += 1;
-        //         }
-        //         NodeStatus::Infected => {
-        //             infected += 1;
-        //         }
-        //         NodeStatus::Resistent => {
-        //             resistent += 1;
-        //         }
-        //     }
-        // }
-        // println!(
-        //     "Susceptible: {:?} Infected: {:?} Resistant: {:?} Tot: {:?}",
-        //     susceptible,
-        //     infected,
-        //     resistent,
-        //     susceptible + infected + resistent
-        // );
-    }
+    //     for n in agents {
+    //         let agent = n.downcast_ref::<NetNode>().unwrap();
+    //         match agent.status {
+    //             NodeStatus::Susceptible => {
+    //                 susceptible += 1;
+    //             }
+    //             NodeStatus::Infected => {
+    //                 infected += 1;
+    //             }
+    //             NodeStatus::Resistent => {
+    //                 resistent += 1;
+    //             }
+    //         }
+    //     }
+    //     println!(
+    //         "Susceptible: {:?} Infected: {:?} Resistant: {:?} Tot: {:?}",
+    //         susceptible,
+    //         infected,
+    //         resistent,
+    //         susceptible + infected + resistent
+    //     );
+    // }
 
     fn end_condition(&mut self, schedule: &mut Schedule) -> bool {
         let mut infected: usize = 0;

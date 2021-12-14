@@ -19,7 +19,8 @@ readme = "README.md"
 
 [dependencies]
 #rust-ab = { git="https://github.com/rust-ab/rust-ab" }
-rust-ab = { path="/Users/ddevin/Documents/VSCode/rab/rust-ab" }
+rust-ab = { path="/home/giuseppe/Git/rust-ab/rust-ab" }
 
 [features]
 explore = ["rust-ab/explore"]
+parallel = ["rust-ab/parallel"]

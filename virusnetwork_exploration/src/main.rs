@@ -3,7 +3,7 @@ use rand::seq::SliceRandom;
 
 use rust_ab::{
     *,
-    engine::{schedule::Schedule, location::Real2D, state::State, fields::network::Network},
+    engine::{schedule::Schedule, location::Real2D, state::State, fields::{network::Network,field::Field} },
     rand::Rng,
 };
 
@@ -16,8 +16,8 @@ static DISCRETIZATION: f32 = 10.0 / 1.5;
 static TOROIDAL: bool = false;
 
 ///Initial infected nodes
-pub static INITIAL_INFECTED_PROB: f64 = 0.01;
-pub static INIT_EDGES: usize = 2;
+pub static INITIAL_INFECTED_PROB: f64 = 0.1;
+pub static INIT_EDGES: usize = 1;
 pub static VIRUS_SPREAD_CHANCE: f64 = 0.3;
 pub static VIRUS_CHECK_FREQUENCY: f64 = 0.2;
 pub static RECOVERY_CHANCE: f64 = 0.30;
@@ -26,7 +26,7 @@ pub static GAIN_RESISTENCE_CHANCE: f64 = 0.20;
 pub static NUM_NODES: u32 = 100;
 
 pub const MUTATION_RATE: f64 = 0.05;
-pub const DESIRED_FITNESS: f32 = 0.90;
+pub const DESIRED_FITNESS: f32 = 0.95;
 pub const MAX_GENERATION: u32 = 10;
 pub const POPULATION: u32 = 10;
 
@@ -48,7 +48,6 @@ fn main() {
         STEP,
         ComputationMode::Sequential,
         parameters{
-            //network: Network<NetNode, String>
             // positions: [u32]
         }
     );
@@ -65,14 +64,24 @@ fn main() {
 fn init_population() -> Vec<EpidemicNetworkState> {
     // create an array of EpidemicNetworkState
     let mut population = Vec::new();
-    
     let mut network: Network<NetNode, String> = Network::new(false);
+
     let mut node_set = Vec::new();
+    let mut positions = Vec::new();
+    
     let mut rng = rand::thread_rng();
 
     for node_id in 0..NUM_NODES {
         let r1: f32 = rng.gen();
         let r2: f32 = rng.gen();
+
+        let mut rng = rand::thread_rng();
+        let mut init_status: NodeStatus;
+        if rng.gen_bool(INITIAL_INFECTED_PROB) {
+            positions.push(1);
+        } else {
+            positions.push(0);
+        };
 
         let node = NetNode::new(
             node_id,
@@ -80,37 +89,33 @@ fn init_population() -> Vec<EpidemicNetworkState> {
                 x: WIDTH * r1,
                 y: HEIGHT * r2,
             },
-            NodeStatus::Susceptible,
+            NodeStatus::Susceptible
         );
         node_set.push(node);
+        network.add_node(node);
     }
     
-    network.preferential_attachment_BA(node_set, INIT_EDGES);
-    println!("- {}", network.nodes2id.borrow().len());
-    println!("- {}", network.id2nodes.borrow().len());
-    println!("- {}", network.rid2nodes.borrow().len());
+    // create the edges in the network
+    network.preferential_attachment_BA(&node_set, INIT_EDGES);
 
-    println!("---{}", network.edges.borrow().len());
-    println!("---{}", network.redges.borrow().len());
+    let mut edge_set = vec![Vec::new()];
 
+    for i in 0..NUM_NODES{
+        match network.get_edges(node_set[i as usize]){
+            Some(edge) => edge_set.push(edge),
+            None => println!("Not adding the edge!")
+        }
+    }
+    
     // create n=POPULATION individuals
     for _ in 0..POPULATION {
-        let mut rng = rand::thread_rng();        
-        let mut network2: Network<NetNode, String> = Network::new(false);
-    
         // create the individual
         let mut state = EpidemicNetworkState::new();
-        network2.edges = network.edges.clone();
-        network2.redges = network.redges.clone();
-        network2.nodes2id = network.nodes2id.clone();
-        network2.id2nodes = network.id2nodes.clone();
-        network2.rid2nodes = network.rid2nodes.clone();
-        network2.direct = network.direct.clone();
-        state.network = network2;
-        println!("{:?}", state.network.edges.borrow().len());
+        state.set_network(&mut node_set, &mut edge_set);
+        state.positions = positions.clone();
         population.push(state);
     }
-
+   
     // return the array of individuals, i.e. the population
     population
 }
@@ -151,12 +156,14 @@ fn selection(population: &mut Vec<EpidemicNetworkState>) {
             weight.remove(parent_idx_two);
         }
     }
+
 }
 
 fn crossover(population: &mut Vec<EpidemicNetworkState>) {
     let mut rng = rand::thread_rng();
 
     let additional_individuals = POPULATION as usize - population.len() ;
+
     // iterate through the population
     for _ in 0..additional_individuals {
         // select two random individuals
@@ -167,14 +174,47 @@ fn crossover(population: &mut Vec<EpidemicNetworkState>) {
         }
 
         // combines random parameters of the parents
-        let parents = vec![idx_one, idx_two];
+        let mut parent_one = population[idx_one].positions.clone();
+        let mut parent_two = population[idx_two].positions.clone();
 
-        // to create a new individual
-        let new_individual = EpidemicNetworkState::new();
+        let len = parent_one.len() / 2;
 
-        // add the new individual to the population
+        parent_one.truncate(len);
+
+        let positions_one = parent_one;
+        let mut positions_two = parent_two.split_off(len);
+
+        let mut new_positions = positions_one;
+        new_positions.append(&mut positions_two);
+        
+        // create a new individual
+        let mut new_individual = EpidemicNetworkState::new();
+
+        let mut node_set = Vec::new();
+        
+        for node_id in 0..NUM_NODES{
+            let node =  population[idx_one].network.get_object(node_id).unwrap();
+            node_set.push(node);
+            new_individual.network.add_node(node);
+        }
+
+        println!("Crossover edge_set started");
+        let mut edge_set = vec![Vec::new()];
+        for i in 0..NUM_NODES{
+            match population[idx_one].network.get_edges(node_set[i as usize]){
+                Some(edges) => edge_set.push(edges),
+                None => println!("Not adding the edge!")
+            }
+        }
+        println!("Crossover edge_set done {}", edge_set.len());
+        
+        new_individual.set_network(&mut node_set, &mut edge_set);
+        println!("Crossover set network done");
+        new_individual.positions = new_positions;
+
         population.push(new_individual);
     }
+    println!("End of crossover");
 }
 
 fn mutation(state: &mut EpidemicNetworkState) {
@@ -215,7 +255,7 @@ fn fitness(state: &mut EpidemicNetworkState, schedule: Schedule) -> f32 {
         }
     }
 
-    let fitness = infected as f32 / NUM_NODES as f32 ;
+    let fitness = resistent as f32 / NUM_NODES as f32 ;
 
     state.fitness = fitness;
     fitness
