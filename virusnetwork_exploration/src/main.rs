@@ -15,12 +15,12 @@ static DISCRETIZATION: f32 = 10.0 / 1.5;
 static TOROIDAL: bool = false;
 
 ///Initial infected nodes
-pub static INITIAL_RESISTENT_PROB: f64 = 0.3;
+pub static INITIAL_RESISTANT_PROB: f64 = 0.3;
 pub static INIT_EDGES: usize = 1;
 pub static VIRUS_SPREAD_CHANCE: f64 = 0.3;
 pub static VIRUS_CHECK_FREQUENCY: f64 = 0.2;
 pub static RECOVERY_CHANCE: f64 = 0.3;
-pub static GAIN_RESISTENCE_CHANCE: f64 = 0.2;
+pub static GAIN_RESISTANCE_CHANCE: f64 = 0.2;
 
 pub const NUM_NODES: u32 = 100;
 
@@ -205,7 +205,7 @@ fn fitness(state: &mut EpidemicNetworkState, schedule: Schedule) -> f32 {
 
     let mut susceptible: usize = 0;
     let mut infected: usize = 0;
-    let mut resistent: usize = 0;
+    let mut resistant: usize = 0;
 
 
     let agents = schedule.get_all_events();
@@ -219,20 +219,20 @@ fn fitness(state: &mut EpidemicNetworkState, schedule: Schedule) -> f32 {
             NodeStatus::Infected => {
                 infected += 1;
             }
-            NodeStatus::Resistent => {
-                resistent += 1;
+            NodeStatus::Resistant => {
+                resistant += 1;
             }
         }
     }
 
-    let fitness = 1. - (resistent as f32 / NUM_NODES as f32) ;
+    let fitness = 1. - (resistant as f32 / NUM_NODES as f32) ;
 
     println!(
         "Susceptible: {:?} Infected: {:?} Resistant: {:?} Tot: {:?}",
         susceptible,
         infected,
-        resistent,
-        susceptible + infected + resistent
+        resistant,
+        susceptible + infected + resistant
     );
 
 

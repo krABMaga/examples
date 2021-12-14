@@ -14,13 +14,13 @@ use rust_ab::{
 };
 
 use crate::model::state::EpidemicNetworkState;
-use crate::{GAIN_RESISTENCE_CHANCE, VIRUS_CHECK_FREQUENCY, RECOVERY_CHANCE, VIRUS_SPREAD_CHANCE};
+use crate::{GAIN_RESISTANCE_CHANCE, VIRUS_CHECK_FREQUENCY, RECOVERY_CHANCE, VIRUS_SPREAD_CHANCE};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum NodeStatus {
     Susceptible,
     Infected,
-    Resistent,
+    Resistant,
 }
 
 #[derive(Clone, Copy)]
@@ -61,8 +61,8 @@ impl Agent for NetNode {
                     if rng.gen_bool(RECOVERY_CHANCE) {
                         self.virus_detected = false;
 
-                        if rng.gen_bool(GAIN_RESISTENCE_CHANCE) {
-                            self.status = NodeStatus::Resistent;
+                        if rng.gen_bool(GAIN_RESISTANCE_CHANCE) {
+                            self.status = NodeStatus::Resistant;
                         } else {
                             self.status = NodeStatus::Susceptible;
                         }
@@ -91,7 +91,7 @@ impl Agent for NetNode {
                     }
                 }
             }
-            NodeStatus::Resistent => {}
+            NodeStatus::Resistant => {}
         }
         state.network.update_node(*self);
         state.field1.set_object_location(*self, self.loc);
@@ -140,7 +140,7 @@ impl fmt::Display for NodeStatus {
         match *self {
             NodeStatus::Susceptible => write!(f, "Susceptible"),
             NodeStatus::Infected => write!(f, "Infected"),
-            NodeStatus::Resistent => write!(f, "Resistant"),
+            NodeStatus::Resistant => write!(f, "Resistant"),
         }
     }
 }

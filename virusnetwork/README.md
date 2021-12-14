@@ -7,7 +7,7 @@ With this model we want to simulate how a virus (or a warm) can be spread throug
 - A node can be in 1 of 3 possible states:
   1. `Susceptible`: a standard node and a potential victim;
   2. `Infected`: an infected node. This kind of nodes can be unaware of the infection;
-  3. `Resistant`: after virus detection, this node became resistent to this kind of infection (this state simulates an antivirus update);
+  3. `Resistant`: after virus detection, this node became resistant to this kind of infection (this state simulates an antivirus update);
 - At each step, communication between all nodes is performed, and infected nodes spread virus to their neighbours (for examples, as attachment of an email);
 - Periodically nodes start a scan with their antivirus to detect virus; if they detect something, a recovery will be done. If the recovery is performed, there is a possibility for that node to became `Resistant`;
 

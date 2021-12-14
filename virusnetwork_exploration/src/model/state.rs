@@ -1,5 +1,5 @@
 use crate::model::node::{NetNode, NodeStatus};
-use crate::{INITIAL_RESISTENT_PROB, NUM_NODES, DISCRETIZATION, TOROIDAL, WIDTH, HEIGHT};
+use crate::{INITIAL_RESISTANT_PROB, NUM_NODES, DISCRETIZATION, TOROIDAL, WIDTH, HEIGHT};
 use rust_ab::engine::fields::network::{Network, Edge, EdgeOptions};
 use rust_ab::engine::fields::{field::Field, field_2d::Field2D};
 use rust_ab::engine::schedule::Schedule;
@@ -75,7 +75,7 @@ impl State for EpidemicNetworkState {
                 None => panic!("Node with id {} not found!", node_id),
             };
  
-            if rng.gen_bool(INITIAL_RESISTENT_PROB) {
+            if rng.gen_bool(INITIAL_RESISTANT_PROB) {
                 self.positions.push(1);
             } else {
                 self.positions.push(0);
@@ -83,7 +83,7 @@ impl State for EpidemicNetworkState {
  
             match self.positions[node_id as usize] {
                 0 => node.status = NodeStatus::Susceptible,
-                1 => node.status = NodeStatus::Resistent,
+                1 => node.status = NodeStatus::Resistant,
                 _ => ()
             }
             
@@ -127,7 +127,7 @@ impl State for EpidemicNetworkState {
     // fn before_step(&mut self, schedule: &mut Schedule) {
     //     let mut susceptible: usize = 0;
     //     let mut infected: usize = 0;
-    //     let mut resistent: usize = 0;
+    //     let mut resistant: usize = 0;
     //     let agents = schedule.get_all_events();
 
     //     for n in agents {
@@ -139,8 +139,8 @@ impl State for EpidemicNetworkState {
     //             NodeStatus::Infected => {
     //                 infected += 1;
     //             }
-    //             NodeStatus::Resistent => {
-    //                 resistent += 1;
+    //             NodeStatus::Resistant => {
+    //                 resistant += 1;
     //             }
     //         }
     //     }
@@ -148,8 +148,8 @@ impl State for EpidemicNetworkState {
     //         "Susceptible: {:?} Infected: {:?} Resistant: {:?} Tot: {:?}",
     //         susceptible,
     //         infected,
-    //         resistent,
-    //         susceptible + infected + resistent
+    //         resistant,
+    //         susceptible + infected + resistant
     //     );
     // }
 
