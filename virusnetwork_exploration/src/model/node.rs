@@ -21,6 +21,7 @@ pub enum NodeStatus {
     Susceptible,
     Infected,
     Resistant,
+    Immune
 }
 
 #[derive(Clone, Copy)]
@@ -92,6 +93,7 @@ impl Agent for NetNode {
                 }
             }
             NodeStatus::Resistant => {}
+            NodeStatus::Immune => {}
         }
         state.network.update_node(*self);
         state.field1.set_object_location(*self, self.loc);
@@ -141,6 +143,7 @@ impl fmt::Display for NodeStatus {
             NodeStatus::Susceptible => write!(f, "Susceptible"),
             NodeStatus::Infected => write!(f, "Infected"),
             NodeStatus::Resistant => write!(f, "Resistant"),
+            NodeStatus::Immune => write!(f, "Immune")
         }
     }
 }

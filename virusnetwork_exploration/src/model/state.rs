@@ -1,5 +1,5 @@
 use crate::model::node::{NetNode, NodeStatus};
-use crate::{INITIAL_RESISTANT_PROB, NUM_NODES, DISCRETIZATION, TOROIDAL, WIDTH, HEIGHT};
+use crate::{INITIAL_IMMUNE, INITIAL_INFECTED, NUM_NODES, DISCRETIZATION, TOROIDAL, WIDTH, HEIGHT};
 use rust_ab::engine::fields::network::{Network, Edge, EdgeOptions};
 use rust_ab::engine::fields::{field::Field, field_2d::Field2D};
 use rust_ab::engine::schedule::Schedule;
@@ -68,22 +68,29 @@ impl State for EpidemicNetworkState {
         self.positions.clear();
 
         let mut rng = rand::thread_rng();
+        self.positions = vec![0; NUM_NODES as usize];
         
+        let mut i = 0;
+        while i != (INITIAL_IMMUNE*NUM_NODES as f32) as u32 {
+            let node_id = rng.gen_range(0..NUM_NODES);
+            if self.positions[node_id as usize] == 1 {
+                    continue;
+            }
+            else {
+                self.positions[node_id as usize] = 1;
+                i += 1;
+            }
+        }
+
         for node_id in 0..NUM_NODES{
             let mut node = match self.network.get_object(node_id){
                 Some(node) => node,
                 None => panic!("Node with id {} not found!", node_id),
             };
- 
-            if rng.gen_bool(INITIAL_RESISTANT_PROB) {
-                self.positions.push(1);
-            } else {
-                self.positions.push(0);
-            };
- 
+             
             match self.positions[node_id as usize] {
                 0 => node.status = NodeStatus::Susceptible,
-                1 => node.status = NodeStatus::Resistant,
+                1 => node.status = NodeStatus::Immune,
                 _ => ()
             }
             
@@ -93,15 +100,16 @@ impl State for EpidemicNetworkState {
             schedule.schedule_repeating(Box::new(node), 0.0, 0);
         }
 
-        loop{
+        let mut i = 0;
+        while i != (INITIAL_INFECTED*NUM_NODES as f32) as u32{
             let infected = rng.gen_range(0..NUM_NODES);
             
             if self.positions[infected as usize] == 0 {
-                let mut node = self.network.get_object(infected ).unwrap();
+                let mut node = self.network.get_object(infected).unwrap();
                 node.status = NodeStatus::Infected;
                 self.network.update_node(node);
                 self.field1.set_object_location(node, node.loc);
-                break;
+                i += 1;
             }
         }
     }

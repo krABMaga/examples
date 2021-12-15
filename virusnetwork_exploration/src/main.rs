@@ -15,14 +15,15 @@ static DISCRETIZATION: f32 = 10.0 / 1.5;
 static TOROIDAL: bool = false;
 
 ///Initial infected nodes
-pub static INITIAL_RESISTANT_PROB: f64 = 0.3;
-pub static INIT_EDGES: usize = 1;
+pub static INIT_EDGES: usize = 2;
 pub static VIRUS_SPREAD_CHANCE: f64 = 0.3;
 pub static VIRUS_CHECK_FREQUENCY: f64 = 0.2;
 pub static RECOVERY_CHANCE: f64 = 0.3;
 pub static GAIN_RESISTANCE_CHANCE: f64 = 0.2;
 
-pub const NUM_NODES: u32 = 100;
+pub static INITIAL_IMMUNE: f32 = 0.3;
+pub static INITIAL_INFECTED: f32 = 0.1;
+pub const NUM_NODES: u32 = 500;
 
 pub const MUTATION_RATE: f64 = 0.05;
 pub const DESIRED_FITNESS: f32 = 0.95;
@@ -31,6 +32,7 @@ pub const POPULATION: u32 = 100;
 
 pub const WIDTH: f32 = 150.;
 pub const HEIGHT: f32 = 150.;
+
 pub const STEP: u64 = 100;
 
 fn main() {
@@ -206,7 +208,7 @@ fn fitness(state: &mut EpidemicNetworkState, schedule: Schedule) -> f32 {
     let mut susceptible: usize = 0;
     let mut infected: usize = 0;
     let mut resistant: usize = 0;
-
+    let mut immune: usize = 0;
 
     let agents = schedule.get_all_events();
 
@@ -222,17 +224,21 @@ fn fitness(state: &mut EpidemicNetworkState, schedule: Schedule) -> f32 {
             NodeStatus::Resistant => {
                 resistant += 1;
             }
+            NodeStatus::Immune => {
+                immune += 1;
+            }
         }
     }
 
     let fitness = 1. - (resistant as f32 / NUM_NODES as f32) ;
 
     println!(
-        "Susceptible: {:?} Infected: {:?} Resistant: {:?} Tot: {:?}",
+        "Susceptible: {:?} Infected: {:?} Resistant: {:?} Immune: {:?} Tot: {:?}",
         susceptible,
         infected,
         resistant,
-        susceptible + infected + resistant
+        immune,
+        susceptible + infected + resistant + immune
     );
 
 
