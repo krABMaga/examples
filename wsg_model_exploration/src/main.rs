@@ -15,7 +15,7 @@ pub const SHEEP_REPR: f64 = 0.2;
 pub const WOLF_REPR: f64 = 0.1;
 
 use {
-    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::ComputationMode,
+    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State,
     rust_ab::ExploreMode, rust_ab::*
 };
 
@@ -64,9 +64,9 @@ fn main() {
     ];
 
     // model exploration in parallel, same syntax of explore
-    let result = explore!(
+    let result = explore_parallel!(
         step,
-        1,
+        2,
         WsgState,
         input { // input to use to configure the state that will change at each time
             width: i32
@@ -79,7 +79,6 @@ fn main() {
             survived_sheeps: u32
         ],
         ExploreMode::Matched,
-        ComputationMode::Sequential,
     );
 
     // export the dataframe returned by the model exploration into a csv
