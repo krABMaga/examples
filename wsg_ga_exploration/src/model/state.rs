@@ -75,7 +75,6 @@ impl fmt::Display for WsgState {
 }
 
 impl State for WsgState {
-
     fn init(&mut self, schedule: &mut Schedule) {
         generate_grass(self);
         generate_wolves(self, schedule);

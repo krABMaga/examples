@@ -2,8 +2,8 @@ use rand::distributions::weighted::WeightedIndex;
 use rand::seq::SliceRandom;
 
 use rust_ab::{
-    *,
     engine::{schedule::Schedule, state::State},
+    *,
 };
 
 use crate::model::sheep::Sheep;
@@ -30,7 +30,7 @@ pub const STEP: u64 = 20;
 
 fn main() {
     // macro used to execute model exploration using a genetic algorithm
-    let result = explore_ga_parallel!(
+    let result = explore_ga_distributed_mpi!(
         init_population,
         fitness,
         selection,
@@ -52,7 +52,7 @@ fn main() {
     if !result.is_empty() {
         // I'm the master
         // build csv from all procexplore_result
-        let name ="explore_result".to_string();
+        let name = "explore_result".to_string();
         let _res = write_csv(&name, &result);
     }
 }
@@ -130,7 +130,7 @@ fn selection(population: &mut Vec<WsgState>) {
 fn crossover(population: &mut Vec<WsgState>) {
     let mut rng = rand::thread_rng();
 
-    let additional_individuals = POPULATION as usize - population.len() ;
+    let additional_individuals = POPULATION as usize - population.len();
     // iterate through the population
     for _ in 0..additional_individuals {
         // select two random individuals
@@ -175,7 +175,6 @@ fn mutation(state: &mut WsgState) {
 }
 
 fn fitness(state: &mut WsgState, schedule: Schedule) -> f32 {
-
     let desired_sheeps = 1000.;
     let desired_wolves = 200.;
     let max_agent = 5000.;

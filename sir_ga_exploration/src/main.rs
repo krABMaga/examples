@@ -1,14 +1,14 @@
 use rand::distributions::weighted::WeightedIndex;
 
 use rust_ab::{
-    *,
-    engine::{schedule::Schedule, location::Real2D, state::State, fields::network::Network},
+    engine::{fields::network::Network, location::Real2D, schedule::Schedule, state::State},
     rand::Rng,
+    *,
 };
 
-use model::state::EpidemicNetworkState;
-use model::node::NodeStatus;
 use model::node::NetNode;
+use model::node::NodeStatus;
+use model::state::EpidemicNetworkState;
 mod model;
 
 static DISCRETIZATION: f32 = 10.0 / 1.5;
@@ -36,7 +36,6 @@ pub const HEIGHT: f32 = 150.;
 pub const STEP: u64 = 100;
 
 fn main() {
-    
     let result = explore_ga_sequential!(
         init_population,
         fitness,
@@ -55,7 +54,7 @@ fn main() {
     if !result.is_empty() {
         // I'm the master
         // build csv from all procexplore_result
-        let name ="explore_result".to_string();
+        let name = "explore_result".to_string();
         let _res = write_csv(&name, &result);
     }
 }
@@ -80,24 +79,24 @@ fn init_population() -> Vec<EpidemicNetworkState> {
                 x: WIDTH * r1,
                 y: HEIGHT * r2,
             },
-            NodeStatus::Susceptible
+            NodeStatus::Susceptible,
         );
         node_set.push(node);
         network.add_node(node);
     }
-    
+
     // create the edges in the network
     network.preferential_attachment_BA(&node_set, INIT_EDGES);
 
     let mut edge_set = vec![Vec::new()];
 
-    for i in 0..NUM_NODES{
-        match network.get_edges(node_set[i as usize]){
+    for i in 0..NUM_NODES {
+        match network.get_edges(node_set[i as usize]) {
             Some(edge) => edge_set.push(edge),
-            None => println!("Not adding the edge!")
+            None => println!("Not adding the edge!"),
         }
     }
-    
+
     // create n=POPULATION individuals
     for _ in 0..POPULATION {
         // create the individual
@@ -105,7 +104,7 @@ fn init_population() -> Vec<EpidemicNetworkState> {
         state.set_network(&mut node_set, &mut edge_set);
         population.push(state);
     }
-   
+
     // return the array of individuals, i.e. the population
     population
 }
@@ -146,13 +145,12 @@ fn selection(population: &mut Vec<EpidemicNetworkState>) {
             weight.remove(parent_idx_two);
         }
     }
-
 }
 
 fn crossover(population: &mut Vec<EpidemicNetworkState>) {
     let mut rng = rand::thread_rng();
 
-    let additional_individuals = POPULATION as usize - population.len() ;
+    let additional_individuals = POPULATION as usize - population.len();
 
     // iterate through the population
     for _ in 0..additional_individuals {
@@ -176,7 +174,7 @@ fn crossover(population: &mut Vec<EpidemicNetworkState>) {
 
         let mut new_positions = positions_one;
         new_positions.append(&mut positions_two);
-        
+
         // create a new individual
 
         let mut new_individual = EpidemicNetworkState::new();
@@ -184,7 +182,7 @@ fn crossover(population: &mut Vec<EpidemicNetworkState>) {
 
         new_individual.set_network(&mut node_set, &mut edge_set);
         new_individual.positions = new_positions;
-        
+
         population.push(new_individual);
     }
 }
@@ -204,11 +202,10 @@ fn mutation(state: &mut EpidemicNetworkState) {
 }
 
 fn fitness(state: &mut EpidemicNetworkState, schedule: Schedule) -> f32 {
-
-    let mut susceptible: usize = 0;
-    let mut infected: usize = 0;
+    let mut _susceptible: usize = 0;
+    let mut _infected: usize = 0;
     let mut resistant: usize = 0;
-    let mut immune: usize = 0;
+    let mut _immune: usize = 0;
 
     let agents = schedule.get_all_events();
 
@@ -216,31 +213,30 @@ fn fitness(state: &mut EpidemicNetworkState, schedule: Schedule) -> f32 {
         let agent = n.downcast_ref::<NetNode>().unwrap();
         match agent.status {
             NodeStatus::Susceptible => {
-                susceptible += 1;
+                _susceptible += 1;
             }
             NodeStatus::Infected => {
-                infected += 1;
+                _infected += 1;
             }
             NodeStatus::Resistant => {
                 resistant += 1;
             }
             NodeStatus::Immune => {
-                immune += 1;
+                _immune += 1;
             }
         }
     }
 
-    let fitness = 1. - (resistant as f32 / NUM_NODES as f32) ;
+    // println!(
+    //     "Susceptible: {:?} Infected: {:?} Resistant: {:?} Immune: {:?} Tot: {:?}",
+    //     susceptible,
+    //     infected,
+    //     resistant,
+    //     immune,
+    //     susceptible + infected + resistant + immune
+    // );
 
-    println!(
-        "Susceptible: {:?} Infected: {:?} Resistant: {:?} Immune: {:?} Tot: {:?}",
-        susceptible,
-        infected,
-        resistant,
-        immune,
-        susceptible + infected + resistant + immune
-    );
-
+    let fitness = 1. - (resistant as f32 / NUM_NODES as f32);
 
     state.fitness = fitness;
     fitness

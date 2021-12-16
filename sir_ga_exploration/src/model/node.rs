@@ -14,14 +14,14 @@ use rust_ab::{
 };
 
 use crate::model::state::EpidemicNetworkState;
-use crate::{GAIN_RESISTANCE_CHANCE, VIRUS_CHECK_FREQUENCY, RECOVERY_CHANCE, VIRUS_SPREAD_CHANCE};
+use crate::{GAIN_RESISTANCE_CHANCE, RECOVERY_CHANCE, VIRUS_CHECK_FREQUENCY, VIRUS_SPREAD_CHANCE};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum NodeStatus {
     Susceptible,
     Infected,
     Resistant,
-    Immune
+    Immune,
 }
 
 #[derive(Clone, Copy)]
@@ -143,7 +143,7 @@ impl fmt::Display for NodeStatus {
             NodeStatus::Susceptible => write!(f, "Susceptible"),
             NodeStatus::Infected => write!(f, "Infected"),
             NodeStatus::Resistant => write!(f, "Resistant"),
-            NodeStatus::Immune => write!(f, "Immune")
+            NodeStatus::Immune => write!(f, "Immune"),
         }
     }
 }

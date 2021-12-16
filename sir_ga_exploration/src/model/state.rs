@@ -1,6 +1,6 @@
 use crate::model::node::{NetNode, NodeStatus};
-use crate::{INITIAL_IMMUNE, INITIAL_INFECTED, NUM_NODES, DISCRETIZATION, TOROIDAL, WIDTH, HEIGHT};
-use rust_ab::engine::fields::network::{Network, Edge, EdgeOptions};
+use crate::{DISCRETIZATION, HEIGHT, INITIAL_IMMUNE, INITIAL_INFECTED, NUM_NODES, TOROIDAL, WIDTH};
+use rust_ab::engine::fields::network::{Edge, EdgeOptions, Network};
 use rust_ab::engine::fields::{field::Field, field_2d::Field2D};
 use rust_ab::engine::schedule::Schedule;
 use rust_ab::engine::state::State;
@@ -19,7 +19,6 @@ pub struct EpidemicNetworkState {
 }
 
 impl EpidemicNetworkState {
-
     pub fn new() -> EpidemicNetworkState {
         EpidemicNetworkState {
             step: 0,
@@ -32,15 +31,18 @@ impl EpidemicNetworkState {
         }
     }
 
-    pub fn set_network(&mut self, node_set: &mut Vec<NetNode>, edge_set: &mut Vec<Vec<Edge<String>>>) {
-
-        for i in 0..NUM_NODES{
+    pub fn set_network(
+        &mut self,
+        node_set: &mut Vec<NetNode>,
+        edge_set: &mut Vec<Vec<Edge<String>>>,
+    ) {
+        for i in 0..NUM_NODES {
             self.network.add_node(node_set[i as usize]);
         }
         self.network.update();
 
-        for i in 0..NUM_NODES{
-            for j in 0..edge_set[i as usize].len(){
+        for i in 0..NUM_NODES {
+            for j in 0..edge_set[i as usize].len() {
                 let edge = &edge_set[i as usize][j];
                 let node_u = self.network.get_object(edge.u).unwrap();
                 let node_v = self.network.get_object(edge.v).unwrap();
@@ -54,56 +56,51 @@ impl EpidemicNetworkState {
         self.edge_set = edge_set.to_vec();
     }
 
-    pub fn get_network(&self) 
-        -> (Vec<NetNode>, Vec<Vec<Edge<String>>>){
-            (self.node_set.clone(), self.edge_set.clone())
-        }
-
+    pub fn get_network(&self) -> (Vec<NetNode>, Vec<Vec<Edge<String>>>) {
+        (self.node_set.clone(), self.edge_set.clone())
+    }
 }
 
 impl State for EpidemicNetworkState {
-
     fn init(&mut self, schedule: &mut Schedule) {
-
         self.positions.clear();
 
         let mut rng = rand::thread_rng();
         self.positions = vec![0; NUM_NODES as usize];
-        
+
         let mut i = 0;
-        while i != (INITIAL_IMMUNE*NUM_NODES as f32) as u32 {
+        while i != (INITIAL_IMMUNE * NUM_NODES as f32) as u32 {
             let node_id = rng.gen_range(0..NUM_NODES);
             if self.positions[node_id as usize] == 1 {
-                    continue;
-            }
-            else {
+                continue;
+            } else {
                 self.positions[node_id as usize] = 1;
                 i += 1;
             }
         }
 
-        for node_id in 0..NUM_NODES{
-            let mut node = match self.network.get_object(node_id){
+        for node_id in 0..NUM_NODES {
+            let mut node = match self.network.get_object(node_id) {
                 Some(node) => node,
                 None => panic!("Node with id {} not found!", node_id),
             };
-             
+
             match self.positions[node_id as usize] {
                 0 => node.status = NodeStatus::Susceptible,
                 1 => node.status = NodeStatus::Immune,
-                _ => ()
+                _ => (),
             }
-            
+
             self.network.update_node(node);
-        
+
             self.field1.set_object_location(node, node.loc);
             schedule.schedule_repeating(Box::new(node), 0.0, 0);
         }
 
         let mut i = 0;
-        while i != (INITIAL_INFECTED*NUM_NODES as f32) as u32{
+        while i != (INITIAL_INFECTED * NUM_NODES as f32) as u32 {
             let infected = rng.gen_range(0..NUM_NODES);
-            
+
             if self.positions[infected as usize] == 0 {
                 let mut node = self.network.get_object(infected).unwrap();
                 node.status = NodeStatus::Infected;
@@ -172,7 +169,7 @@ impl State for EpidemicNetworkState {
             }
         }
 
-        if infected == 0{
+        if infected == 0 {
             // println!("No more infected nodes at step {}, exiting.", schedule.step);
             return true;
         }
