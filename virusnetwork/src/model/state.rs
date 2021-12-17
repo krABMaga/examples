@@ -67,7 +67,7 @@ impl State for EpidemicNetworkState {
             node_set.push(node);
         }
         self.network
-            .preferential_attachment_BA(node_set, INIT_EDGES);
+            .preferential_attachment_BA(&node_set, INIT_EDGES);
     }
 
     fn update(&mut self, step: u64) {

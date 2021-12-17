@@ -1,11 +1,12 @@
 use crate::model::node::{NetNode, NodeStatus};
-use crate::{DISCRETIZATION, HEIGHT, INITIAL_IMMUNE, INITIAL_INFECTED, NUM_NODES, TOROIDAL, WIDTH};
-use rust_ab::engine::fields::network::{Edge, EdgeOptions, Network};
+use crate::{DISCRETIZATION, WIDTH, HEIGHT, NUM_NODES, TOROIDAL, INIT_EDGES};
+use rust_ab::engine::fields::network::Network;
 use rust_ab::engine::fields::{field::Field, field_2d::Field2D};
 use rust_ab::engine::schedule::Schedule;
 use rust_ab::engine::state::State;
-use rust_ab::rand;
+use rust_ab::engine::location::Real2D;
 use rust_ab::rand::Rng;
+use rust_ab::rand;
 use std::any::Any;
 
 pub struct EpidemicNetworkState {
@@ -13,102 +14,57 @@ pub struct EpidemicNetworkState {
     pub field1: Field2D<NetNode>,
     pub network: Network<NetNode, String>,
     pub positions: Vec<u32>,
-    pub node_set: Vec<NetNode>,
-    pub edge_set: Vec<Vec<Edge<String>>>,
     pub fitness: f32,
 }
 
 impl EpidemicNetworkState {
-    pub fn new() -> EpidemicNetworkState {
+    pub fn new(positions: Vec<u32>) -> EpidemicNetworkState {
         EpidemicNetworkState {
             step: 0,
             field1: Field2D::new(WIDTH, HEIGHT, DISCRETIZATION, TOROIDAL),
             network: Network::new(false),
-            positions: Vec::with_capacity(NUM_NODES as usize),
-            node_set: Vec::new(),
-            edge_set: Vec::new(),
+            positions: positions,
             fitness: 0.,
         }
-    }
-
-    pub fn set_network(
-        &mut self,
-        node_set: &mut Vec<NetNode>,
-        edge_set: &mut Vec<Vec<Edge<String>>>,
-    ) {
-        for i in 0..NUM_NODES {
-            self.network.add_node(node_set[i as usize]);
-        }
-        self.network.update();
-
-        for i in 0..NUM_NODES {
-            for j in 0..edge_set[i as usize].len() {
-                let edge = &edge_set[i as usize][j];
-                let node_u = self.network.get_object(edge.u).unwrap();
-                let node_v = self.network.get_object(edge.v).unwrap();
-                self.network.add_edge(node_u, node_v, EdgeOptions::Simple);
-            }
-        }
-
-        self.network.update();
-
-        self.node_set = node_set.to_vec();
-        self.edge_set = edge_set.to_vec();
-    }
-
-    pub fn get_network(&self) -> (Vec<NetNode>, Vec<Vec<Edge<String>>>) {
-        (self.node_set.clone(), self.edge_set.clone())
     }
 }
 
 impl State for EpidemicNetworkState {
     fn init(&mut self, schedule: &mut Schedule) {
-        self.positions.clear();
+        let my_seed: u64 = 0;
+        let mut node_set = Vec::new();
+        self.network = Network::new(false);
 
         let mut rng = rand::thread_rng();
-        self.positions = vec![0; NUM_NODES as usize];
-
-        let mut i = 0;
-        while i != (INITIAL_IMMUNE * NUM_NODES as f32) as u32 {
-            let node_id = rng.gen_range(0..NUM_NODES);
-            if self.positions[node_id as usize] == 1 {
-                continue;
-            } else {
-                self.positions[node_id as usize] = 1;
-                i += 1;
-            }
-        }
-
+        let mut init_status: NodeStatus = NodeStatus::Susceptible;
+        
         for node_id in 0..NUM_NODES {
-            let mut node = match self.network.get_object(node_id) {
-                Some(node) => node,
-                None => panic!("Node with id {} not found!", node_id),
-            };
-
+            
             match self.positions[node_id as usize] {
-                0 => node.status = NodeStatus::Susceptible,
-                1 => node.status = NodeStatus::Immune,
+                0 => init_status = NodeStatus::Susceptible,
+                1 => init_status = NodeStatus::Immune,
+                2 => init_status = NodeStatus::Infected,
                 _ => (),
             }
 
-            self.network.update_node(node);
+            let r1: f32 = rng.gen();
+            let r2: f32 = rng.gen();
+
+            let node = NetNode::new(
+                node_id,
+                Real2D {
+                    x: WIDTH * r1,
+                    y: HEIGHT * r2,
+                },
+                init_status,
+            );
 
             self.field1.set_object_location(node, node.loc);
+            self.network.add_node(node);
             schedule.schedule_repeating(Box::new(node), 0.0, 0);
+            node_set.push(node);
         }
-
-        let mut i = 0;
-        while i != (INITIAL_INFECTED * NUM_NODES as f32) as u32 {
-            let infected = rng.gen_range(0..NUM_NODES);
-
-            if self.positions[infected as usize] == 0 {
-                let mut node = self.network.get_object(infected).unwrap();
-                node.status = NodeStatus::Infected;
-                self.network.update_node(node);
-                self.field1.set_object_location(node, node.loc);
-                i += 1;
-            }
-        }
+        self.network.preferential_attachment_BA_with_seed(&node_set, INIT_EDGES, my_seed);
     }
 
     fn update(&mut self, step: u64) {

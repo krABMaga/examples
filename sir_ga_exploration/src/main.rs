@@ -1,7 +1,7 @@
 use rand::distributions::weighted::WeightedIndex;
 
 use rust_ab::{
-    engine::{fields::network::Network, location::Real2D, schedule::Schedule, state::State},
+    engine::{schedule::Schedule, state::State},
     rand::Rng,
     *,
 };
@@ -26,7 +26,7 @@ pub static INITIAL_INFECTED: f32 = 0.1;
 pub const NUM_NODES: u32 = 500;
 
 pub const MUTATION_RATE: f64 = 0.05;
-pub const DESIRED_FITNESS: f32 = 0.95;
+pub const DESIRED_FITNESS: f32 = 1.;
 pub const MAX_GENERATION: u32 = 10;
 pub const POPULATION: u32 = 100;
 
@@ -36,7 +36,7 @@ pub const HEIGHT: f32 = 150.;
 pub const STEP: u64 = 100;
 
 fn main() {
-    let result = explore_ga_sequential!(
+    let result = explore_ga_distributed_mpi!(
         init_population,
         fitness,
         selection,
@@ -46,8 +46,11 @@ fn main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        parameters{
-            positions: Vec<u32>
+        // parameters{
+        //     positions: u32
+        // }
+        parameters_vec{
+            positions: u32 
         }
     );
 
@@ -63,45 +66,37 @@ fn main() {
 fn init_population() -> Vec<EpidemicNetworkState> {
     // create an array of EpidemicNetworkState
     let mut population = Vec::new();
-    let mut network: Network<NetNode, String> = Network::new(false);
-
-    let mut node_set = Vec::new();
-
-    let mut rng = rand::thread_rng();
-
-    for node_id in 0..NUM_NODES {
-        let r1: f32 = rng.gen();
-        let r2: f32 = rng.gen();
-
-        let node = NetNode::new(
-            node_id,
-            Real2D {
-                x: WIDTH * r1,
-                y: HEIGHT * r2,
-            },
-            NodeStatus::Susceptible,
-        );
-        node_set.push(node);
-        network.add_node(node);
-    }
-
-    // create the edges in the network
-    network.preferential_attachment_BA(&node_set, INIT_EDGES);
-
-    let mut edge_set = vec![Vec::new()];
-
-    for i in 0..NUM_NODES {
-        match network.get_edges(node_set[i as usize]) {
-            Some(edge) => edge_set.push(edge),
-            None => println!("Not adding the edge!"),
-        }
-    }
 
     // create n=POPULATION individuals
     for _ in 0..POPULATION {
         // create the individual
-        let mut state = EpidemicNetworkState::new();
-        state.set_network(&mut node_set, &mut edge_set);
+        let mut rng = rand::thread_rng();
+
+        let mut positions = vec![0; NUM_NODES as usize];
+
+        let mut immune_counter = 0;
+        while immune_counter != (INITIAL_IMMUNE * NUM_NODES as f32) as u32 {
+            
+            let node_id = rng.gen_range(0..NUM_NODES);
+            
+            if positions[node_id as usize] == 0 {
+                positions[node_id as usize] = 1;
+                immune_counter += 1;
+            }
+        }
+        
+        let mut infected_counter = 0;
+        while infected_counter != (INITIAL_INFECTED * NUM_NODES as f32) as u32 {
+            
+            let node_id = rng.gen_range(0..NUM_NODES);
+
+            if positions[node_id as usize] == 0 {
+                positions[node_id as usize] = 2;
+                infected_counter += 1;
+            }
+        }
+
+        let state = EpidemicNetworkState::new(positions.clone());
         population.push(state);
     }
 
@@ -177,12 +172,8 @@ fn crossover(population: &mut Vec<EpidemicNetworkState>) {
 
         // create a new individual
 
-        let mut new_individual = EpidemicNetworkState::new();
-        let (mut node_set, mut edge_set) = population[idx_one].get_network();
-
-        new_individual.set_network(&mut node_set, &mut edge_set);
-        new_individual.positions = new_positions;
-
+        let new_individual = EpidemicNetworkState::new(new_positions.clone());
+        
         population.push(new_individual);
     }
 }
