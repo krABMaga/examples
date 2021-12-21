@@ -1,5 +1,5 @@
 [package]
-name = "sir_ga_exploration"
+name = "sir_model_exploration"
 version = "0.2.0"
 authors = [
     "Carmine Spagnuolo <spagnuolocarmine@gmail.com>", 

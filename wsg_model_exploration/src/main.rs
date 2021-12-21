@@ -52,7 +52,7 @@ fn main() {
     // model exploration in parallel, same syntax of explore
     let result = explore_distributed_mpi!(
         step,
-        1,
+        3,
         WsgState,
         input { // input to use to configure the state that will change at each time
             width: i32
