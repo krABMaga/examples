@@ -7,8 +7,8 @@ use super::sheep::Sheep;
 use super::wolf::Wolf;
 use crate::{FULL_GROWN, GAIN_ENERGY_SHEEP, GAIN_ENERGY_WOLF, SHEEP_REPR, WOLF_REPR};
 use core::fmt;
-use rust_ab::hashbrown::HashSet;
 use rust_ab::engine::fields::grid_option::GridOption;
+use rust_ab::hashbrown::HashSet;
 use rust_ab::rand;
 use rust_ab::rand::Rng;
 use std::any::Any;
@@ -163,7 +163,6 @@ impl State for WsgState {
         //     "Number of sheeps: {:?} - wolves: {:?} - full growth grasses: {:?} at step {:?}\n",
         //     sheeps, wolves, grasses, schedule.step
         // );
-
     }
 }
 

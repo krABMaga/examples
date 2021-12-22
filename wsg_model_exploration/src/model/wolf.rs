@@ -86,13 +86,14 @@ impl Agent for Wolf {
         if let Some(sheeps) = state.sheeps_grid.get_objects(&self.loc) {
             for mut sheep in sheeps {
                 if state.killed_sheeps.lock().unwrap().get(&sheep).is_none()
-                    && sheep.animal_state == LifeState::Alive {
-                        sheep.animal_state = LifeState::Dead;
-                        state.sheeps_grid.set_object_location(sheep, &sheep.loc);
-                        self.energy += self.gain_energy;
-                        state.killed_sheeps.lock().unwrap().insert(sheep);
-                        break;
-                    }
+                    && sheep.animal_state == LifeState::Alive
+                {
+                    sheep.animal_state = LifeState::Dead;
+                    state.sheeps_grid.set_object_location(sheep, &sheep.loc);
+                    self.energy += self.gain_energy;
+                    state.killed_sheeps.lock().unwrap().insert(sheep);
+                    break;
+                }
             }
         }
 

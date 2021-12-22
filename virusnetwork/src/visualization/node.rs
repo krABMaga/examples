@@ -26,7 +26,7 @@ impl AgentRender for NetNodeVis {
         match status {
             NodeStatus::Susceptible => SpriteType::Emoji(String::from("white_circle")),
             NodeStatus::Infected => SpriteType::Emoji(String::from("red_circle")),
-            NodeStatus::Resistent => SpriteType::Emoji(String::from("large_blue_circle")),
+            NodeStatus::Resistant => SpriteType::Emoji(String::from("large_blue_circle")),
         }
     }
 

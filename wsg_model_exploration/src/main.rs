@@ -6,7 +6,6 @@ mod model;
 pub const FULL_GROWN: u16 = 20;
 pub const MOMENTUM_PROBABILITY: f64 = 0.8;
 
-
 // Mutable parameters in the fitness
 pub const ENERGY_CONSUME: f64 = 1.0;
 pub const GAIN_ENERGY_SHEEP: f64 = 5.0;
@@ -15,8 +14,8 @@ pub const SHEEP_REPR: f64 = 0.2;
 pub const WOLF_REPR: f64 = 0.1;
 
 use {
-    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::ComputationMode,
-    rust_ab::ExploreMode, rust_ab::*
+    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::ExploreMode,
+    rust_ab::*,
 };
 
 fn main() {
@@ -24,9 +23,6 @@ fn main() {
     let step: u64 = 10;
 
     // tuples to use in the exploration
-
-    // fissati sheep wolf width e height
-    // si variano gli altri
 
     // let initial_animals = vec![
     //     ((200. * 0.6) as u32,
@@ -36,15 +32,10 @@ fn main() {
     //     // ((3200.*0.6) as u32, (3200.*0.4) as u32),
     //     // ((6400.*0.6) as u32, (6400.*0.4) as u32)
     // ];
-    let initial_sheeps = vec![
-        (200. * 0.6) as u32,
-        (400. * 0.6) as u32,
-    ];
 
-    let initial_wolves = vec![
-        (200. * 0.4) as u32,
-        (400. * 0.4) as u32,
-    ];
+    let initial_sheeps = vec![(200. * 0.6) as u32, (400. * 0.6) as u32];
+
+    let initial_wolves = vec![(200. * 0.4) as u32, (400. * 0.4) as u32];
 
     // let dim = vec![
     //     (800, 800),
@@ -54,19 +45,14 @@ fn main() {
     //     // (12800, 12800),
     //     // (25600, 25600)
     // ];
-    let width = vec![
-        800, 
-        1600,
-    ];
-    let height = vec![
-        800, 
-        1600,
-    ];
+    
+    let width = vec![800, 1600];
+    let height = vec![800, 1600];
 
     // model exploration in parallel, same syntax of explore
-    let result = explore!(
+    let result = explore_distributed_mpi!(
         step,
-        1,
+        3,
         WsgState,
         input { // input to use to configure the state that will change at each time
             width: i32
@@ -79,7 +65,6 @@ fn main() {
             survived_sheeps: u32
         ],
         ExploreMode::Matched,
-        ComputationMode::Sequential,
     );
 
     // export the dataframe returned by the model exploration into a csv

@@ -1,3 +1,11 @@
+use rand::distributions::weighted::WeightedIndex;
+use rand::seq::SliceRandom;
+
+use rust_ab::{
+    engine::{schedule::Schedule, state::State},
+    *,
+};
+
 use crate::model::sheep::Sheep;
 use crate::model::state::WsgState;
 use crate::model::wolf::Wolf;
@@ -10,26 +18,19 @@ pub const ENERGY_CONSUME: f32 = 1.0;
 
 pub const MUTATION_RATE: f64 = 0.05;
 pub const DESIRED_FITNESS: f32 = 0.92;
-pub const MAX_GENERATION: u32 = 3;
-pub const POPULATION: u32 = 7;
+pub const MAX_GENERATION: u32 = 10;
+pub const POPULATION: u32 = 10;
 
 pub const INITIAL_NUM_WOLVES: u32 = (100. * 0.4) as u32;
 pub const INITIAL_NUM_SHEEPS: u32 = (100. * 0.6) as u32;
 
 pub const WIDTH: i32 = 25;
 pub const HEIGHT: i32 = 25;
-pub const STEP: u64 = 200;
-
-use rand::distributions::weighted::WeightedIndex;
-use rand::seq::SliceRandom;
-use {
-    rust_ab::engine::{schedule::Schedule, state::State},
-    rust_ab::*,
-};
+pub const STEP: u64 = 20;
 
 fn main() {
     // macro used to execute model exploration using a genetic algorithm
-    let result = explore_ga!(
+    let result = explore_ga_distributed_mpi!(
         init_population,
         fitness,
         selection,
@@ -39,7 +40,6 @@ fn main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        ComputationMode::DistributedMPI,
         parameters{
             gain_energy_sheep: f32
             gain_energy_wolf: f32
@@ -52,7 +52,7 @@ fn main() {
     if !result.is_empty() {
         // I'm the master
         // build csv from all procexplore_result
-        let name ="explore_result".to_string();
+        let name = "explore_result".to_string();
         let _res = write_csv(&name, &result);
     }
 }
@@ -73,6 +73,7 @@ fn init_population() -> Vec<WsgState> {
         let wolf_repr = rng.gen_range(0.0..=0.2);
         let full_grown = rng.gen_range(10..40);
 
+        // create the individual
         let state = WsgState::new(
             gain_energy_sheep,
             gain_energy_wolf,
@@ -129,7 +130,7 @@ fn selection(population: &mut Vec<WsgState>) {
 fn crossover(population: &mut Vec<WsgState>) {
     let mut rng = rand::thread_rng();
 
-    let additional_individuals = POPULATION as usize - population.len() ;
+    let additional_individuals = POPULATION as usize - population.len();
     // iterate through the population
     for _ in 0..additional_individuals {
         // select two random individuals
@@ -174,7 +175,6 @@ fn mutation(state: &mut WsgState) {
 }
 
 fn fitness(state: &mut WsgState, schedule: Schedule) -> f32 {
-
     let desired_sheeps = 1000.;
     let desired_wolves = 200.;
     let max_agent = 5000.;
@@ -211,7 +211,7 @@ fn fitness(state: &mut WsgState, schedule: Schedule) -> f32 {
     let average;
 
     if num_wolves == 0. || num_sheeps == 0. {
-        println!("Num of animals is zero");
+        // println!("Number of animals is zero at step {}", schedule.step);
         average = 0.;
     } else {
         average = (perc_sheeps + perc_wolves) / 2.;

@@ -1,5 +1,5 @@
-﻿[package]
-name = "wsg_model_exploration"
+[package]
+name = "sir_ga_exploration"
 version = "0.2.0"
 authors = [
     "Carmine Spagnuolo <spagnuolocarmine@gmail.com>", 
@@ -22,3 +22,5 @@ rust-ab = { git="https://github.com/rust-ab/rust-ab", branch="distributed_model_
 
 [features]
 distributed_mpi = ["rust-ab/distributed_mpi"]
+parallel = ["rust-ab/parallel"]
+

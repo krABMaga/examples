@@ -21,16 +21,20 @@ fn main() {
         the macro will create a tuple with an array for each column to match the types
         then you have to assign the values to the variables to pass them to the simulation
     */
-
+/* 
     let (width, height, initial_flockers) =
         load_csv!("data.csv", width: f32, height: f32, initial_flockers: u32);
+ */
+    let width = [ 50., 80.];
+    let height  = [50., 80.];
+    let initial_flockers = [ 200, 400];
 
     // explore the result of simulation using some input
     // the macro returns a dataframe with the required output
     // only the master return a usable dataframe
-    let dataframe = explore!(
+    let dataframe = explore_sequential!(
         step, // number of step
-        1, // number of repetition of the simulation for each configuration
+        2, // number of repetition of the simulation for each configuration
         Flocker, // name of the state
         input { // input to use to configure the state that will change at each time
             width: f32
@@ -40,14 +44,12 @@ fn main() {
         output[ // desired output that will be written in the dataframe
         ],
         ExploreMode::Matched,
-        ComputationMode::DistributedMPI,// N/P at each process
-
     );
 
     if !dataframe.is_empty() {
         // I'm the master
         // build csv from all processes
-        let name = format!("{}", "result_main_00");
+        let name = "result_main_00".to_string();
         let _res = write_csv(&name, &dataframe);
     }
 }
