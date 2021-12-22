@@ -18,7 +18,7 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rust-ab = { git="https://github.com/rust-ab/rust-ab", branch="distributed_model_exploration" }
+rust-ab = { git="https://github.com/rust-ab/rust-ab" }
 
 [features]
 distributed_mpi = ["rust-ab/distributed_mpi"]
