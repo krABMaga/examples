@@ -36,7 +36,8 @@ pub const HEIGHT: f32 = 150.;
 pub const STEP: u64 = 100;
 
 fn main() {
-    let result = explore_ga_distributed_mpi!(
+    // let result = 
+    explore_ga_aws!(
         init_population,
         fitness,
         selection,
@@ -46,20 +47,19 @@ fn main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        // parameters{
-        //     positions: Vec<u32>
-        // }
-        parameters_vec{
-            positions: [u32; 10] //needs to be a slice since a sized implementation is required
+        2,
+        parameters{
+            positions: Vec<u32>
+            test: u32
         }
     );
 
-    if !result.is_empty() {
-        // I'm the master
-        // build csv from all procexplore_result
-        let name = "explore_result".to_string();
-        let _res = write_csv(&name, &result);
-    }
+    // if !result.is_empty() {
+    //     // I'm the master
+    //     // build csv from all procexplore_result
+    //     let name = "explore_result".to_string();
+    //     let _res = write_csv(&name, &result);
+    // }
 }
 
 // function that initialize the populatin
@@ -96,7 +96,7 @@ fn init_population() -> Vec<EpidemicNetworkState> {
             }
         }
 
-        let state = EpidemicNetworkState::new(positions.clone());
+        let state = EpidemicNetworkState::new(positions.clone(), 1);
         population.push(state);
     }
 
@@ -172,7 +172,7 @@ fn crossover(population: &mut Vec<EpidemicNetworkState>) {
 
         // create a new individual
 
-        let new_individual = EpidemicNetworkState::new(new_positions.clone());
+        let new_individual = EpidemicNetworkState::new(new_positions.clone(), 1);
         
         population.push(new_individual);
     }
