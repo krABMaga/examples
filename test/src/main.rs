@@ -7,6 +7,8 @@ use serde::{Serialize, Deserialize};
 use std::fs;
 
 
+
+
 fn main() {
 	Command::new("mkdir").arg("rab_aws").output().expect("Failed to create rab_aws folder!");
 

@@ -9,6 +9,7 @@ use rust_ab::rand::Rng;
 use rust_ab::rand;
 use std::any::Any;
 
+
 pub struct EpidemicNetworkState {
     pub step: u64,
     pub field1: Field2D<NetNode>,
@@ -27,7 +28,18 @@ impl EpidemicNetworkState {
             fitness: 0.,
         }
     }
+
+    pub fn new_with_parameters(parameters: &String) -> EpidemicNetworkState{
+        let mut positions: Vec<u32> = Vec::new();
+
+        for i in parameters.chars() {
+            positions.push(i.to_digit(10).unwrap());
+        }
+
+        EpidemicNetworkState::new(positions)
+    }
 }
+
 
 impl State for EpidemicNetworkState {
     fn init(&mut self, schedule: &mut Schedule) {

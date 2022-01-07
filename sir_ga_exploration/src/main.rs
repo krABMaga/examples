@@ -23,20 +23,20 @@ pub static GAIN_RESISTANCE_CHANCE: f64 = 0.2;
 
 pub static INITIAL_IMMUNE: f32 = 0.3;
 pub static INITIAL_INFECTED: f32 = 0.1;
-pub const NUM_NODES: u32 = 10;
+pub const NUM_NODES: u32 = 100;
 
 pub const MUTATION_RATE: f64 = 0.05;
 pub const DESIRED_FITNESS: f32 = 1.;
 pub const MAX_GENERATION: u32 = 10;
-pub const POPULATION: u32 = 5;
+pub const POPULATION: u32 = 50;
 
 pub const WIDTH: f32 = 150.;
 pub const HEIGHT: f32 = 150.;
 
-pub const STEP: u64 = 100;
+pub const STEP: u64 = 500;
 
 fn main() {
-    let result = explore_ga_distributed_mpi!(
+    let result = explore_ga_sequential!(
         init_population,
         fitness,
         selection,
@@ -46,12 +46,6 @@ fn main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        // parameters{
-        //     positions: Vec<u32>
-        // }
-        parameters_vec{
-            positions: [u32; 10] //needs to be a slice since a sized implementation is required
-        }
     );
 
     if !result.is_empty() {
@@ -63,7 +57,7 @@ fn main() {
 }
 
 // function that initialize the populatin
-fn init_population() -> Vec<EpidemicNetworkState> {
+fn init_population() -> Vec<String> {
     // create an array of EpidemicNetworkState
     let mut population = Vec::new();
 
@@ -72,15 +66,20 @@ fn init_population() -> Vec<EpidemicNetworkState> {
         // create the individual
         let mut rng = rand::thread_rng();
 
-        let mut positions = vec![0; NUM_NODES as usize];
+        // let mut positions = vec![0 as u8; NUM_NODES as usize];
 
+        let mut positions = String::with_capacity(NUM_NODES as usize);
+        for _ in 0..NUM_NODES{
+            positions.push('0');
+        }
+    
         let mut immune_counter = 0;
         while immune_counter != (INITIAL_IMMUNE * NUM_NODES as f32) as u32 {
             
-            let node_id = rng.gen_range(0..NUM_NODES);
+            let node_id = rng.gen_range(0..NUM_NODES) as usize;
             
-            if positions[node_id as usize] == 0 {
-                positions[node_id as usize] = 1;
+            if positions.chars().nth(node_id).unwrap() == '0' {
+                positions.replace_range(node_id..node_id+1,"1");
                 immune_counter += 1;
             }
         }
@@ -88,33 +87,32 @@ fn init_population() -> Vec<EpidemicNetworkState> {
         let mut infected_counter = 0;
         while infected_counter != (INITIAL_INFECTED * NUM_NODES as f32) as u32 {
             
-            let node_id = rng.gen_range(0..NUM_NODES);
+            let node_id = rng.gen_range(0..NUM_NODES) as usize;
 
-            if positions[node_id as usize] == 0 {
-                positions[node_id as usize] = 2;
+            if positions.chars().nth(node_id).unwrap() == '0' {
+                positions.replace_range(node_id..node_id+1,"2");
                 infected_counter += 1;
             }
         }
 
-        let state = EpidemicNetworkState::new(positions.clone());
-        population.push(state);
+        population.push(positions.clone());
     }
-
-    // return the array of individuals, i.e. the population
+        
+    // return the array of individuals, i.e. the population (only the parameters)
     population
 }
 
-fn selection(population: &mut Vec<EpidemicNetworkState>) {
+fn selection(population_fitness: &mut Vec<(String, f32)>) {
     // weighted tournament selection
     let mut rng = rand::thread_rng();
-    let mut len = population.len();
+    let mut len = population_fitness.len();
 
     // build an array containing the fintess values in order to be used for the
     // weighted selection
 
     let mut weight = Vec::new();
-    for individual in population.iter_mut() {
-        weight.push((individual.fitness * 100.).floor() as u32);
+    for individual_fitness in population_fitness.iter_mut() {
+        weight.push((individual_fitness.1 * 100.).floor() as u32);
     }
 
     len /= 2;
@@ -132,17 +130,17 @@ fn selection(population: &mut Vec<EpidemicNetworkState>) {
 
         // choose the individual with the highest fitness
         // removing the one with the lowest fitness from the population
-        if population[parent_idx_one].fitness < population[parent_idx_two].fitness {
-            population.remove(parent_idx_one);
+        if population_fitness[parent_idx_one].1 < population_fitness[parent_idx_two].1 {
+            population_fitness.remove(parent_idx_one);
             weight.remove(parent_idx_one);
         } else {
-            population.remove(parent_idx_two);
+            population_fitness.remove(parent_idx_one);
             weight.remove(parent_idx_two);
         }
     }
 }
 
-fn crossover(population: &mut Vec<EpidemicNetworkState>) {
+fn crossover(population: &mut Vec<String>) {
     let mut rng = rand::thread_rng();
 
     let additional_individuals = POPULATION as usize - population.len();
@@ -157,8 +155,8 @@ fn crossover(population: &mut Vec<EpidemicNetworkState>) {
         }
 
         // combines random parameters of the parents
-        let mut parent_one = population[idx_one].positions.clone();
-        let mut parent_two = population[idx_two].positions.clone();
+        let mut parent_one = population[idx_one].clone();
+        let mut parent_two = population[idx_two].clone();
 
         let len = parent_one.len() / 2;
 
@@ -167,27 +165,24 @@ fn crossover(population: &mut Vec<EpidemicNetworkState>) {
         let positions_one = parent_one;
         let mut positions_two = parent_two.split_off(len);
 
-        let mut new_positions = positions_one;
-        new_positions.append(&mut positions_two);
+        let mut new_individual = format!("{}{}", positions_one, positions_two);
 
         // create a new individual
-
-        let new_individual = EpidemicNetworkState::new(new_positions.clone());
         
         population.push(new_individual);
     }
 }
 
-fn mutation(state: &mut EpidemicNetworkState) {
+fn mutation(individual: &mut String) {
     let mut rng = rand::thread_rng();
 
     // mutate one random parameter with assigning random value
     if rng.gen_bool(MUTATION_RATE) {
-        let to_change = rng.gen_range(0..NUM_NODES as usize);
-        if state.positions[to_change] == 0 {
-            state.positions[to_change] = 1;
+        let to_change = rng.gen_range(0..NUM_NODES as usize) as usize;
+        if individual.chars().nth(to_change).unwrap() == '0' {
+            individual.replace_range(to_change..to_change+1,"1");
         } else {
-            state.positions[to_change] = 0;
+            individual.replace_range(to_change..to_change+1,"0");
         }
     }
 }
