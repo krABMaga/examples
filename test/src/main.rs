@@ -17,8 +17,12 @@ use tokio::runtime::Runtime; // 0.3.5
 // async fn main() {
 fn main() {
 
+	// array of string containing the messages sent by the functions
 	let result: Vec<String> = Vec::new();
+
+	// blocking function for async
 	let result = Runtime::new().unwrap().block_on(function_lambda());
+
 	println!("Result len is {}", result.as_ref().unwrap().len());
 	for msg in result.as_ref().unwrap(){
 		println!("Result is {:?}", msg);
@@ -26,16 +30,25 @@ fn main() {
 }
 
 async fn function_lambda() -> Result<Vec<String>, aws_sdk_lambda::Error>{
-	let pkg = env!("CARGO_PKG_NAME");
+	
 	let mut result: Vec<String> = Vec::new();
+
+	// configuration of the different aws clients
 	let region_provider = RegionProviderChain::default_provider();
 	let config = aws_config::from_env().region(region_provider).load().await;
-	
 
-	let client_lambda = aws_sdk_lambda::Client::new(&config);
+	// create the sqs client
 	let client_sqs = aws_sdk_sqs::Client::new(&config);
 
+	// create a queue where functions will publish the results
+	// the queue name is the package name of the Cargo.toml
+	let pkg = env!("CARGO_PKG_NAME");
+	let create_queue = client_sqs.create_queue().queue_name(pkg).send().await;
 
+	// create the lambda client
+	let client_lambda = aws_sdk_lambda::Client::new(&config);
+	
+	// invoke the function using the sub_population json as payload
 	for i in 0..5{
 		client_lambda
 			.invoke_async()
@@ -43,6 +56,8 @@ async fn function_lambda() -> Result<Vec<String>, aws_sdk_lambda::Error>{
 			.invoke_args(ByteStream::from(format!("{{\"text\": \"msg{}\"}}", i).as_bytes().to_vec()))
 			.send().await;
 	}
+
+	// receive the message from the queue to get the results from the functions
 	let result = send_receive(&client_sqs).await;
 	let to_write: Vec<String> = result.unwrap();
 	Ok(to_write)
