@@ -24,7 +24,10 @@ lambda_runtime = "0.4"
 serde = { version = "1.*", features = ["derive"] }
 serde_json = "1.*"
 tokio = { version = "1.*", features = ["full"] }
-
+aws-config = "0.4"
+aws-sdk-sqs = "0.4"
+aws-sdk-lambda = "0.4"
+futures = "0.3"
 
 [[bin]]
 name = "function"
