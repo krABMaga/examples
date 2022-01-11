@@ -20,6 +20,7 @@ default-run = "execute"
 
 [dependencies]
 rust-ab = { path="/home/giuseppe/Git/rab/rust-ab" }
+jemallocator = "0.3.2"
 
 [features]
 distributed_mpi = ["rust-ab/distributed_mpi"]
