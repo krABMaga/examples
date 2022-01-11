@@ -14,6 +14,7 @@ authors = [
 edition = "2018"
 license = "MIT"
 readme = "README.md"
+default-run = "execute"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -24,3 +25,10 @@ rust-ab = { path="/home/giuseppe/Git/rab/rust-ab" }
 distributed_mpi = ["rust-ab/distributed_mpi"]
 parallel = ["rust-ab/parallel"]
 
+[[bin]]
+name = "function"
+path = "src/function.rs"
+
+[[bin]]
+name = "execute"
+path = "src/main.rs"

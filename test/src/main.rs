@@ -52,7 +52,7 @@ async fn function_lambda() -> Result<Vec<String>, aws_sdk_lambda::Error>{
 	for i in 0..5{
 		client_lambda
 			.invoke_async()
-			.function_name("rustab_function")
+			.function_name("rab_lambda")
 			.invoke_args(ByteStream::from(format!("{{\"text\": \"msg{}\"}}", i).as_bytes().to_vec()))
 			.send().await;
 	}
