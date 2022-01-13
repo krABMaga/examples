@@ -23,17 +23,17 @@ pub static GAIN_RESISTANCE_CHANCE: f64 = 0.2;
 
 pub static INITIAL_IMMUNE: f32 = 0.3;
 pub static INITIAL_INFECTED: f32 = 0.1;
-pub const NUM_NODES: u32 = 5;
+pub const NUM_NODES: u32 = 100;
 
 pub const MUTATION_RATE: f64 = 0.05;
 pub const DESIRED_FITNESS: f32 = 1.;
 pub const MAX_GENERATION: u32 = 10;
-pub const POPULATION: u32 = 5;
+pub const POPULATION: u32 = 100;
 
 pub const WIDTH: f32 = 150.;
 pub const HEIGHT: f32 = 150.;
 
-pub const STEP: u64 = 100;
+pub const STEP: u64 = 500;
 
 fn main() {
     let result = explore_ga_aws!(

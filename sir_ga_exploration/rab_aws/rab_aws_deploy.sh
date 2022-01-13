@@ -62,12 +62,12 @@ else
     cargo install cross
 fi
 echo "Function building..."
-cross build --release --bin function --target x86_64-unknown-linux-gnus
+cross build --release --bin function --target x86_64-unknown-linux-gnu
 echo "Zipping the target for the upload..."
 cp ./target/x86_64-unknown-linux-gnu/release/function ./bootstrap && zip rab_aws/rab_lambda.zip bootstrap && rm bootstrap 
 
 echo "Creation of the lambda function..."
-aws lambda create-function --function-name rab_lambda --handler main --zip-file fileb://rab_aws/rab_lambda.zip --runtime provided.al2 --role ${role_arn//\"} --environment Variables={RUST_BACKTRACE=1} --tracing-config Mode=Active 
+aws lambda create-function --function-name rab_lambda --handler main --zip-file fileb://rab_aws/rab_lambda.zip --runtime provided.al2 --role ${role_arn//\"} --timeout 900 --memory-size 10240 --environment Variables={RUST_BACKTRACE=1} --tracing-config Mode=Active 
 echo "Lambda function created successfully!"
 
 echo "Clearing the rab_aws folder..."
