@@ -49,12 +49,12 @@ fn main() {
         2,
     );
 
-    // if !result.is_empty() {
-    //     // I'm the master
-    //     // build csv from all procexplore_result
-    //     let name = "explore_result".to_string();
-    //     let _res = write_csv(&name, &result);
-    // }
+    if !result.is_empty() {
+        // I'm the master
+        // build csv from all procexplore_result
+        let name = "explore_result".to_string();
+        let _res = write_csv(&name, &result);
+    }
 }
 
 // function that initialize the populatin
