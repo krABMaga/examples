@@ -35,7 +35,7 @@ pub const HEIGHT: f32 = 150.;
 
 pub const STEP: u64 = 500;
 
-fn main() {
+fn dummy_main() {
     let result = explore_ga_aws!(
         init_population,
         fitness,
@@ -228,3 +228,82 @@ fn fitness(state: &mut EpidemicNetworkState, schedule: Schedule) -> f32 {
     state.fitness = fitness;
     fitness
 }
+use rust_ab::{
+    lambda_runtime,
+    aws_sdk_sqs,
+    aws_config,
+    tokio
+};
+
+#[tokio::main]
+async fn main() -> Result<(), lambda_runtime::Error> {
+    let func = lambda_runtime::handler_fn(func);
+    lambda_runtime::run(func).await?;
+    Ok(())
+}
+
+async fn func(event: Value, _: lambda_runtime::Context) -> Result<(), lambda_runtime::Error> {
+
+    // read the payload
+    let my_population_params = event["individuals"].as_array().expect("Cannot parse individuals value from event!");
+
+    // prepare the result json to send on the queue
+    let mut results: String = format!("{{\n\t\"function\":[");
+    
+    for (index, ind) in my_population_params.iter().enumerate(){
+        let individual = ind.as_str().expect("Cannot cast individual!").to_string();
+        
+        // initialize the state
+        let mut individual_state = <EpidemicNetworkState>::new_with_parameters(&individual); // <$state>::new_with_parameters(&individual);
+        let mut schedule: Schedule = Schedule::new();
+        individual_state.init(&mut schedule);
+        // compute the simulation
+        for _ in 0..(STEP as usize) { // $step as usize
+            let individual_state = individual_state.as_state_mut();
+            schedule.step(individual_state);
+            if individual_state.end_condition(&mut schedule) {
+                break;
+            }
+        }
+
+        // compute the fitness value
+        let fitness = fitness(&mut individual_state, schedule); //$fitness(&mut individual_state, schedule);
+
+        {
+            results.push_str(&format!("\n\t{{\n\t\t\"Index\": {}, \n\t\t\"Fitness\": {}, \n\t\t\"Individual\": \"{}\"\n\t}},", index, fitness, individual).to_string());
+        }
+    }
+
+    results.truncate(results.len()-1); // required to remove the last comma
+    results.push_str(&format!("\n\t]\n}}").to_string());
+
+    // send the result on the SQS queue
+    send_on_sqs(results.to_string()).await;
+    
+    Ok(())
+}
+
+async fn send_on_sqs(results: String) -> Result<(), aws_sdk_sqs::Error> {
+    // configuration of the aws client
+	let region_provider = aws_config::meta::region::RegionProviderChain::default_provider();
+	let config = aws_config::from_env().region(region_provider).load().await;
+
+    // create the SQS client
+	let client_sqs = aws_sdk_sqs::Client::new(&config);
+    
+
+    // get the queue_url of the queue
+    let queue = client_sqs.get_queue_url().queue_name("rab_queue".to_string()).send().await?;
+    let queue_url = queue.queue_url.expect("Cannot get the queue url!");
+
+    let send_request = client_sqs
+        .send_message()
+        .queue_url(queue_url)
+        .message_body(results)
+        .send()
+        .await?;
+
+    Ok(())
+}
+// end of the lambda function
+        
