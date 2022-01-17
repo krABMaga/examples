@@ -26,14 +26,14 @@ pub static INITIAL_INFECTED: f32 = 0.1;
 pub const NUM_NODES: u32 = 100;
 
 pub const MUTATION_RATE: f64 = 0.05;
-pub const DESIRED_FITNESS: f32 = 1.;
+pub const DESIRED_FITNESS: f32 = 0.8;
 pub const MAX_GENERATION: u32 = 10;
-pub const POPULATION: u32 = 100;
+pub const POPULATION: u32 = 500;
 
 pub const WIDTH: f32 = 150.;
 pub const HEIGHT: f32 = 150.;
 
-pub const STEP: u64 = 100;
+pub const STEP: u64 = 500;
 
 fn main() {
     let result = explore_ga_aws!(
@@ -46,15 +46,15 @@ fn main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        2,
+        3,
     );
 
-    // if !result.is_empty() {
-    //     // I'm the master
-    //     // build csv from all procexplore_result
-    //     let name = "explore_result".to_string();
-    //     let _res = write_csv(&name, &result);
-    // }
+    if !result.is_empty() {
+        // I'm the master
+        // build csv from all procexplore_result
+        let name = "explore_result".to_string();
+        let _res = write_csv(&name, &result);
+    }
 }
 
 // function that initialize the populatin

@@ -26,9 +26,9 @@ pub static INITIAL_INFECTED: f32 = 0.1;
 pub const NUM_NODES: u32 = 100;
 
 pub const MUTATION_RATE: f64 = 0.05;
-pub const DESIRED_FITNESS: f32 = 1.;
+pub const DESIRED_FITNESS: f32 = 0.8;
 pub const MAX_GENERATION: u32 = 10;
-pub const POPULATION: u32 = 100;
+pub const POPULATION: u32 = 500;
 
 pub const WIDTH: f32 = 150.;
 pub const HEIGHT: f32 = 150.;
@@ -46,15 +46,15 @@ fn dummy_main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        2,
+        3,
     );
 
-    // if !result.is_empty() {
-    //     // I'm the master
-    //     // build csv from all procexplore_result
-    //     let name = "explore_result".to_string();
-    //     let _res = write_csv(&name, &result);
-    // }
+    if !result.is_empty() {
+        // I'm the master
+        // build csv from all procexplore_result
+        let name = "explore_result".to_string();
+        let _res = write_csv(&name, &result);
+    }
 }
 
 // function that initialize the populatin
@@ -245,15 +245,13 @@ async fn main() -> Result<(), lambda_runtime::Error> {
 async fn func(event: Value, _: lambda_runtime::Context) -> Result<(), lambda_runtime::Error> {
 
     // read the payload
-    let id = event["id"].as_str().unwrap();
-
-    let my_population_params = event["individuals"].as_array().unwrap();
+    let my_population_params = event["individuals"].as_array().expect("Cannot parse individuals value from event!");
 
     // prepare the result json to send on the queue
-    let mut results: String = format!("{{\n\t\"function_{}\":[", id);
+    let mut results: String = format!("{{\n\t\"function\":[");
     
     for (index, ind) in my_population_params.iter().enumerate(){
-        let individual = ind.as_str().unwrap().to_string();
+        let individual = ind.as_str().expect("Cannot cast individual!").to_string();
         
         // initialize the state
         let mut individual_state = <EpidemicNetworkState>::new_with_parameters(&individual); // <$state>::new_with_parameters(&individual);
@@ -296,7 +294,7 @@ async fn send_on_sqs(results: String) -> Result<(), aws_sdk_sqs::Error> {
 
     // get the queue_url of the queue
     let queue = client_sqs.get_queue_url().queue_name("rab_queue".to_string()).send().await?;
-    let queue_url = queue.queue_url.unwrap();
+    let queue_url = queue.queue_url.expect("Cannot get the queue url!");
 
     let send_request = client_sqs
         .send_message()
