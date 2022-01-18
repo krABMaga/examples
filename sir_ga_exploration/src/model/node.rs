@@ -79,15 +79,15 @@ impl Agent for NetNode {
                 let mut rng = rand::thread_rng();
                 let neighborhood = neighborhood.unwrap();
                 for edge in &neighborhood {
-                    if rng.gen_bool(VIRUS_SPREAD_CHANCE) && self.status == NodeStatus::Susceptible {
-                        let node = state.network.get_object(edge.v).unwrap();
-                        match node.status {
-                            NodeStatus::Infected => {
+                    let node = state.network.get_object(edge.v).unwrap();
+                    match node.status {
+                        NodeStatus::Infected => {
+                            if rng.gen_bool(VIRUS_SPREAD_CHANCE) && self.status == NodeStatus::Susceptible {
                                 self.status = NodeStatus::Infected;
                             }
-                            _ => {
-                                continue;
-                            }
+                        }
+                        _ => {
+                            continue;
                         }
                     }
                 }

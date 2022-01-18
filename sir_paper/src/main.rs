@@ -15,26 +15,23 @@ static DISCRETIZATION: f32 = 10.0 / 1.5;
 static TOROIDAL: bool = false;
 
 // generic model parameters
-pub const NUM_NODES: u32 = 40;
+pub const NUM_NODES: u32 = 50;
 pub static INIT_EDGES: usize = 2;
 pub static INITIAL_INFECTED: f32 = 0.1;
-pub static VIRUS_CHECK_FREQUENCY: f64 = 0.2;
-pub static GAIN_RESISTANCE_CHANCE: f64 = 0.2;
 
 // GA specific parameters
 pub const MUTATION_RATE: f64 = 0.05;
 pub const CROSSOVER_RATE: f64 = 0.5;
 pub const DESIRED_FITNESS: f32 = 1.;
 pub const MAX_GENERATION: u32 = 10;
-pub const POPULATION: u32 = 10;
+pub const POPULATION: u32 = 200;
 
 pub const WIDTH: f32 = 150.;
 pub const HEIGHT: f32 = 150.;
 
-pub const STEP: u64 = 100;
+pub const STEP: u64 = 360;
 
 fn main() {
-    
     let result = explore_ga_sequential!(
         init_population,
         fitness,
@@ -65,13 +62,12 @@ fn init_population() -> Vec<String> {
     for _ in 0..POPULATION {
         // create the individual
         let mut rng = rand::thread_rng();
-        let x = rng.gen_range(0.0..=1. as f32).to_string(); // spread
-        let y = rng.gen_range(0.0..=1. as f32).to_string(); // recovery
-        
+        let x = rng.gen_range(0.3..=0.3_f32).to_string(); // spread chance
+        let y = rng.gen_range(0.3..=0.3_f32).to_string(); // recovery chance
+
         population.push(format!("{};{}", x, y));
     }
-    
-        
+
     // return the array of individuals, i.e. the population (only the parameters)
     population
 }
@@ -140,25 +136,25 @@ fn crossover(population: &mut Vec<String>) {
 
         // TODO how to use crossover_rate
         // if rng.gen_bool(CROSSOVER_RATE){
-        
+
         // } else {
 
         // }
-        
-        let parent_one : Vec<&str> = parent_one.split(";").collect(); 
+
+        let parent_one: Vec<&str> = parent_one.split(';').collect();
         let one_spread = parent_one[0];
         let one_recovery = parent_one[1];
 
-        let parent_two : Vec<&str> = parent_two.split(";").collect();
+        let parent_two: Vec<&str> = parent_two.split(';').collect();
         let two_spread = parent_two[0];
         let two_recovery = parent_two[1];
 
-        if rng.gen_bool(0.5){
+        if rng.gen_bool(0.5) {
             new_individual = format!("{};{}", one_spread, two_recovery);
         } else {
             new_individual = format!("{};{}", two_spread, one_recovery);
         }
-        
+
         population.push(new_individual);
     }
 }
@@ -166,20 +162,21 @@ fn crossover(population: &mut Vec<String>) {
 fn mutation(individual: &mut String) {
     let new_ind: String;
 
-    let new_individual: Vec<&str> = individual.split(";").collect(); 
+    let new_individual: Vec<&str> = individual.split(';').collect();
     let one_spread = new_individual[0];
     let one_recovery = new_individual[1];
 
     let mut rng = rand::thread_rng();
     // mutate one random parameter with assigning random value
     if rng.gen_bool(MUTATION_RATE) {
-        if rng.gen_bool(0.5){ // mutate spread
-            let new_spread = rng.gen_range(0.0..=1. as f32).to_string();
-            // one_spread = &new_spread.as_str();
-            new_ind = format!("{};{}", new_spread.clone(), one_recovery.clone());
-        } else { // mutate recovery
-            let new_recovery = rng.gen_range(0.0..=1. as f32).to_string();
-            new_ind = format!("{};{}", one_spread.clone(), new_recovery.clone());
+        if rng.gen_bool(0.5) {
+            // mutate spread
+            let new_spread = rng.gen_range(0.3..=0.3_f32).to_string();
+            new_ind = format!("{};{}", new_spread, one_recovery);
+        } else {
+            // mutate recovery
+            let new_recovery = rng.gen_range(0.3..=0.3_f32).to_string();
+            new_ind = format!("{};{}", one_spread, new_recovery);
         }
         *individual = new_ind;
     }
@@ -189,24 +186,19 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     // Sort the array using the RT
 
     computed_ind.sort_by(|s1, s2| s1.0.rt.partial_cmp(&s2.0.rt).unwrap_or(Equal));
-    
-    println!("Sorted RT: -------------------------------");
-    for i in 0..computed_ind.len(){
-        print!("{}\t", computed_ind[i].0.rt);
-    }
-    println!("\n-------------------------------");
-    
-    
-    // Get the median of the array 
+
+    // println!("Sorted RT: -------------------------------");
+    // for i in 0..computed_ind.len() {
+    //     print!("{}\t", computed_ind[i].0.rt);
+    // }
+    // println!("\n-------------------------------");
+
+    // Get the median of the array
     let index = (computed_ind.len() + 1) / 2;
-    let median = computed_ind[index-1].0.rt;
-    
-    println!("Median is {:?}", computed_ind[index-1].0.rt);
+    let median = computed_ind[index - 1].0.rt;
+
+    // println!("Median is {:?}", computed_ind[index - 1].0.rt);
 
     let desired_rt: f32 = 3.5;
-    let fitness = 1. - (desired_rt-median).abs() / (desired_rt.powf(2.) + median.powf(2.)).sqrt();
-    
-    println!("Fitness is {}", fitness);
-   
-    fitness
+    1. - (desired_rt - median).abs() / (desired_rt.powf(2.) + median.powf(2.)).sqrt()
 }

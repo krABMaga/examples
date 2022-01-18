@@ -10,7 +10,7 @@ use rust_ab::{
         agent::Agent,
         location::{Location2D, Real2D},
     },
-    rand::Rng
+    rand::Rng,
 };
 
 use crate::model::state::EpidemicNetworkState;
@@ -52,59 +52,37 @@ impl Agent for NetNode {
         let mut rng = rand::thread_rng();
         match self.status {
             NodeStatus::Infected => {
-                // get a random num
                 if rng.gen_bool(state.recovery as f64) {
                     self.status = NodeStatus::Resistant;
                 }
-
-                // if !self.virus_detected {
-                //     //Scan Virus
-                //     let mut rng = rand::thread_rng();
-                //     self.virus_detected = rng.gen_bool(VIRUS_CHECK_FREQUENCY);
-                // }
-                // if self.virus_detected {
-                //     let mut rng = rand::thread_rng();
-                //     if rng.gen_bool(RECOVERY_CHANCE) {
-                //         self.virus_detected = false;
-
-                //         if rng.gen_bool(GAIN_RESISTANCE_CHANCE) {
-                //             self.status = NodeStatus::Resistant;
-                //         } else {
-                //             self.status = NodeStatus::Susceptible;
-                //         }
-                //     }
-                // }
             }
             NodeStatus::Susceptible => {
                 let neighborhood = state.network.get_edges(*self);
-
                 if neighborhood.is_none() {
                     return;
                 };
-                let mut rng = rand::thread_rng();
+
                 let neighborhood = neighborhood.unwrap();
                 // for each neighbor check if it is infected, if so check virus_spread
                 // and become infected
                 for edge in &neighborhood {
-                    if rng.gen_bool(state.spread as f64) && self.status == NodeStatus::Susceptible {
-                        let node = state.network.get_object(edge.v).unwrap();
-                        match node.status {
-                            NodeStatus::Infected => {
+                    let node = state.network.get_object(edge.v).unwrap();
+                    match node.status {
+                        NodeStatus::Infected => {
+                            if rng.gen_bool(state.spread as f64) {
                                 self.status = NodeStatus::Infected;
+                                // increase count of how many nodes node has infected
                                 state.infected_nodes.lock().unwrap()[edge.v as usize] += 1;
-                                // state has an array with dimension of NUM_NODES
-                                // each time a new infection happens increment the count
-                                // corresponding to the node that made the infection
+                                break;
                             }
-                            _ => {
-                                continue;
-                            }
+                        }
+                        _ => {
+                            continue;
                         }
                     }
                 }
             }
             NodeStatus::Resistant => {}
-            // NodeStatus::Immune => {}
         }
         state.network.update_node(*self);
         state.field1.set_object_location(*self, self.loc);
@@ -154,7 +132,6 @@ impl fmt::Display for NodeStatus {
             NodeStatus::Susceptible => write!(f, "Susceptible"),
             NodeStatus::Infected => write!(f, "Infected"),
             NodeStatus::Resistant => write!(f, "Resistant"),
-            // NodeStatus::Immune => write!(f, "Immune"),
         }
     }
 }
