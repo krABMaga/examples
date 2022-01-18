@@ -6,28 +6,27 @@ use rust_ab::{
     *,
 };
 
-use model::node::NetNode;
-use model::node::NodeStatus;
+use std::cmp::Ordering::Equal;
+
 use model::state::EpidemicNetworkState;
 mod model;
 
 static DISCRETIZATION: f32 = 10.0 / 1.5;
 static TOROIDAL: bool = false;
 
+// generic model parameters
+pub const NUM_NODES: u32 = 40;
 pub static INIT_EDGES: usize = 2;
-pub static VIRUS_SPREAD_CHANCE: f64 = 0.3;
+pub static INITIAL_INFECTED: f32 = 0.1;
 pub static VIRUS_CHECK_FREQUENCY: f64 = 0.2;
-pub static RECOVERY_CHANCE: f64 = 0.3;
 pub static GAIN_RESISTANCE_CHANCE: f64 = 0.2;
 
-pub static INITIAL_INFECTED: f32 = 0.1;
-pub const NUM_NODES: u32 = 40;
-
 // GA specific parameters
-// pub const MUTATION_RATE: f64 = 0.05;
-// pub const DESIRED_FITNESS: f32 = 0.8;
-// pub const MAX_GENERATION: u32 = 10;
-// pub const POPULATION: u32 = 500;
+pub const MUTATION_RATE: f64 = 0.05;
+pub const CROSSOVER_RATE: f64 = 0.5;
+pub const DESIRED_FITNESS: f32 = 1.;
+pub const MAX_GENERATION: u32 = 10;
+pub const POPULATION: u32 = 10;
 
 pub const WIDTH: f32 = 150.;
 pub const HEIGHT: f32 = 150.;
@@ -35,199 +34,179 @@ pub const HEIGHT: f32 = 150.;
 pub const STEP: u64 = 100;
 
 fn main() {
-
-    let epidemic_network = EpidemicNetworkState::new();
-
-    simulate!(STEP, epidemic_network, 1, Info::Verbose);
     
-    // let result = explore_ga_sequential!(
-    //     init_population,
-    //     fitness,
-    //     selection,
-    //     mutation,
-    //     crossover,
-    //     EpidemicNetworkState,
-    //     DESIRED_FITNESS,
-    //     MAX_GENERATION,
-    //     STEP,
-    // );
+    let result = explore_ga_sequential!(
+        init_population,
+        fitness,
+        selection,
+        mutation,
+        crossover,
+        EpidemicNetworkState,
+        DESIRED_FITNESS,
+        MAX_GENERATION,
+        STEP,
+        10,
+    );
 
-    // if !result.is_empty() {
-    //     // I'm the master
-    //     // build csv from all procexplore_result
-    //     let name = "explore_result".to_string();
-    //     let _res = write_csv(&name, &result);
-    // }
+    if !result.is_empty() {
+        // I'm the master
+        // build csv from all procexplore_result
+        let name = "explore_result".to_string();
+        let _res = write_csv(&name, &result);
+    }
 }
 
-// // function that initialize the populatin
-// fn init_population() -> Vec<String> {
-//     // create an array of EpidemicNetworkState
-//     let mut population = Vec::new();
+// function that initialize the populatin
+fn init_population() -> Vec<String> {
+    // create an array of EpidemicNetworkState
+    let mut population = Vec::new();
 
-//     // create n=POPULATION individuals
-//     for _ in 0..POPULATION {
-//         // create the individual
-//         let mut rng = rand::thread_rng();
-
-//         // let mut positions = vec![0 as u8; NUM_NODES as usize];
-
-//         let mut positions = String::with_capacity(NUM_NODES as usize);
-//         for _ in 0..NUM_NODES{
-//             positions.push('0');
-//         }
+    // create n=POPULATION individuals
+    for _ in 0..POPULATION {
+        // create the individual
+        let mut rng = rand::thread_rng();
+        let x = rng.gen_range(0.0..=1. as f32).to_string(); // spread
+        let y = rng.gen_range(0.0..=1. as f32).to_string(); // recovery
+        
+        population.push(format!("{};{}", x, y));
+    }
     
-//         let mut immune_counter = 0;
-//         while immune_counter != (INITIAL_IMMUNE * NUM_NODES as f32) as u32 {
-            
-//             let node_id = rng.gen_range(0..NUM_NODES) as usize;
-            
-//             if positions.chars().nth(node_id).unwrap() == '0' {
-//                 positions.replace_range(node_id..node_id+1,"1");
-//                 immune_counter += 1;
-//             }
-//         }
         
-//         let mut infected_counter = 0;
-//         while infected_counter != (INITIAL_INFECTED * NUM_NODES as f32) as u32 {
-            
-//             let node_id = rng.gen_range(0..NUM_NODES) as usize;
+    // return the array of individuals, i.e. the population (only the parameters)
+    population
+}
 
-//             if positions.chars().nth(node_id).unwrap() == '0' {
-//                 positions.replace_range(node_id..node_id+1,"2");
-//                 infected_counter += 1;
-//             }
-//         }
+fn selection(population_fitness: &mut Vec<(String, f32)>) {
+    // weighted tournament selection
+    let mut rng = rand::thread_rng();
+    let mut len = population_fitness.len();
 
-//         population.push(positions.clone());
-//     }
+    // build an array containing the fintess values in order to be used for the
+    // weighted selection
+
+    let mut weight = Vec::new();
+    for individual_fitness in population_fitness.iter_mut() {
+        weight.push((individual_fitness.1 * 100.).floor() as u32);
+    }
+
+    len /= 2;
+    // iterate through the population
+    for _ in 0..len {
+        let dist = WeightedIndex::new(&weight).unwrap();
+        let parent_idx_one = dist.sample(&mut rng);
+        let parent_idx_two;
+
+        if parent_idx_one == 0 {
+            parent_idx_two = parent_idx_one + 1;
+        } else {
+            parent_idx_two = parent_idx_one - 1;
+        }
+
+        // choose the individual with the highest fitness
+        // removing the one with the lowest fitness from the population
+        if population_fitness[parent_idx_one].1 < population_fitness[parent_idx_two].1 {
+            population_fitness.remove(parent_idx_one);
+            weight.remove(parent_idx_one);
+        } else {
+            population_fitness.remove(parent_idx_one);
+            weight.remove(parent_idx_two);
+        }
+    }
+}
+
+fn crossover(population: &mut Vec<String>) {
+    let mut rng = rand::thread_rng();
+
+    // combine one gene of two random parents
+    //  a = xa, ya - b = xb, yb
+    //  child can be (xa, yb) or (xb, ya)
+
+    let additional_individuals = POPULATION as usize - population.len();
+
+    // iterate through the population
+    for _ in 0..additional_individuals {
+        let new_individual: String;
+
+        // select two random individuals
+        let mut idx_one = rng.gen_range(0..population.len());
+        let idx_two = rng.gen_range(0..population.len());
+        while idx_one == idx_two {
+            idx_one = rng.gen_range(0..population.len());
+        }
+
+        // combines random parameters of the parents
+        let parent_one = population[idx_one].clone();
+        let parent_two = population[idx_two].clone();
+
+        // TODO how to use crossover_rate
+        // if rng.gen_bool(CROSSOVER_RATE){
         
-//     // return the array of individuals, i.e. the population (only the parameters)
-//     population
-// }
+        // } else {
 
-// fn selection(population_fitness: &mut Vec<(String, f32)>) {
-//     // weighted tournament selection
-//     let mut rng = rand::thread_rng();
-//     let mut len = population_fitness.len();
-
-//     // build an array containing the fintess values in order to be used for the
-//     // weighted selection
-
-//     let mut weight = Vec::new();
-//     for individual_fitness in population_fitness.iter_mut() {
-//         weight.push((individual_fitness.1 * 100.).floor() as u32);
-//     }
-
-//     len /= 2;
-//     // iterate through the population
-//     for _ in 0..len {
-//         let dist = WeightedIndex::new(&weight).unwrap();
-//         let parent_idx_one = dist.sample(&mut rng);
-//         let parent_idx_two;
-
-//         if parent_idx_one == 0 {
-//             parent_idx_two = parent_idx_one + 1;
-//         } else {
-//             parent_idx_two = parent_idx_one - 1;
-//         }
-
-//         // choose the individual with the highest fitness
-//         // removing the one with the lowest fitness from the population
-//         if population_fitness[parent_idx_one].1 < population_fitness[parent_idx_two].1 {
-//             population_fitness.remove(parent_idx_one);
-//             weight.remove(parent_idx_one);
-//         } else {
-//             population_fitness.remove(parent_idx_one);
-//             weight.remove(parent_idx_two);
-//         }
-//     }
-// }
-
-// fn crossover(population: &mut Vec<String>) {
-//     let mut rng = rand::thread_rng();
-
-//     let additional_individuals = POPULATION as usize - population.len();
-
-//     // iterate through the population
-//     for _ in 0..additional_individuals {
-//         // select two random individuals
-//         let mut idx_one = rng.gen_range(0..population.len());
-//         let idx_two = rng.gen_range(0..population.len());
-//         while idx_one == idx_two {
-//             idx_one = rng.gen_range(0..population.len());
-//         }
-
-//         // combines random parameters of the parents
-//         let mut parent_one = population[idx_one].clone();
-//         let mut parent_two = population[idx_two].clone();
-
-//         let len = parent_one.len() / 2;
-
-//         parent_one.truncate(len);
-
-//         let positions_one = parent_one;
-//         let positions_two = parent_two.split_off(len);
-
-//         let new_individual = format!("{}{}", positions_one, positions_two);
-
-//         // create a new individual
+        // }
         
-//         population.push(new_individual);
-//     }
-// }
+        let parent_one : Vec<&str> = parent_one.split(";").collect(); 
+        let one_spread = parent_one[0];
+        let one_recovery = parent_one[1];
 
-// fn mutation(individual: &mut String) {
-//     let mut rng = rand::thread_rng();
+        let parent_two : Vec<&str> = parent_two.split(";").collect();
+        let two_spread = parent_two[0];
+        let two_recovery = parent_two[1];
 
-//     // mutate one random parameter with assigning random value
-//     if rng.gen_bool(MUTATION_RATE) {
-//         let to_change = rng.gen_range(0..NUM_NODES as usize) as usize;
-//         if individual.chars().nth(to_change).unwrap() == '0' {
-//             individual.replace_range(to_change..to_change+1,"1");
-//         } else {
-//             individual.replace_range(to_change..to_change+1,"0");
-//         }
-//     }
-// }
+        if rng.gen_bool(0.5){
+            new_individual = format!("{};{}", one_spread, two_recovery);
+        } else {
+            new_individual = format!("{};{}", two_spread, one_recovery);
+        }
+        
+        population.push(new_individual);
+    }
+}
 
-// fn fitness(state: &mut EpidemicNetworkState, schedule: Schedule) -> f32 {
-//     let mut _susceptible: usize = 0;
-//     let mut _infected: usize = 0;
-//     let mut resistant: usize = 0;
-//     let mut _immune: usize = 0;
+fn mutation(individual: &mut String) {
+    let new_ind: String;
 
-//     let agents = schedule.get_all_events();
+    let new_individual: Vec<&str> = individual.split(";").collect(); 
+    let one_spread = new_individual[0];
+    let one_recovery = new_individual[1];
 
-//     for n in agents {
-//         let agent = n.downcast_ref::<NetNode>().unwrap();
-//         match agent.status {
-//             NodeStatus::Susceptible => {
-//                 _susceptible += 1;
-//             }
-//             NodeStatus::Infected => {
-//                 _infected += 1;
-//             }
-//             NodeStatus::Resistant => {
-//                 resistant += 1;
-//             }
-//             // NodeStatus::Immune => {
-//             //     _immune += 1;
-//             // }
-//         }
-//     }
+    let mut rng = rand::thread_rng();
+    // mutate one random parameter with assigning random value
+    if rng.gen_bool(MUTATION_RATE) {
+        if rng.gen_bool(0.5){ // mutate spread
+            let new_spread = rng.gen_range(0.0..=1. as f32).to_string();
+            // one_spread = &new_spread.as_str();
+            new_ind = format!("{};{}", new_spread.clone(), one_recovery.clone());
+        } else { // mutate recovery
+            let new_recovery = rng.gen_range(0.0..=1. as f32).to_string();
+            new_ind = format!("{};{}", one_spread.clone(), new_recovery.clone());
+        }
+        *individual = new_ind;
+    }
+}
 
-//     // println!(
-//     //     "Susceptible: {:?} Infected: {:?} Resistant: {:?} Immune: {:?} Tot: {:?}",
-//     //     susceptible,
-//     //     infected,
-//     //     resistant,
-//     //     immune,
-//     //     susceptible + infected + resistant + immune
-//     // );
+fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
+    // Sort the array using the RT
 
-//     let fitness = 1. - (resistant as f32 / NUM_NODES as f32);
+    computed_ind.sort_by(|s1, s2| s1.0.rt.partial_cmp(&s2.0.rt).unwrap_or(Equal));
+    
+    println!("Sorted RT: -------------------------------");
+    for i in 0..computed_ind.len(){
+        print!("{}\t", computed_ind[i].0.rt);
+    }
+    println!("\n-------------------------------");
+    
+    
+    // Get the median of the array 
+    let index = (computed_ind.len() + 1) / 2;
+    let median = computed_ind[index-1].0.rt;
+    
+    println!("Median is {:?}", computed_ind[index-1].0.rt);
 
-//     state.fitness = fitness;
-//     fitness
-// }
+    let desired_rt: f32 = 3.5;
+    let fitness = 1. - (desired_rt-median).abs() / (desired_rt.powf(2.) + median.powf(2.)).sqrt();
+    
+    println!("Fitness is {}", fitness);
+   
+    fitness
+}

@@ -10,11 +10,10 @@ use rust_ab::{
         agent::Agent,
         location::{Location2D, Real2D},
     },
-    rand::Rng,
+    rand::Rng
 };
 
 use crate::model::state::EpidemicNetworkState;
-use crate::{GAIN_RESISTANCE_CHANCE, RECOVERY_CHANCE, VIRUS_CHECK_FREQUENCY, VIRUS_SPREAD_CHANCE};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum NodeStatus {
@@ -45,16 +44,16 @@ impl NetNode {
 
 impl Agent for NetNode {
     fn step(&mut self, state: &mut dyn State) {
-        let mut state = state
+        let state = state
             .as_any()
             .downcast_ref::<EpidemicNetworkState>()
             .unwrap();
 
+        let mut rng = rand::thread_rng();
         match self.status {
             NodeStatus::Infected => {
-                // get a random number if > recovery chance -> im resistent
-                let mut rng = rand::thread_rng();
-                if rng.gen_bool(RECOVERY_CHANCE) {
+                // get a random num
+                if rng.gen_bool(state.recovery as f64) {
                     self.status = NodeStatus::Resistant;
                 }
 
@@ -87,7 +86,7 @@ impl Agent for NetNode {
                 // for each neighbor check if it is infected, if so check virus_spread
                 // and become infected
                 for edge in &neighborhood {
-                    if rng.gen_bool(VIRUS_SPREAD_CHANCE) && self.status == NodeStatus::Susceptible {
+                    if rng.gen_bool(state.spread as f64) && self.status == NodeStatus::Susceptible {
                         let node = state.network.get_object(edge.v).unwrap();
                         match node.status {
                             NodeStatus::Infected => {

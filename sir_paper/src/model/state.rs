@@ -1,5 +1,5 @@
 use crate::model::node::{NetNode, NodeStatus};
-use crate::{STEP, DISCRETIZATION, WIDTH, HEIGHT, NUM_NODES, TOROIDAL, INIT_EDGES, INITIAL_INFECTED};
+use crate::{DISCRETIZATION, WIDTH, HEIGHT, NUM_NODES, TOROIDAL, INIT_EDGES, INITIAL_INFECTED};
 use rust_ab::engine::fields::network::Network;
 use rust_ab::engine::fields::{field::Field, field_2d::Field2D};
 use rust_ab::engine::schedule::Schedule;
@@ -16,29 +16,32 @@ pub struct EpidemicNetworkState {
     pub step: u64,
     pub field1: Field2D<NetNode>,
     pub network: Network<NetNode, String>,
-    pub infected_nodes: Arc<Mutex<Vec<u32>>> // each position of the array corresponds to one node
+    pub infected_nodes: Arc<Mutex<Vec<u32>>>, // each position of the array corresponds to one node
+    pub rt: f32,
+    pub spread: f32,
+    pub recovery: f32
 }
 
 impl EpidemicNetworkState {
-    pub fn new() -> EpidemicNetworkState {
+    pub fn new(spread: f32, recovery: f32) -> EpidemicNetworkState {
         EpidemicNetworkState {
             step: 0,
             field1: Field2D::new(WIDTH, HEIGHT, DISCRETIZATION, TOROIDAL),
             network: Network::new(false),
-            infected_nodes: Arc::new(Mutex::new(vec![0; NUM_NODES as usize])) // dimension is NUM_NODE
+            infected_nodes: Arc::new(Mutex::new(vec![0; NUM_NODES as usize])), // dimension is NUM_NODE
+            rt: 0.,
+            spread: spread,
+            recovery: recovery
         }
     }
 
     // GA required new function
-    // pub fn new_with_parameters(parameters: &String) -> EpidemicNetworkState{
-    //     let mut positions: Vec<u32> = Vec::new();
-
-    //     for i in parameters.chars() {
-    //         positions.push(i.to_digit(10).unwrap());
-    //     }
-
-    //     EpidemicNetworkState::new(positions)
-    // }
+    pub fn new_with_parameters(parameters: &String) -> EpidemicNetworkState{
+        let parameters_ind: Vec<&str> = parameters.split(";").collect();
+        let spread = parameters_ind[0].parse::<f32>().expect("Unable to parse str to f32!");
+        let recovery = parameters_ind[1].parse::<f32>().expect("Unable to parse str to f32!");
+        EpidemicNetworkState::new(spread, recovery)
+    }
 }
 
 
@@ -48,7 +51,7 @@ impl State for EpidemicNetworkState {
         let my_seed: u64 = 0;
         let mut node_set = Vec::new();
         self.network = Network::new(false);
-
+        self.rt = 0.;
         let mut infected_counter = 0;
         // initial percentage of infected node 
         // generates casual nodes
@@ -129,7 +132,7 @@ impl State for EpidemicNetworkState {
     // }
 
     fn end_condition(&mut self, schedule: &mut Schedule) -> bool {
-        println!("Running end condition");
+        // println!("Running end condition");
         let mut infected: usize = 0;
         let agents = schedule.get_all_events();
 
@@ -139,7 +142,7 @@ impl State for EpidemicNetworkState {
                 infected += 1;
             }
         }
-        if self.step == 10 { // compute the R0 after 30 days
+        if self.step == 10 { // compute the R0 after 10 days // should be 30 days
             let mut counter = 0;
             let mut value = 0;
             let infected_nodes = self.infected_nodes.lock().unwrap();
@@ -149,8 +152,8 @@ impl State for EpidemicNetworkState {
                     value += infected_nodes[i]; 
                 }
             }
-            let rt: f32 = (value as f32 / counter as f32) as f32;
-            println!("RT is {}", rt); 
+            self.rt = (value as f32 / counter as f32) as f32;
+            // println!("RT is {}", self.rt); 
         }
         if infected == 0 {
             // println!("No more infected nodes at step {}, exiting.", schedule.step);
