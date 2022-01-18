@@ -1,5 +1,5 @@
 use crate::model::node::{NetNode, NodeStatus};
-use crate::{STEP, DISCRETIZATION, WIDTH, HEIGHT, NUM_NODES, TOROIDAL, INIT_EDGES};
+use crate::{STEP, DISCRETIZATION, WIDTH, HEIGHT, NUM_NODES, TOROIDAL, INIT_EDGES, INITIAL_INFECTED};
 use rust_ab::engine::fields::network::Network;
 use rust_ab::engine::fields::{field::Field, field_2d::Field2D};
 use rust_ab::engine::schedule::Schedule;
@@ -16,56 +16,51 @@ pub struct EpidemicNetworkState {
     pub step: u64,
     pub field1: Field2D<NetNode>,
     pub network: Network<NetNode, String>,
-    pub positions: Vec<u32>,
-    pub fitness: f32,
     pub infected_nodes: Arc<Mutex<Vec<u32>>> // each position of the array corresponds to one node
 }
 
 impl EpidemicNetworkState {
-    pub fn new(positions: Vec<u32>) -> EpidemicNetworkState {
+    pub fn new() -> EpidemicNetworkState {
         EpidemicNetworkState {
             step: 0,
             field1: Field2D::new(WIDTH, HEIGHT, DISCRETIZATION, TOROIDAL),
             network: Network::new(false),
-            positions: positions,
-            fitness: 0.,
             infected_nodes: Arc::new(Mutex::new(vec![0; NUM_NODES as usize])) // dimension is NUM_NODE
         }
     }
 
-    pub fn new_with_parameters(parameters: &String) -> EpidemicNetworkState{
-        let mut positions: Vec<u32> = Vec::new();
+    // GA required new function
+    // pub fn new_with_parameters(parameters: &String) -> EpidemicNetworkState{
+    //     let mut positions: Vec<u32> = Vec::new();
 
-        for i in parameters.chars() {
-            positions.push(i.to_digit(10).unwrap());
-        }
+    //     for i in parameters.chars() {
+    //         positions.push(i.to_digit(10).unwrap());
+    //     }
 
-        EpidemicNetworkState::new(positions)
-    }
+    //     EpidemicNetworkState::new(positions)
+    // }
 }
 
 
 impl State for EpidemicNetworkState {
     fn init(&mut self, schedule: &mut Schedule) {
+        let mut rng = rand::thread_rng();
         let my_seed: u64 = 0;
         let mut node_set = Vec::new();
         self.network = Network::new(false);
 
-        let mut rng = rand::thread_rng();
-        let mut init_status: NodeStatus = NodeStatus::Susceptible;
-        
+        let mut infected_counter = 0;
         // initial percentage of infected node 
         // generates casual nodes
-
         for node_id in 0..NUM_NODES {
-            
-            match self.positions[node_id as usize] {
-                0 => init_status = NodeStatus::Susceptible,
-                // 1 => init_status = NodeStatus::Immune,
-                2 => init_status = NodeStatus::Infected,
-                _ => (),
-            }
+            let mut init_status: NodeStatus = NodeStatus::Susceptible;
 
+            // generated exactly INITIAL_INFECTED * NUM_NODES infected nodes
+            if infected_counter != (INITIAL_INFECTED * NUM_NODES as f32) as u32 {
+                init_status = NodeStatus::Infected;
+                infected_counter += 1;
+            }
+           
             let r1: f32 = rng.gen();
             let r2: f32 = rng.gen();
 

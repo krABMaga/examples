@@ -36,7 +36,7 @@ pub const HEIGHT: f32 = 150.;
 pub const STEP: u64 = 500;
 
 fn main() {
-    let result = explore_ga_distributed_mpi!(
+    let result = explore_ga_aws!(
         init_population,
         fitness,
         selection,
