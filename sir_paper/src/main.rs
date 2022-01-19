@@ -15,9 +15,9 @@ static DISCRETIZATION: f32 = 10.0 / 1.5;
 static TOROIDAL: bool = false;
 
 // generic model parameters
-pub const NUM_NODES: u32 = 100_000;
+pub const NUM_NODES: u32 = 5_000;
 pub static INIT_EDGES: usize = 1;
-pub static INITIAL_INFECTED: f32 = 0.1;
+pub static INITIAL_INFECTED: f32 = 0.01;
 pub static DESIRED_RT: f32 = 3.5;
 
 // GA specific parameters
@@ -25,7 +25,7 @@ pub const MUTATION_RATE: f64 = 0.05;
 pub const CROSSOVER_RATE: f64 = 0.5;
 pub const DESIRED_FITNESS: f32 = 1.;
 pub const MAX_GENERATION: u32 = 100;
-pub const POPULATION: u32 = 6;
+pub const POPULATION: u32 = 100;
 
 pub const WIDTH: f32 = 150.;
 pub const HEIGHT: f32 = 150.;
@@ -33,7 +33,8 @@ pub const HEIGHT: f32 = 150.;
 pub const STEP: u64 = 50;
 
 fn main() {
-    let result = explore_ga_parallel!(
+
+    let result = explore_ga_sequential!(
         init_population,
         fitness,
         selection,
@@ -63,7 +64,7 @@ fn init_population() -> Vec<String> {
     for _ in 0..POPULATION {
         // create the individual
         let mut rng = rand::thread_rng();
-        let x = rng.gen_range(0.0..=0.01_f32).to_string(); // spread chance
+        let x = rng.gen_range(0.0..=1.0_f32).to_string(); // spread chance
         let y = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
 
         population.push(format!("{};{}", x, y));
@@ -172,7 +173,7 @@ fn mutation(individual: &mut String) {
     if rng.gen_bool(MUTATION_RATE) {
         if rng.gen_bool(0.5) {
             // mutate spread
-            let new_spread = rng.gen_range(0.0..=0.01_f32).to_string();
+            let new_spread = rng.gen_range(0.0..=1.0_f32).to_string();
             new_ind = format!("{};{}", new_spread, one_recovery);
         } else {
             // mutate recovery
@@ -198,7 +199,7 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     let index = (computed_ind.len() + 1) / 2;
     let median = computed_ind[index - 1].0.rt;
 
-    println!("Median is {:?}", computed_ind[index - 1].0.rt);
+    println!("Median RT is {:?}", computed_ind[index - 1].0.rt);
 
     1. - (DESIRED_RT - median).abs() / (DESIRED_RT.powf(2.) + median.powf(2.)).sqrt()
 }
