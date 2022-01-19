@@ -15,26 +15,26 @@ static DISCRETIZATION: f32 = 10.0 / 1.5;
 static TOROIDAL: bool = false;
 
 // generic model parameters
-pub const NUM_NODES: u32 = 5_000;
-pub static INIT_EDGES: usize = 1;
+pub const NUM_NODES: u32 = 10_000;
+pub static INIT_EDGES: usize = 2;
 pub static INITIAL_INFECTED: f32 = 0.01;
 pub static DESIRED_RT: f32 = 3.5;
 
 // GA specific parameters
-pub const MUTATION_RATE: f64 = 0.05;
-pub const CROSSOVER_RATE: f64 = 0.5;
-pub const DESIRED_FITNESS: f32 = 1.;
+pub const MUTATION_RATE: f64 = 0.2;
+// pub const CROSSOVER_RATE: f64 = 0.5;
+pub const DESIRED_FITNESS: f32 = 2.;
 pub const MAX_GENERATION: u32 = 100;
-pub const POPULATION: u32 = 100;
+pub const POPULATION: u32 = 200;
 
-pub const WIDTH: f32 = 150.;
-pub const HEIGHT: f32 = 150.;
+pub const WIDTH: f32 = 1500.;
+pub const HEIGHT: f32 = 1500.;
 
 pub const STEP: u64 = 50;
 
 fn main() {
 
-    let result = explore_ga_sequential!(
+    let result = explore_ga_parallel!(
         init_population,
         fitness,
         selection,
@@ -65,7 +65,7 @@ fn init_population() -> Vec<String> {
         // create the individual
         let mut rng = rand::thread_rng();
         let x = rng.gen_range(0.0..=1.0_f32).to_string(); // spread chance
-        let y = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
+        let y = rng.gen_range(0.14..=0.3_f32).to_string(); // recovery chance
 
         population.push(format!("{};{}", x, y));
     }
@@ -79,35 +79,39 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
     let mut rng = rand::thread_rng();
     let mut len = population_fitness.len();
 
-    // build an array containing the fintess values in order to be used for the
+    // build an array containing the fitness values in order to be used for the
     // weighted selection
 
     let mut weight = Vec::new();
     for individual_fitness in population_fitness.iter_mut() {
-        weight.push(((individual_fitness.1 * 100.).floor() as u32) + 1);
+        let mut single_weight = (individual_fitness.1 * 100.).floor() as u32;
+        if single_weight == 0 {
+            single_weight += 1;
+        }
+        weight.push(single_weight);
     }
 
     len /= 2;
     // iterate through the population
     for _ in 0..len {
         let dist = WeightedIndex::new(&weight).unwrap();
-        let parent_idx_one = dist.sample(&mut rng);
-        let parent_idx_two;
-
-        if parent_idx_one == 0 {
-            parent_idx_two = parent_idx_one + 1;
-        } else {
-            parent_idx_two = parent_idx_one - 1;
+        let idx_one = dist.sample(&mut rng);
+        let mut idx_two = idx_one;
+        while idx_one == idx_two {
+            idx_two = dist.sample(&mut rng);
         }
 
         // choose the individual with the highest fitness
-        // removing the one with the lowest fitness from the population
-        if population_fitness[parent_idx_one].1 < population_fitness[parent_idx_two].1 {
-            population_fitness.remove(parent_idx_one);
-            weight.remove(parent_idx_one);
+        // // removing the one with the lowest fitness from the population
+        // println!("Comparing {} - {:?} AND {} - {:?}", idx_one, population_fitness[idx_one], idx_two, population_fitness[idx_two]);
+        if population_fitness[idx_one].1 < population_fitness[idx_two].1 {
+            // println!("Selected {} with {:?} ", idx_two, population_fitness[idx_two]);
+            population_fitness.remove(idx_one);
+            weight.remove(idx_one);
         } else {
-            population_fitness.remove(parent_idx_one);
-            weight.remove(parent_idx_two);
+            // println!("Selected {} with {:?} ", idx_one, population_fitness[idx_one]);
+            population_fitness.remove(idx_two);
+            weight.remove(idx_two);
         }
     }
 }
@@ -119,29 +123,22 @@ fn crossover(population: &mut Vec<String>) {
     //  a = xa, ya - b = xb, yb
     //  child can be (xa, yb) or (xb, ya)
 
-    let additional_individuals = POPULATION as usize - population.len();
+    let additional_individuals = population.len(); // N/2
 
     // iterate through the population
     for _ in 0..additional_individuals {
         let new_individual: String;
 
         // select two random individuals
-        let mut idx_one = rng.gen_range(0..population.len());
-        let idx_two = rng.gen_range(0..population.len());
+        let mut idx_one = rng.gen_range(0..population.len()-1);
+        let idx_two = rng.gen_range(0..population.len()-1);
         while idx_one == idx_two {
-            idx_one = rng.gen_range(0..population.len());
+            idx_one = rng.gen_range(0..population.len()-1);
         }
 
         // combines random parameters of the parents
         let parent_one = population[idx_one].clone();
         let parent_two = population[idx_two].clone();
-
-        // TODO how to use crossover_rate
-        // if rng.gen_bool(CROSSOVER_RATE){
-
-        // } else {
-
-        // }
 
         let parent_one: Vec<&str> = parent_one.split(';').collect();
         let one_spread = parent_one[0];
@@ -169,15 +166,37 @@ fn mutation(individual: &mut String) {
     let one_recovery = new_individual[1];
 
     let mut rng = rand::thread_rng();
-    // mutate one random parameter with assigning random value
+    // mutate one random parameter
+    // randomly increase or decrease spread orrecovery
     if rng.gen_bool(MUTATION_RATE) {
         if rng.gen_bool(0.5) {
             // mutate spread
-            let new_spread = rng.gen_range(0.0..=1.0_f32).to_string();
+            let x = rng.gen_range(0.01..=0.2_f32);
+            let mut new_spread = one_spread.parse::<f32>().expect("Unable to parse str to f32!");
+            if rng.gen_bool(0.5) {
+               if  new_spread + x < 1. {
+                   new_spread += x;
+               }
+            } else {
+               if new_spread - x > 0. {
+                   new_spread -= x;
+               } 
+            }
             new_ind = format!("{};{}", new_spread, one_recovery);
         } else {
             // mutate recovery
-            let new_recovery = rng.gen_range(0.0..=1.0_f32).to_string();
+            let x = rng.gen_range(0.01..=0.2_f32);
+            let mut new_recovery = one_recovery.parse::<f32>().expect("Unable to parse str to f32!");
+           
+            if rng.gen_bool(0.5) {
+                if new_recovery + x < 0.2 {
+                    new_recovery += x;
+                }
+             } else {
+                if new_recovery - x > 0. {
+                    new_recovery -= x;
+                } 
+             }
             new_ind = format!("{};{}", one_spread, new_recovery);
         }
         *individual = new_ind;

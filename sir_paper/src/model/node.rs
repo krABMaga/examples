@@ -20,7 +20,6 @@ pub enum NodeStatus {
     Susceptible,
     Infected,
     Resistant,
-    // Immune,
 }
 
 #[derive(Clone, Copy)]
