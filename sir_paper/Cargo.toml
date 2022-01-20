@@ -18,7 +18,8 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rust-ab = { path="/home/isis/rab_me/rust-ab" }
+#rust-ab = { path="/home/giuseppe/Git/rab/rust-ab" }
+rust-ab = { git="https://github.com/rust-ab/rust-ab", branch="me_string" }
 
 [features]
 distributed_mpi = ["rust-ab/distributed_mpi"]
