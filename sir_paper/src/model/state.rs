@@ -171,7 +171,7 @@ impl State for EpidemicNetworkState {
         }
         if infected == 0 {
             if self.step < 30 {
-                println!("No more infected nodes at step {}, spread {}, recovery {} exiting.", schedule.step, self.spread, self.recovery);
+                // println!("No more infected nodes at step {}, spread {}, recovery {} exiting.", schedule.step, self.spread, self.recovery);
             }
             return true;
         }

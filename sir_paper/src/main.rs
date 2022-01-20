@@ -15,7 +15,7 @@ static DISCRETIZATION: f32 = 10.0 / 1.5;
 static TOROIDAL: bool = false;
 
 // generic model parameters
-pub const NUM_NODES: u32 = 10_000;
+pub const NUM_NODES: u32 = 5_000;
 pub static INIT_EDGES: usize = 2;
 pub static INITIAL_INFECTED: f32 = 0.01;
 pub static DESIRED_RT: f32 = 3.5;
@@ -24,16 +24,20 @@ pub static DESIRED_RT: f32 = 3.5;
 pub const MUTATION_RATE: f64 = 0.2;
 // pub const CROSSOVER_RATE: f64 = 0.5;
 pub const DESIRED_FITNESS: f32 = 2.;
-pub const MAX_GENERATION: u32 = 100;
+pub const MAX_GENERATION: u32 = 10;
 pub const POPULATION: u32 = 200;
 
 pub const WIDTH: f32 = 1500.;
 pub const HEIGHT: f32 = 1500.;
 
-pub const STEP: u64 = 50;
+pub const STEP: u64 = 35;
 
 fn main() {
 
+    // let epidemic_network = EpidemicNetworkState::new_with_parameters("0.95;0.26");
+
+    // simulate!(STEP, epidemic_network, 10, Info::Verbose);
+    
     let result = explore_ga_parallel!(
         init_population,
         fitness,
@@ -44,7 +48,7 @@ fn main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        1,
+        200,
     );
 
     if !result.is_empty() {
@@ -204,8 +208,8 @@ fn mutation(individual: &mut String) {
 }
 
 fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
+    
     // Sort the array using the RT
-
     computed_ind.sort_by(|s1, s2| s1.0.rt.partial_cmp(&s2.0.rt).unwrap_or(Equal));
 
     // println!("Sorted RT: -------------------------------");
@@ -216,9 +220,26 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
 
     // Get the median of the array
     let index = (computed_ind.len() + 1) / 2;
-    let median = computed_ind[index - 1].0.rt;
+    let mut median = computed_ind[index - 1].0.rt;
+    median  =
+         median * ( 1. - (30. - computed_ind[index - 1].1.step as f32) / 30.);
 
-    println!("Median RT is {:?}", computed_ind[index - 1].0.rt);
+    // println!("Fitness RT is {:?}", computed_ind[index - 1].0.rt);
 
     1. - (DESIRED_RT - median).abs() / (DESIRED_RT.powf(2.) + median.powf(2.)).sqrt()
+
+
+    // let mut sum_rt = 0.;
+    // let mut rt_norm = 0.;
+    // for i in 0..computed_ind.len(){
+       
+    //     rt_norm = computed_ind[i].0.rt * ( 1. - (30. - computed_ind[i].1.step as f32) / 30.);
+    //     sum_rt += rt_norm;
+    // }
+
+    // let avg = sum_rt / computed_ind.len() as f32;
+
+    // // println!("Fitness: RT is {:?} {}", avg, computed_ind.len());
+
+    // 1. - (DESIRED_RT - rt_norm).abs() / (DESIRED_RT.powf(2.) + avg.powf(2.)).sqrt()
 }
