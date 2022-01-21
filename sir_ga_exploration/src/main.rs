@@ -36,7 +36,7 @@ pub const HEIGHT: f32 = 150.;
 pub const STEP: u64 = 100;
 
 fn main() {
-    let result = explore_ga_aws!(
+    let result = explore_ga_distributed_mpi!(
         init_population,
         fitness,
         selection,
@@ -46,7 +46,7 @@ fn main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        3,
+        1,
     );
 
     if !result.is_empty() {
