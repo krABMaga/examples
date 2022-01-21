@@ -23,8 +23,8 @@ pub static DESIRED_RT: f32 = 2.;
 // GA specific parameters
 pub const MUTATION_RATE: f64 = 0.2;
 pub const DESIRED_FITNESS: f32 = 2.;
-pub const MAX_GENERATION: u32 = 100;
-pub const POPULATION: u32 = 200;
+pub const MAX_GENERATION: u32 = 10;
+pub const POPULATION: u32 = 100;
 
 pub const WIDTH: f32 = 150.;
 pub const HEIGHT: f32 = 150.;
@@ -47,7 +47,7 @@ fn main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        50,
+        10,
     );
     if !result.is_empty() {
         // I'm the master
@@ -78,51 +78,98 @@ fn init_population() -> Vec<String> {
 
 fn selection(population_fitness: &mut Vec<(String, f32)>) {
     // weighted tournament selection
-    let mut rng = rand::thread_rng();
-    let mut len = population_fitness.len();
+    // let mut rng = rand::thread_rng();
+    // let mut len = population_fitness.len();
 
     // build an array containing the fitness values in order to be used for the
     // weighted selection
 
-    let mut weight = Vec::new();
-    for individual_fitness in population_fitness.iter_mut() {
-        let mut single_weight = (individual_fitness.1 * 100.).floor() as u32;
-        if single_weight == 0 {
-            single_weight += 1;
-        }
-        weight.push(single_weight);
-    }
+    // let mut weight = Vec::new();
+    // for individual_fitness in population_fitness.iter_mut() {
+    //     let mut single_weight = (individual_fitness.1 * 100.).floor() as u32;
+    //     if single_weight == 0 {
+    //         single_weight += 1;
+    //     }
+    //     weight.push(single_weight);
+    // }
 
-    len /= 2;
-    // iterate through the population
-    for _ in 0..len {
-        let dist = WeightedIndex::new(&weight).unwrap();
-        let idx_one = dist.sample(&mut rng);
-        let mut idx_two = idx_one;
-        while idx_one == idx_two {
-            idx_two = dist.sample(&mut rng);
-        }
 
-        // choose the individual with the highest fitness
-        // removing the one with the lowest fitness from the population
-        if population_fitness[idx_one].1 < population_fitness[idx_two].1 {
-            population_fitness.remove(idx_one);
-            weight.remove(idx_one);
-        } else {
-            population_fitness.remove(idx_two);
-            weight.remove(idx_two);
-        }
-    }
+    // len /= 2;
+    // // iterate through the population
+    // for _ in 0..len {
+    //     let dist = WeightedIndex::new(&weight).unwrap();
+    //     let idx_one = dist.sample(&mut rng);
+    //     let mut idx_two = idx_one;
+    //     while idx_one == idx_two {
+    //         idx_two = dist.sample(&mut rng);
+    //     }
+
+    //     // choose the individual with the highest fitness
+    //     // removing the one with the lowest fitness from the population
+    //     if population_fitness[idx_one].1 < population_fitness[idx_two].1 {
+    //         population_fitness.remove(idx_one);
+    //         weight.remove(idx_one);
+    //     } else {
+    //         population_fitness.remove(idx_two);
+    //         weight.remove(idx_two);
+    //     }
+    // }
+
+    // Sort the array using the fitness
+    population_fitness.sort_by(|s1, s2| s1.0.partial_cmp(&s2.0).unwrap_or(Equal));
 }
 
 fn crossover(population: &mut Vec<String>) {
+
     let mut rng = rand::thread_rng();
+    let len = population.len()/2;
+    let mut arr = Vec::new();
+
+    for i in 0..len {
+        arr.push(population[i].clone());
+    }
+
+    for i in 0..len {
+        let new_individual: String;
+
+        // select two random individuals
+        let mut idx_one = rng.gen_range(0..population.len()-1);
+        let idx_two = rng.gen_range(0..population.len()-1);
+        while idx_one == idx_two {
+            idx_one = rng.gen_range(0..population.len()-1);
+        }
+
+        // combines random parameters of the parents
+        let parent_one = population[idx_one].clone();
+        let parent_two = population[idx_two].clone();
+
+        let parent_one: Vec<&str> = parent_one.split(';').collect();
+        let one_spread = parent_one[0];
+        let one_recovery = parent_one[1];
+
+        let parent_two: Vec<&str> = parent_two.split(';').collect();
+        let two_spread = parent_two[0];
+        let two_recovery = parent_two[1];
+
+        if rng.gen_bool(0.5) {
+            new_individual = format!("{};{}", one_spread, two_recovery);
+        } else {
+            new_individual = format!("{};{}", two_spread, one_recovery);
+        }
+
+        arr.push(new_individual);
+    }
+
+    *population = arr.clone();
+
+    /* let mut rng = rand::thread_rng();
 
     // combine one gene of two random parents
     //  a = xa, ya - b = xb, yb
     //  child can be (xa, yb) or (xb, ya)
 
     let additional_individuals = population.len(); // N/2
+
 
     // iterate through the population
     for _ in 0..additional_individuals {
@@ -155,6 +202,8 @@ fn crossover(population: &mut Vec<String>) {
 
         population.push(new_individual);
     }
+
+    */
 }
 
 fn mutation(individual: &mut String) {
