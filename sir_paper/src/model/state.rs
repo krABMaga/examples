@@ -59,13 +59,16 @@ impl State for EpidemicNetworkState {
         let mut positions = vec![0; NUM_NODES as usize];
 
         // generate exactly INITIAL_INFECTED * NUM_NODES infected nodes
-        while infected_counter != (INITIAL_INFECTED * NUM_NODES as f32) as u32 {
-            let node_id = rng.gen_range(0..NUM_NODES) as usize;
-            if positions[node_id] == 0 {
-                positions[node_id] = 1;
-                infected_counter += 1;
-            }
-        }
+        // while infected_counter != (INITIAL_INFECTED * NUM_NODES as f32) as u32 {
+        //     let node_id = rng.gen_range(0..NUM_NODES) as usize;
+        //     if positions[node_id] == 0 {
+        //         positions[node_id] = 1;
+        //         infected_counter += 1;
+        //     }
+        // }
+
+        let node_id = rng.gen_range(0..NUM_NODES) as usize;
+        positions[node_id] = 1;
 
         // generates nodes
         for node_id in 0..NUM_NODES {
@@ -116,7 +119,7 @@ impl State for EpidemicNetworkState {
     }
 
     // fn before_step(&mut self, schedule: &mut Schedule) {
-    //     if self.step == 0 {
+    //     // if self.step == 0 {
     //         let mut susceptible: usize = 0;
     //         let mut infected: usize = 0;
     //         let mut resistant: usize = 0;
@@ -143,7 +146,8 @@ impl State for EpidemicNetworkState {
     //             resistant,
     //             susceptible + infected + resistant
     //         );
-    //     }
+    //         println!("RT is {}", self.rt);
+    //     // }
     // }
 
     fn end_condition(&mut self, schedule: &mut Schedule) -> bool {
@@ -156,23 +160,28 @@ impl State for EpidemicNetworkState {
                 infected += 1;
             }
         }
-        if self.step == 30 {
-            // compute the RT after 30 days
-            let mut counter = 0;
-            let mut value = 0;
-            let infected_nodes = self.infected_nodes.lock().unwrap();
-            for i in 0..infected_nodes.len() {
-                if infected_nodes[i] != 0 {
-                    counter += 1;
-                    value += infected_nodes[i];
-                }
+
+        // if self.step == 30 { // compute the RT after 30 days
+        let mut counter = 0;
+        let mut value = 0;
+        let infected_nodes = self.infected_nodes.lock().unwrap();
+        for i in 0..infected_nodes.len() {
+            if infected_nodes[i] != 0 {
+                counter += 1;
+                value += infected_nodes[i];
             }
+        }
+        if value == 0 {
+            self.rt = 0.;
+        } else {
             self.rt = (value as f32 / counter as f32) as f32;
         }
+        // }
+        
         if infected == 0 {
-            if self.step < 30 {
+            // if self.step < 30 {
                 // println!("No more infected nodes at step {}, spread {}, recovery {} exiting.", schedule.step, self.spread, self.recovery);
-            }
+            // }
             return true;
         }
         false

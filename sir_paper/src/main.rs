@@ -18,25 +18,24 @@ static TOROIDAL: bool = false;
 pub const NUM_NODES: u32 = 5_000;
 pub static INIT_EDGES: usize = 2;
 pub static INITIAL_INFECTED: f32 = 0.01;
-pub static DESIRED_RT: f32 = 3.5;
+pub static DESIRED_RT: f32 = 2.;
 
 // GA specific parameters
 pub const MUTATION_RATE: f64 = 0.2;
-// pub const CROSSOVER_RATE: f64 = 0.5;
 pub const DESIRED_FITNESS: f32 = 2.;
-pub const MAX_GENERATION: u32 = 10;
+pub const MAX_GENERATION: u32 = 100;
 pub const POPULATION: u32 = 200;
 
-pub const WIDTH: f32 = 1500.;
-pub const HEIGHT: f32 = 1500.;
+pub const WIDTH: f32 = 150.;
+pub const HEIGHT: f32 = 150.;
 
-pub const STEP: u64 = 35;
+pub const STEP: u64 = 30;
 
 fn main() {
 
-    // let epidemic_network = EpidemicNetworkState::new_with_parameters("0.95;0.26");
+    //  let epidemic_network = EpidemicNetworkState::new_with_parameters("0.15;0.02");
 
-    // simulate!(STEP, epidemic_network, 10, Info::Verbose);
+    //  simulate!(STEP, epidemic_network, 1, Info::Verbose);
     
     let result = explore_ga_parallel!(
         init_population,
@@ -48,9 +47,8 @@ fn main() {
         DESIRED_FITNESS,
         MAX_GENERATION,
         STEP,
-        200,
+        50,
     );
-
     if !result.is_empty() {
         // I'm the master
         // build csv from all procexplore_result
@@ -106,14 +104,11 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
         }
 
         // choose the individual with the highest fitness
-        // // removing the one with the lowest fitness from the population
-        // println!("Comparing {} - {:?} AND {} - {:?}", idx_one, population_fitness[idx_one], idx_two, population_fitness[idx_two]);
+        // removing the one with the lowest fitness from the population
         if population_fitness[idx_one].1 < population_fitness[idx_two].1 {
-            // println!("Selected {} with {:?} ", idx_two, population_fitness[idx_two]);
             population_fitness.remove(idx_one);
             weight.remove(idx_one);
         } else {
-            // println!("Selected {} with {:?} ", idx_one, population_fitness[idx_one]);
             population_fitness.remove(idx_two);
             weight.remove(idx_two);
         }
@@ -178,7 +173,7 @@ fn mutation(individual: &mut String) {
             let x = rng.gen_range(0.01..=0.2_f32);
             let mut new_spread = one_spread.parse::<f32>().expect("Unable to parse str to f32!");
             if rng.gen_bool(0.5) {
-               if  new_spread + x < 1. {
+               if  new_spread + x < 1.0 {
                    new_spread += x;
                }
             } else {
@@ -193,11 +188,11 @@ fn mutation(individual: &mut String) {
             let mut new_recovery = one_recovery.parse::<f32>().expect("Unable to parse str to f32!");
            
             if rng.gen_bool(0.5) {
-                if new_recovery + x < 0.2 {
+                if new_recovery + x < 0.3 {
                     new_recovery += x;
                 }
              } else {
-                if new_recovery - x > 0. {
+                if new_recovery - x > 0.14 {
                     new_recovery -= x;
                 } 
              }
@@ -210,7 +205,7 @@ fn mutation(individual: &mut String) {
 fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     
     // Sort the array using the RT
-    computed_ind.sort_by(|s1, s2| s1.0.rt.partial_cmp(&s2.0.rt).unwrap_or(Equal));
+    // computed_ind.sort_by(|s1, s2| s1.0.rt.partial_cmp(&s2.0.rt).unwrap_or(Equal));
 
     // println!("Sorted RT: -------------------------------");
     // for i in 0..computed_ind.len() {
@@ -219,27 +214,25 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     // println!("\n-------------------------------");
 
     // Get the median of the array
-    let index = (computed_ind.len() + 1) / 2;
-    let mut median = computed_ind[index - 1].0.rt;
-    median  =
-         median * ( 1. - (30. - computed_ind[index - 1].1.step as f32) / 30.);
+    // let index = (computed_ind.len() + 1) / 2;
+    // let mut median = computed_ind[index - 1].0.rt;
+    // median  =
+    //      median * ( 1. - (30. - computed_ind[index - 1].1.step as f32) / 30.);
 
     // println!("Fitness RT is {:?}", computed_ind[index - 1].0.rt);
 
-    1. - (DESIRED_RT - median).abs() / (DESIRED_RT.powf(2.) + median.powf(2.)).sqrt()
+    // 1. - (DESIRED_RT - median).abs() / (DESIRED_RT.powf(2.) + median.powf(2.)).sqrt()
 
 
-    // let mut sum_rt = 0.;
-    // let mut rt_norm = 0.;
-    // for i in 0..computed_ind.len(){
-       
-    //     rt_norm = computed_ind[i].0.rt * ( 1. - (30. - computed_ind[i].1.step as f32) / 30.);
-    //     sum_rt += rt_norm;
-    // }
+    let mut sum_rt = 0.;
+    let mut rt_norm;
+    for i in 0..computed_ind.len(){
+        rt_norm = computed_ind[i].0.rt * ( 1. - (30. - computed_ind[i].1.step as f32) / 30.);
+        sum_rt += rt_norm;
+    }
+    
+    let avg = sum_rt / computed_ind.len() as f32;
+    // println!("Fitness: RT is {:?}", avg);
 
-    // let avg = sum_rt / computed_ind.len() as f32;
-
-    // // println!("Fitness: RT is {:?} {}", avg, computed_ind.len());
-
-    // 1. - (DESIRED_RT - rt_norm).abs() / (DESIRED_RT.powf(2.) + avg.powf(2.)).sqrt()
+    1. - (DESIRED_RT - avg).abs() / (DESIRED_RT.powf(2.) + avg.powf(2.)).sqrt()
 }
