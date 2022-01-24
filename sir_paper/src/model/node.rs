@@ -5,13 +5,7 @@ use std::{
 
 use rust_ab::engine::state::State;
 use rust_ab::rand;
-use rust_ab::{
-    engine::{
-        agent::Agent,
-        location::{Location2D, Real2D},
-    },
-    rand::Rng,
-};
+use rust_ab::{engine::agent::Agent, rand::Rng};
 
 use crate::model::state::EpidemicNetworkState;
 
@@ -25,16 +19,14 @@ pub enum NodeStatus {
 #[derive(Clone, Copy)]
 pub struct NetNode {
     pub id: u32,
-    pub loc: Real2D,
     pub status: NodeStatus,
     pub virus_detected: bool,
 }
 
 impl NetNode {
-    pub fn new(id: u32, loc: Real2D, init_status: NodeStatus) -> Self {
+    pub fn new(id: u32, init_status: NodeStatus) -> Self {
         NetNode {
             id,
-            loc,
             status: init_status,
             virus_detected: false,
         }
@@ -84,7 +76,6 @@ impl Agent for NetNode {
             NodeStatus::Resistant => {}
         }
         state.network.update_node(*self);
-        state.field1.set_object_location(*self, self.loc);
     }
 
     fn get_id(&self) -> u32 {
@@ -109,19 +100,9 @@ impl PartialEq for NetNode {
     }
 }
 
-impl Location2D<Real2D> for NetNode {
-    fn get_location(self) -> Real2D {
-        self.loc
-    }
-
-    fn set_location(&mut self, loc: Real2D) {
-        self.loc = loc;
-    }
-}
-
 impl fmt::Display for NetNode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} loc {} status {}", self.id, self.loc, self.status)
+        write!(f, "{} status {}", self.id, self.status)
     }
 }
 
