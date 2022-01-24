@@ -20,7 +20,7 @@ default-run = "execute"
 
 [dependencies]
 #rust-ab = { path="/home/giuseppe/Git/rab/rust-ab" }
-rust-ab = { git="https://github.com/rust-ab/rust-ab", rev = "21c20ed"}
+rust-ab = { git="https://github.com/rust-ab/rust-ab", rev = "35755a7"}
 
 [features]
 aws = ["rust-ab/aws"]
