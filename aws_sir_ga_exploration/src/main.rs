@@ -47,6 +47,7 @@ fn main() {
         MAX_GENERATION,
         STEP,
         3,
+        2,
     );
 
     if !result.is_empty() {
@@ -188,7 +189,9 @@ fn mutation(individual: &mut String) {
     }
 }
 
-fn fitness(state: &mut EpidemicNetworkState, schedule: Schedule) -> f32 {
+fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
+    let schedule = &computed_ind[0].1;
+
     let mut _susceptible: usize = 0;
     let mut _infected: usize = 0;
     let mut resistant: usize = 0;
@@ -222,9 +225,6 @@ fn fitness(state: &mut EpidemicNetworkState, schedule: Schedule) -> f32 {
     //     immune,
     //     susceptible + infected + resistant + immune
     // );
-
-    let fitness = 1. - (resistant as f32 / NUM_NODES as f32);
-
-    state.fitness = fitness;
-    fitness
+    
+    1. - (resistant as f32 / NUM_NODES as f32)
 }
