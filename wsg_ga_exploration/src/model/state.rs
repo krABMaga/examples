@@ -287,4 +287,25 @@ impl WsgState {
             full_grown,
         }
     }
+
+    pub fn new_with_parameters(parameters: &str) -> WsgState {
+        let parameters_ind: Vec<&str> = parameters.split(';').collect();
+        let gain_energy_sheep = parameters_ind[0]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let gain_energy_wolf = parameters_ind[1]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let sheep_repr = parameters_ind[2]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let wolf_repr = parameters_ind[3]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let full_grown = parameters_ind[4]
+            .parse::<u16>()
+            .expect("Unable to parse str to f32!");
+
+        WsgState::new(gain_energy_sheep, gain_energy_wolf, sheep_repr, wolf_repr, full_grown)
+    }
 }
