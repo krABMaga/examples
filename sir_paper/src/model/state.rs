@@ -103,40 +103,40 @@ impl State for EpidemicNetworkState {
         self
     }
 
-    // fn before_step(&mut self, schedule: &mut Schedule) {
-    // if self.step == 0 {
-    //     println!("Spread {} - Recovery {}", self.spread, self.recovery);
-    // }
-    // if self.step == 0 {
-    // let mut susceptible: usize = 0;
-    // let mut infected: usize = 0;
-    // let mut resistant: usize = 0;
-    // let agents = schedule.get_all_events();
+    fn before_step(&mut self, _schedule: &mut Schedule) {
+        // if self.step == 0 {
+        //     println!("Spread {} - Recovery {}", self.spread, self.recovery);
+        // }
+        // if self.step == 0 {
+            // let mut susceptible: usize = 0;
+            // let mut infected: usize = 0;
+            // let mut resistant: usize = 0;
+            // let agents = schedule.get_all_events();
 
-    // for n in agents {
-    //     let agent = n.downcast_ref::<NetNode>().unwrap();
-    //     match agent.status {
-    //         NodeStatus::Susceptible => {
-    //             susceptible += 1;
-    //         }
-    //         NodeStatus::Infected => {
-    //             infected += 1;
-    //         }
-    //         NodeStatus::Resistant => {
-    //             resistant += 1;
-    //         }
-    //     }
-    // }
-    // println!(
-    //     "Susceptible: {:?} Infected: {:?} Resistant: {:?} Tot: {:?}",
-    //     susceptible,
-    //     infected,
-    //     resistant,
-    //     susceptible + infected + resistant
-    // );
-    // println!("RT is {}", self.rt);
-    // }
-    // }
+            // for n in agents {
+            //     let agent = n.downcast_ref::<NetNode>().unwrap();
+            //     match agent.status {
+            //         NodeStatus::Susceptible => {
+            //             susceptible += 1;
+            //         }
+            //         NodeStatus::Infected => {
+            //             infected += 1;
+            //         }
+            //         NodeStatus::Resistant => {
+            //             resistant += 1;
+            //         }
+            //     }
+            // }
+            // println!(
+            //     "Susceptible: {:?} Infected: {:?} Resistant: {:?} Tot: {:?}",
+            //     susceptible,
+            //     infected,
+            //     resistant,
+            //     susceptible + infected + resistant
+            // );
+            // println!("RT is {}", self.rt);
+        // }
+    }
 
     fn end_condition(&mut self, schedule: &mut Schedule) -> bool {
         let mut infected: usize = 0;

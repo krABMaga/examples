@@ -8,29 +8,28 @@ use rust_ab::{
 
 use model::state::EpidemicNetworkState;
 // use std::cmp::Ordering::Equal;
-use std::io::Write;
+// use std::io::Write;
 mod model;
 
-
 // generic model parameters
-pub static INIT_EDGES: usize = 2;
+pub static INIT_EDGES: usize = 1;
 pub const NUM_NODES: u32 = 10_000;
 pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 
 // GA specific parameters
-pub const MUTATION_RATE: f64 = 0.2;
+pub const MUTATION_RATE: f64 = 0.1;
 pub const DESIRED_FITNESS: f32 = 2.;
 pub const MAX_GENERATION: u32 = 50;
-pub const INDIVIDUALS: u32 = 200;
+pub const INDIVIDUALS: u32 = 100;
 pub const REPETITION: u32 = 100;
 
 // compute the rt at 30 steps (30 days)
 pub const STEP: u64 = 30;
 
 fn main() {
-    //  let epidemic_network = EpidemicNetworkState::new_with_parameters("0.15;0.02");
-    //  simulate!(STEP, epidemic_network, 1, Info::Verbose);
+    // let epidemic_network = EpidemicNetworkState::new_with_parameters("0.15;0.02");
+    // simulate!(STEP, epidemic_network, 1, Info::Verbose);
 
     let result = explore_ga_parallel!(
         init_population,
@@ -62,7 +61,8 @@ fn init_population() -> Vec<String> {
         // create the individual
         let mut rng = rand::thread_rng();
         let x = rng.gen_range(0.0..=1.0_f32).to_string(); // spread chance
-        let y = rng.gen_range(0.14..=0.3_f32).to_string(); // recovery chance
+        let y = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
+        // let y = rng.gen_range(0.14..=0.3_f32).to_string(); // recovery chance
 
         population.push(format!("{};{}", x, y));
     }
@@ -125,14 +125,14 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
 fn crossover(population: &mut Vec<String>) {
     let mut rng = rand::thread_rng();
     // combine two random parents
-    // a = xa, ya - b = xb, yb
+    // a = xa, ya || b = xb, yb
     // child will be (xa, yb) or (xb, ya)
 
     let mut parents = population.clone();
 
     let mut additional_individuals = INDIVIDUALS as usize - population.len(); // N/2
 
-    while additional_individuals != 0 {
+    while additional_individuals > 0 {
         // select two random individuals
         let idx_one = rng.gen_range(0..parents.len());
         let parent_one = parents[idx_one].clone();
@@ -144,10 +144,7 @@ fn crossover(population: &mut Vec<String>) {
             continue;
         }
 
-        let mut idx_two = rng.gen_range(0..parents.len());
-        while parent_one == parents[idx_two] {
-            idx_two = rng.gen_range(0..parents.len());
-        }
+        let idx_two = rng.gen_range(0..parents.len());
         let parent_two = parents[idx_two].clone();
         parents.remove(idx_two);
 
@@ -247,20 +244,20 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     let fitness = 1. - (DESIRED_RT - avg).abs() / (DESIRED_RT.powf(2.) + avg.powf(2.)).sqrt();
     // println!("Fitness: RT is {:?} - fitness is {}", avg, fitness);
 
-    let to_write = format!(
-        "RT {} - Fitness {} - Spread {} - Recovery {}",
-        avg, fitness, computed_ind[0].0.spread, computed_ind[0].0.recovery
-    );
+    // let to_write = format!(
+    //     "RT {} - Fitness {} - Spread {} - Recovery {}",
+    //     avg, fitness, computed_ind[0].0.spread, computed_ind[0].0.recovery
+    // );
 
-    let mut file = OpenOptions::new()
-        .read(true)
-        .append(true)
-        .write(true)
-        .create(true)
-        .open("results.txt")
-        .unwrap();
+    // let mut file = OpenOptions::new()
+    //     .read(true)
+    //     .append(true)
+    //     .write(true)
+    //     .create(true)
+    //     .open("results.txt")
+    //     .unwrap();
 
-    writeln!(file, "{:#?}", to_write).expect("Unable to write file.");
+    // writeln!(file, "{:#?}", to_write).expect("Unable to write file.");
 
     fitness
 }
