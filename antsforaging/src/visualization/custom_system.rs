@@ -1,8 +1,8 @@
+use rust_ab::bevy::prelude::Image;
 use crate::model::state::ModelState;
 use crate::model::state::*;
 use crate::model::to_food_grid::ToFoodGrid;
 use crate::model::to_home_grid::ToHomeGrid;
-use rust_ab::bevy::prelude::Texture;
 use rust_ab::engine::location::Int2D;
 use rust_ab::visualization::fields::number_grid_2d::BatchRender;
 
@@ -37,7 +37,7 @@ impl BatchRender<ModelState> for ToHomeGrid {
         0.
     }
 
-    fn get_texture_from_state(state: &ModelState) -> Texture {
+    fn get_texture_from_state(state: &ModelState) -> Image {
         state.to_home_grid.texture()
     }
 }
@@ -69,7 +69,7 @@ impl BatchRender<ModelState> for ToFoodGrid {
         0.
     }
 
-    fn get_texture_from_state(state: &ModelState) -> Texture {
+    fn get_texture_from_state(state: &ModelState) -> Image {
         state.to_food_grid.texture()
     }
 }
@@ -92,6 +92,14 @@ impl RenderObjectGrid2D<ModelState, Item> for SparseGrid2D<Item> {
         }
     }
 
+    fn fetch_loc(state: &ModelState, obj: &Item) -> Option<Int2D> {
+        state.obstacles_grid.get_location(*obj)
+    }
+
+    fn fetch_rotation(_state: &ModelState, _obj: &Item) -> f32 {
+        0.0
+    }
+
     fn scale(obj: &Item) -> (f32, f32) {
         match obj.value {
             ItemType::Home => (0.1, 0.1),
@@ -99,13 +107,5 @@ impl RenderObjectGrid2D<ModelState, Item> for SparseGrid2D<Item> {
             ItemType::Obstacle => (0.05, 0.05),
             //_ => panic!("Object not recognized."),
         }
-    }
-
-    fn fetch_loc(state: &ModelState, obj: &Item) -> Option<Int2D> {
-        state.obstacles_grid.get_location(*obj)
-    }
-
-    fn fetch_rotation(_state: &ModelState, _obj: &Item) -> f32 {
-        0.0
     }
 }

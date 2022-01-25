@@ -1,11 +1,13 @@
 use crate::model::state::WsgState;
 use crate::model::wolf::Wolf;
-use rust_ab::bevy::prelude::{Quat, Transform, Visible};
+use rust_ab::bevy::prelude::{Component, Quat, Transform, Visibility};
 use rust_ab::engine::agent::Agent;
 use rust_ab::engine::location::Int2D;
 use rust_ab::engine::state::State;
 use rust_ab::visualization::agent_render::{AgentRender, SpriteType};
+use rust_ab::bevy::ecs as bevy_ecs;
 
+#[derive(Component)]
 pub struct WolfVis {
     pub id: u32,
 }
@@ -44,7 +46,7 @@ impl AgentRender for WolfVis {
         agent: &Box<dyn Agent>,
         transform: &mut Transform,
         state: &Box<&dyn State>,
-        _visible: &mut Visible,
+        _visible: &mut Visibility,
     ) {
         let (loc_x, loc_y, z) = self.location(agent, state);
         let (scale_x, scale_y) = self.scale(agent, state);

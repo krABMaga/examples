@@ -16,7 +16,6 @@ use rust_ab::rand;
 use rust_ab::rand::Rng;
 use std::any::Any;
 use std::sync::RwLock;
-
 // Objects within the field
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub enum ItemType {

@@ -1,11 +1,13 @@
 use crate::model::{crab::Crab, sea::Sea};
-use rust_ab::bevy::prelude::{Quat, Transform, Visible};
+use rust_ab::bevy::prelude::{Quat, Transform, Visibility, Component};
 use rust_ab::{
     engine::{agent::Agent, state::State},
     visualization::agent_render::{AgentRender, SpriteType},
 };
 use std::f32::consts::PI;
+use rust_ab::bevy::ecs as bevy_ecs;
 
+#[derive(Component)]
 pub struct CrabVis {
     pub(crate) id: u32,
 }
@@ -52,7 +54,7 @@ impl AgentRender for CrabVis {
         agent: &Box<dyn Agent>,
         transform: &mut Transform,
         state: &Box<&dyn State>,
-        _visible: &mut Visible,
+        _visible: &mut Visibility,
     ) {
         // This snippet updates the agent location, scale and rotation for each frame.
         let (loc_x, loc_y, z) = self.location(agent, state);

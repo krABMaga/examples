@@ -6,6 +6,7 @@ use rust_ab::engine::schedule::*;
 use rust_ab::engine::state::State;
 use rust_ab::visualization::agent_render::AgentRender;
 use rust_ab::visualization::asset_handle_factory::AssetHandleFactoryResource;
+use rust_ab::visualization::fields::network::NetworkRender;
 use rust_ab::visualization::simulation_descriptor::SimulationDescriptor;
 use rust_ab::visualization::visualization_state::VisualizationState;
 
@@ -15,12 +16,13 @@ pub struct VisState;
 impl VisualizationState<EpidemicNetworkState> for VisState {
     fn on_init(
         &self,
-        _commands: &mut Commands,
+        commands: &mut Commands,
         _sprite_render_factory: &mut AssetHandleFactoryResource,
-        _state: &mut EpidemicNetworkState,
+        state: &mut EpidemicNetworkState,
         _schedule: &mut Schedule,
         _sim: &mut SimulationDescriptor,
     ) {
+        EpidemicNetworkState::init_network_graphics(state, commands)
     }
 
     fn get_agent_render(

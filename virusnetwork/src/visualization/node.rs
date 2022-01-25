@@ -1,11 +1,13 @@
-use rust_ab::bevy::prelude::{Transform, Visible};
+use rust_ab::bevy::prelude::{Transform, Visibility, Component};
 
 use crate::model::node::*;
 use crate::model::state::EpidemicNetworkState;
 use rust_ab::engine::agent::Agent;
 use rust_ab::engine::state::State;
 use rust_ab::visualization::agent_render::{AgentRender, SpriteType};
+use rust_ab::bevy::ecs as bevy_ecs;
 
+#[derive(Component)]
 pub struct NetNodeVis {
     pub id: u32,
 }
@@ -62,7 +64,7 @@ impl AgentRender for NetNodeVis {
         _agent: &Box<dyn Agent>,
         _transform: &mut Transform,
         _state: &Box<&dyn State>,
-        _visible: &mut Visible,
+        _visible: &mut Visibility,
     ) {
     }
 

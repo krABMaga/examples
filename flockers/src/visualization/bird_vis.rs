@@ -1,11 +1,13 @@
 use crate::model::bird::Bird;
 use crate::model::state::Flocker;
-use rust_ab::bevy::prelude::{Quat, Transform, Visible};
+use rust_ab::bevy::prelude::{Component, Quat, Transform, Visibility};
 use rust_ab::engine::agent::Agent;
 use rust_ab::engine::state::State;
 use rust_ab::visualization::agent_render::{AgentRender, SpriteType};
+use rust_ab::bevy::ecs as bevy_ecs;
 use std::f32::consts::PI;
 
+#[derive(Component)]
 pub struct BirdVis {
     pub(crate) id: u32,
 }
@@ -46,7 +48,7 @@ impl AgentRender for BirdVis {
         agent: &Box<dyn Agent>,
         transform: &mut Transform,
         state: &Box<&dyn State>,
-        _visible: &mut Visible,
+        _visible: &mut Visibility,
     ) {
         let (loc_x, loc_y, z) = self.location(agent, state);
         let rotation = self.rotation(agent, state);

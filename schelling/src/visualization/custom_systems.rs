@@ -1,8 +1,12 @@
+use rust_ab::bevy::ecs::component::TableStorage;
+use rust_ab::bevy::prelude::Component;
 use crate::model::world::*;
 use rust_ab::engine::fields::dense_object_grid_2d::DenseGrid2D;
 use rust_ab::engine::fields::sparse_object_grid_2d::SparseGrid2D;
 use rust_ab::engine::location::Int2D;
 use rust_ab::visualization::fields::object_grid_2d::RenderObjectGrid2D;
+
+impl Component for Patch{ type Storage = TableStorage; }
 
 impl RenderObjectGrid2D<World, Patch> for SparseGrid2D<Patch> {
     fn fetch_sparse_grid(state: &World) -> Option<&SparseGrid2D<Patch>> {
@@ -20,13 +24,13 @@ impl RenderObjectGrid2D<World, Patch> for SparseGrid2D<Patch> {
             Status::Blue => "blue_heart".to_string(),
         }
     }
-    fn scale(_obj: &Patch) -> (f32, f32) {
-        (0.01, 0.01)
-    }
     fn fetch_loc(state: &World, obj: &Patch) -> Option<Int2D> {
         state.field.get_location(*obj)
     }
     fn fetch_rotation(_state: &World, _obj: &Patch) -> f32 {
         0.0
+    }
+    fn scale(_obj: &Patch) -> (f32, f32) {
+        (0.01, 0.01)
     }
 }
