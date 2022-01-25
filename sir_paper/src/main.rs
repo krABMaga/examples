@@ -12,26 +12,44 @@ use model::state::EpidemicNetworkState;
 mod model;
 
 // generic model parameters
-pub static INIT_EDGES: usize = 1;
-pub const NUM_NODES: u32 = 10_000;
+pub static INIT_EDGES: usize = 3;
+pub const NUM_NODES: u32 = 5_000;
 pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 
 // GA specific parameters
 pub const MUTATION_RATE: f64 = 0.1;
 pub const DESIRED_FITNESS: f32 = 2.;
-pub const MAX_GENERATION: u32 = 50;
+pub const MAX_GENERATION: u32 = 2;
 pub const INDIVIDUALS: u32 = 100;
-pub const REPETITION: u32 = 100;
+pub const REPETITION: u32 = 1;
+
+lazy_static! {
+    pub static ref data: Vec<f32> = {
+        let mut rdr = Reader::from_path("data/data_perc.csv").unwrap();
+        
+        let mut x: Vec<f32> = Vec::new();
+        
+        for result in rdr.records() {
+            let record = result.unwrap();
+            let mut i = 0;           
+            let y : f32 = record[i].parse().unwrap();
+            x.push(y);
+            i += 1;
+        }
+        x
+     };
+}
 
 // compute the rt at 30 steps (30 days)
-pub const STEP: u64 = 30;
+pub const STEP: u64 = 66;
 
 fn main() {
     // let epidemic_network = EpidemicNetworkState::new_with_parameters("0.15;0.02");
     // simulate!(STEP, epidemic_network, 1, Info::Verbose);
-
-    let result = explore_ga_parallel!(
+    
+    
+    let result = explore_ga_sequential!(
         init_population,
         fitness,
         selection,
@@ -60,8 +78,8 @@ fn init_population() -> Vec<String> {
     for _ in 0..INDIVIDUALS {
         // create the individual
         let mut rng = rand::thread_rng();
-        let x = rng.gen_range(0.0..=1.0_f32).to_string(); // spread chance
-        let y = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
+        let x = rng.gen_range(0.35..=0.45_f32).to_string(); // spread chance
+        let y = rng.gen_range(0.05..=0.2_f32).to_string(); // recovery chance
         // let y = rng.gen_range(0.14..=0.3_f32).to_string(); // recovery chance
 
         population.push(format!("{};{}", x, y));
@@ -215,6 +233,42 @@ fn mutation(individual: &mut String) {
 }
 
 fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
+    
+    let mut error = 0.;
+    // per ogni simulazione
+    for i in 0..computed_ind.len() {
+
+        if computed_ind[i].1.step < 36 {
+            return f32::MAX;
+        }
+
+        // cicliamo per normalizzare il weekly_infected
+        for j in 0..computed_ind[i].0.weekly_infected.len(){
+            computed_ind[i].0.weekly_infected[j] /= NUM_NODES as f32;
+        }
+        println!("Fitness weekly infected {:?}", computed_ind[i].0.weekly_infected);
+
+        // calcolo l'errore rispetto agli observed results usando la formula
+        // sommatoria da i=0 a n=30 di (s[i] - o[i])^2
+        // dove s[i] è la media settimanale del giorno i calcolato dalla simulazione
+        // e o[i] è la media settimanale del giorno i osservato (contenuto nel file csv)
+        let mut ind_error = 0.;
+        for k in 0..30 {
+            ind_error += (computed_ind[i].0.weekly_infected[k] - data[k]).powf(2.);
+        }
+        println!("Fitness ind {} ind_error {:?}", i, ind_error);
+        error += ind_error;
+    }
+    
+    println!("Fitness average is {}", error / computed_ind.len() as f32);
+    println!("");
+    println!("");
+    println!("");
+    error / computed_ind.len() as f32
+}
+
+/*
+fn old_fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     // Sort the array using the RT
     // computed_ind.sort_by(|s1, s2| s1.0.rt.partial_cmp(&s2.0.rt).unwrap_or(Equal));
 
@@ -261,3 +315,4 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
 
     fitness
 }
+ */
