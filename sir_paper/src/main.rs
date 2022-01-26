@@ -12,49 +12,58 @@ use model::state::EpidemicNetworkState;
 mod model;
 
 // generic model parameters
-pub static INIT_EDGES: usize = 3;
-pub const NUM_NODES: u32 = 5_000;
+pub static INIT_EDGES: usize = 1;
+pub const NUM_NODES: u32 = 10_000;
 pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 
 // GA specific parameters
 pub const MUTATION_RATE: f64 = 0.1;
-pub const DESIRED_FITNESS: f32 = 2.;
-pub const MAX_GENERATION: u32 = 2;
-pub const INDIVIDUALS: u32 = 100;
-pub const REPETITION: u32 = 1;
+pub const DESIRED_FITNESS: f32 = 0.;
+pub const MAX_GENERATION: u32 = 50; // 1000
+pub const INDIVIDUALS: u32 = 50; // 100
+pub const REPETITION: u32 = 20;
 
 lazy_static! {
-    pub static ref data: Vec<f32> = {
+    pub static ref DATA: Vec<f32> = {
         let mut rdr = Reader::from_path("data/data_perc.csv").unwrap();
-        
+
         let mut x: Vec<f32> = Vec::new();
-        
+
         for result in rdr.records() {
             let record = result.unwrap();
-            let mut i = 0;           
-            let y : f32 = record[i].parse().unwrap();
+            let y: f32 = record[0].parse().unwrap();
             x.push(y);
-            i += 1;
         }
         x
-     };
+    };
 }
 
 // compute the rt at 30 steps (30 days)
 pub const STEP: u64 = 66;
 
 fn main() {
-    // let epidemic_network = EpidemicNetworkState::new_with_parameters("0.15;0.02");
+    // let mut epidemic_network = EpidemicNetworkState::new_with_parameters("0.15;0.02");
     // simulate!(STEP, epidemic_network, 1, Info::Verbose);
-    
-    
-    let result = explore_ga_sequential!(
+    // let mut file = OpenOptions::new()
+    //     .read(true)
+    //     .append(true)
+    //     .write(true)
+    //     .create(true)
+    //     .open("sim_data.csv")
+    //     .unwrap();
+
+    // for i in 0..epidemic_network.weekly_infected.len() {
+    //     writeln!(file, "{:#?}", epidemic_network.weekly_infected[i]).expect("Unable to write file.");
+    // }
+
+    let result = explore_ga_parallel!(
         init_population,
         fitness,
         selection,
         mutation,
         crossover,
+        cmp,
         EpidemicNetworkState,
         DESIRED_FITNESS,
         MAX_GENERATION,
@@ -78,9 +87,9 @@ fn init_population() -> Vec<String> {
     for _ in 0..INDIVIDUALS {
         // create the individual
         let mut rng = rand::thread_rng();
-        let x = rng.gen_range(0.35..=0.45_f32).to_string(); // spread chance
-        let y = rng.gen_range(0.05..=0.2_f32).to_string(); // recovery chance
-        // let y = rng.gen_range(0.14..=0.3_f32).to_string(); // recovery chance
+        let x = rng.gen_range(0.0..=1.0_f32).to_string(); // spread chance
+        let y = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
+                                                          // let y = rng.gen_range(0.14..=0.3_f32).to_string(); // recovery chance
 
         population.push(format!("{};{}", x, y));
     }
@@ -98,9 +107,15 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
     // weighted selection
     let mut weight = Vec::new();
     for individual_fitness in population_fitness.iter_mut() {
-        let mut single_weight = (individual_fitness.1 * 100.).floor() as u32;
-        if single_weight == 0 {
-            single_weight += 1;
+        let mut single_weight: f32;
+        if individual_fitness.1 != 0. {
+            single_weight = 1. / individual_fitness.1; // 1 / 0,001 = 1000
+        } else {
+            single_weight = f32::MAX;
+        }
+
+        if single_weight == 0. {
+            single_weight += 1.;
         }
         weight.push(single_weight);
     }
@@ -117,7 +132,7 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
         let dist = WeightedIndex::new(&weight).unwrap();
 
         let idx_one = dist.sample(&mut rng);
-        weight[idx_one] = 0;
+        weight[idx_one] = 0.;
 
         if i == len - 1 && population_fitness.len() % 2 == 1 {
             new_population.push(population_fitness[idx_one].clone());
@@ -128,7 +143,7 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
         while idx_one == idx_two {
             idx_two = dist.sample(&mut rng);
         }
-        weight[idx_two] = 0;
+        weight[idx_two] = 0.;
 
         // choose the individual with the highest fitness
         if population_fitness[idx_one].1 < population_fitness[idx_two].1 {
@@ -233,20 +248,19 @@ fn mutation(individual: &mut String) {
 }
 
 fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
-    
     let mut error = 0.;
     // per ogni simulazione
     for i in 0..computed_ind.len() {
-
-        if computed_ind[i].1.step < 36 {
-            return f32::MAX;
-        }
+        // stessa simulazione runnata n volte
 
         // cicliamo per normalizzare il weekly_infected
-        for j in 0..computed_ind[i].0.weekly_infected.len(){
+        for j in 0..computed_ind[i].0.weekly_infected.len() {
             computed_ind[i].0.weekly_infected[j] /= NUM_NODES as f32;
         }
-        println!("Fitness weekly infected {:?}", computed_ind[i].0.weekly_infected);
+        // println!(
+        //     "Fitness weekly infected {:?}",
+        //     computed_ind[i].0.weekly_infected
+        // );
 
         // calcolo l'errore rispetto agli observed results usando la formula
         // sommatoria da i=0 a n=30 di (s[i] - o[i])^2
@@ -254,19 +268,24 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
         // e o[i] è la media settimanale del giorno i osservato (contenuto nel file csv)
         let mut ind_error = 0.;
         for k in 0..30 {
-            ind_error += (computed_ind[i].0.weekly_infected[k] - data[k]).powf(2.);
+            // if k not exits
+            // i.e. the simulation did not reach (36 steps / 30 days)
+            ind_error += (DATA[k] - computed_ind[i].0.weekly_infected[k]).powf(2.);
+            
         }
-        println!("Fitness ind {} ind_error {:?}", i, ind_error);
         error += ind_error;
+
+        // println!("Fitness ind {} ind_error {:?}", i, ind_error);
     }
-    
-    println!("Fitness average is {}", error / computed_ind.len() as f32);
-    println!("");
-    println!("");
-    println!("");
+
+    println!("Fitness is {}", error / computed_ind.len() as f32);
+
     error / computed_ind.len() as f32
 }
 
+fn cmp(fitness1: &f32, fitness2: &f32) -> bool {
+    *fitness1 < *fitness2
+}
 /*
 fn old_fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     // Sort the array using the RT
@@ -281,7 +300,7 @@ fn old_fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 
     // Get the median of the array
     // let index = (computed_ind.len() + 1) / 2;
     // let mut median = computed_ind[index - 1].0.rt;
-    // median = median * ( 1. - (30. - computed_ind[index - 1].1.step as f32) / 30.);
+    // median = median * ( 1. - (30.computed_ind[index - 1].1.step as f32) / 30.);
 
     // 1. - (DESIRED_RT - median).abs() / (DESIRED_RT.powf(2.) + median.powf(2.)).sqrt()
 
