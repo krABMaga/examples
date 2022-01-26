@@ -20,8 +20,8 @@ pub static DESIRED_RT: f32 = 2.;
 // GA specific parameters
 pub const MUTATION_RATE: f64 = 0.1;
 pub const DESIRED_FITNESS: f32 = 0.;
-pub const MAX_GENERATION: u32 = 50; // 1000
-pub const INDIVIDUALS: u32 = 50; // 100
+pub const MAX_GENERATION: u32 = 100; // 1000
+pub const INDIVIDUALS: u32 = 100; // 100
 pub const REPETITION: u32 = 20;
 
 lazy_static! {
@@ -39,22 +39,40 @@ lazy_static! {
     };
 }
 
-// compute the rt at 30 steps (30 days)
 pub const STEP: u64 = 66;
 
 fn main() {
-    // let mut epidemic_network = EpidemicNetworkState::new_with_parameters("0.15;0.02");
-    // simulate!(STEP, epidemic_network, 1, Info::Verbose);
-    // let mut file = OpenOptions::new()
-    //     .read(true)
-    //     .append(true)
-    //     .write(true)
-    //     .create(true)
-    //     .open("sim_data.csv")
-    //     .unwrap();
+    // let mut epidemic_network = EpidemicNetworkState::new_with_parameters("0.09767069;0.04607046");
 
-    // for i in 0..epidemic_network.weekly_infected.len() {
-    //     writeln!(file, "{:#?}", epidemic_network.weekly_infected[i]).expect("Unable to write file.");
+    // for i in 0..10{
+    //     simulate!(STEP, &mut epidemic_network, 1, Info::Verbose);
+    //     let mut normalized: Vec<f32> = Vec::new();
+    //     for i in 0..epidemic_network.weekly_infected.len() {
+    //         normalized.push(epidemic_network.weekly_infected[i] / NUM_NODES as f32);
+    //     }
+
+    //     let mut state_error = 0.;
+    //     for k in 0..30 {
+    //         state_error += (DATA[k] - epidemic_network.weekly_infected[k]).powf(2.);
+    //     }
+        
+    //     if state_error < 10. && state_error != 0.000023020513{   
+    //         let file_name = format!("sim_data{}.csv", i);
+
+    //         let mut file = OpenOptions::new()
+    //             .read(true)
+    //             .append(true)
+    //             .write(true)
+    //             .create(true)
+    //             .open(file_name.to_string())
+    //             .unwrap();
+        
+    //         writeln!(file, "{:#?}", state_error).expect("Unable to write file.");
+    //         for i in 0..normalized.len() {
+    //             writeln!(file, "{:#?}", normalized[i]).expect("Unable to write file.");
+    //         }
+    //     }
+    //     println!("Simulation {} has error {}", i, state_error);
     // }
 
     let result = explore_ga_parallel!(
@@ -89,7 +107,7 @@ fn init_population() -> Vec<String> {
         let mut rng = rand::thread_rng();
         let x = rng.gen_range(0.0..=1.0_f32).to_string(); // spread chance
         let y = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
-                                                          // let y = rng.gen_range(0.14..=0.3_f32).to_string(); // recovery chance
+        // let y = rng.gen_range(0.14..=0.3_f32).to_string(); // recovery chance beween 3 and 7 days
 
         population.push(format!("{};{}", x, y));
     }
@@ -233,11 +251,11 @@ fn mutation(individual: &mut String) {
                 .expect("Unable to parse str to f32!");
 
             if rng.gen_bool(0.5) {
-                if new_recovery + x < 0.3 {
+                if new_recovery + x < 1.0 {
                     new_recovery += x;
                 }
             } else {
-                if new_recovery - x > 0.14 {
+                if new_recovery - x > 0. {
                     new_recovery -= x;
                 }
             }

@@ -6,6 +6,7 @@ use rust_ab::engine::schedule::Schedule;
 use rust_ab::engine::state::State;
 use rust_ab::rand;
 use rust_ab::rand::Rng;
+use rust_ab::fmt;
 use std::any::Any;
 use std::sync::{Arc, Mutex};
 
@@ -46,6 +47,12 @@ impl EpidemicNetworkState {
             .parse::<f32>()
             .expect("Unable to parse str to f32!");
         EpidemicNetworkState::new(spread, recovery)
+    }
+}
+
+impl fmt::Display for EpidemicNetworkState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Rt {:.4}", self.rt)
     }
 }
 
@@ -145,10 +152,10 @@ impl State for EpidemicNetworkState {
     // }
 
     fn end_condition(&mut self, schedule: &mut Schedule) -> bool {
-        // check if there are no more infected node exit
+
+        // check if there are no more infected node
         let mut infected: usize = 0;
         let agents = schedule.get_all_events();
-
         for n in agents {
             let agent = n.downcast_ref::<NetNode>().unwrap();
             if agent.status == NodeStatus::Infected {
@@ -161,37 +168,38 @@ impl State for EpidemicNetworkState {
 
         let infected_nodes = self.infected_nodes.lock().unwrap();
         // compute the RT after 30 days
-        // if self.step == 32 {
-        let mut counter = 0;
-        let mut value = 0;
-        for i in 3..infected_nodes.len() {
-            if infected_nodes[i] != 0 {
-                counter += 1;
-                value += infected_nodes[i];
+        if self.step == 32 { 
+            let mut counter = 0;
+
+            let mut value = 0;
+            for i in 3..infected_nodes.len() {
+                if infected_nodes[i] != 0 {
+                    counter += 1;
+                    value += infected_nodes[i];
+                }
+            }
+            if value == 0 {
+                self.rt = 0.;
+            } else {
+                self.rt = (value as f32 / counter as f32) as f32;
             }
         }
-        if value == 0 {
-            self.rt = 0.;
-        } else {
-            self.rt = (value as f32 / counter as f32) as f32;
-        }
-        // }
 
         // count the daily infection
         let mut newly_infected = 0;
-        for i in 0..infected_nodes.len() {
+        for i in 0..infected_nodes.len(){
             newly_infected += infected_nodes[i];
         } // tutti gli infettati dei giorni precedenti + i nuovi
-
+        
         // per ottenere solo i nuovi togliamo da newly_infected old_infected
-        // newly infecteed di ieri - newly_infected di oggi
+        // newly infecteed di ieri - newly_infected di oggi  
         let output = newly_infected - self.old_infected;
 
         // vettore con gli infetti del giorno [i] = nuovi infetti giorno i
-        self.daily_infected[self.step as usize - 1] = output;
+        self.daily_infected[self.step as usize - 1] = output;         
 
-        // println!("AFTER Day {} - Daily infected {} - old infected {} - Cumulative sum (old + new) {}",
-        //     self.step,
+        // println!("AFTER Day {} - Daily infected {} - old infected {} - Cumulative sum (old + new) {}", 
+        //     self.step, 
         //     output,
         //     self.old_infected,
         //     newly_infected);
@@ -199,18 +207,17 @@ impl State for EpidemicNetworkState {
         // aggiorno gli infetti del giorno per usarli il giorno dopo
         self.old_infected = newly_infected;
 
-        // trasformiamo l'array di 66 giorni in un array di 60 giorni
-        // in cui ogni posizione contiene la media settimanale
-
+        // trasformiamo l'array di 66 giorni in un array di 60 giorni 
+        // in cui ogni posizione contiene la media settimanale        
         if self.step > 36 {
             // println!("Calcolo la media mobile al passo {}, daily infected len {}", self.step, self.daily_infected.len());
 
-            for i in 3..(self.daily_infected.len() - 3) {
+            for i in 3..(self.daily_infected.len()-3) {
                 let mut media_mobile = 0.;
                 for j in -3..=3 {
-                    media_mobile += self.daily_infected[((i as i32) - (j as i32)) as usize] as f32;
+                    media_mobile += self.daily_infected[((i as i32)-(j as i32)) as usize] as f32;
                 }
-                self.weekly_infected[i - 3] = media_mobile / 7.0; // media settimanale
+                self.weekly_infected[i-3] = media_mobile / 7.0; // media settimanale
             }
             // println!("Vec_output {:?}\n\n\n", self.weekly_infected);
         }
