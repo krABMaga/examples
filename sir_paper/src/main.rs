@@ -13,16 +13,16 @@ mod model;
 
 // generic model parameters
 pub static INIT_EDGES: usize = 1;
-pub const NUM_NODES: u32 = 10_000;
+pub const NUM_NODES: u32 = 100_000;
 pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 
 // GA specific parameters
 pub const MUTATION_RATE: f64 = 0.1;
 pub const DESIRED_FITNESS: f32 = 0.;
-pub const MAX_GENERATION: u32 = 100; // 1000
-pub const INDIVIDUALS: u32 = 100; // 100
-pub const REPETITION: u32 = 20;
+pub const MAX_GENERATION: u32 = 10; // 1000
+pub const INDIVIDUALS: u32 = 60; // 100
+pub const REPETITION: u32 = 5;
 
 lazy_static! {
     pub static ref DATA: Vec<f32> = {
@@ -42,9 +42,10 @@ lazy_static! {
 pub const STEP: u64 = 66;
 
 fn main() {
-    // let mut epidemic_network = EpidemicNetworkState::new_with_parameters("0.09767069;0.04607046");
 
-    // for i in 0..10{
+    // let mut epidemic_network = EpidemicNetworkState::new_with_parameters("0.08446825;0.068867095");
+
+    // for i in 0..100{
     //     simulate!(STEP, &mut epidemic_network, 1, Info::Verbose);
     //     let mut normalized: Vec<f32> = Vec::new();
     //     for i in 0..epidemic_network.weekly_infected.len() {
@@ -56,7 +57,7 @@ fn main() {
     //         state_error += (DATA[k] - epidemic_network.weekly_infected[k]).powf(2.);
     //     }
         
-    //     if state_error < 10. && state_error != 0.000023020513{   
+    //     if state_error < 1. && state_error != 0.000023020513{   
     //         let file_name = format!("sim_data{}.csv", i);
 
     //         let mut file = OpenOptions::new()
@@ -271,14 +272,27 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     for i in 0..computed_ind.len() {
         // stessa simulazione runnata n volte
 
+
+        // trasformiamo l'array di 66 giorni in un array di 60 giorni 
+        // in cui ogni posizione contiene la media settimanale        
+        
+        for h in 3..(computed_ind[i].0.daily_infected.len()-3) {
+            let mut media_mobile = 0.;
+            for g in -3..=3 {
+                media_mobile += computed_ind[i].0.daily_infected[((h as i32)-(g as i32)) as usize] as f32;
+            }
+            computed_ind[i].0.weekly_infected[h-3] = media_mobile / 7.0; // media settimanale
+        }
+
+        // println!("Weekly infected of individual {}", i);
+
         // cicliamo per normalizzare il weekly_infected
         for j in 0..computed_ind[i].0.weekly_infected.len() {
             computed_ind[i].0.weekly_infected[j] /= NUM_NODES as f32;
+            // println!("-- {:#?}", computed_ind[i].0.weekly_infected[j]);
         }
-        // println!(
-        //     "Fitness weekly infected {:?}",
-        //     computed_ind[i].0.weekly_infected
-        // );
+        // println!("-------------");
+        
 
         // calcolo l'errore rispetto agli observed results usando la formula
         // sommatoria da i=0 a n=30 di (s[i] - o[i])^2
@@ -293,10 +307,10 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
         }
         error += ind_error;
 
-        // println!("Fitness ind {} ind_error {:?}", i, ind_error);
+        // println!("\tIndividual {} has error {:?}", i, ind_error);
     }
 
-    println!("Fitness is {}", error / computed_ind.len() as f32);
+    // println!("Fitness is {}", error / computed_ind.len() as f32);
 
     error / computed_ind.len() as f32
 }

@@ -207,20 +207,20 @@ impl State for EpidemicNetworkState {
         // aggiorno gli infetti del giorno per usarli il giorno dopo
         self.old_infected = newly_infected;
 
-        // trasformiamo l'array di 66 giorni in un array di 60 giorni 
-        // in cui ogni posizione contiene la media settimanale        
-        if self.step > 36 {
-            // println!("Calcolo la media mobile al passo {}, daily infected len {}", self.step, self.daily_infected.len());
+        // // trasformiamo l'array di 66 giorni in un array di 60 giorni 
+        // // in cui ogni posizione contiene la media settimanale        
+        // if self.step > 36 {
+        //     // println!("Calcolo la media mobile al passo {}, daily infected len {}", self.step, self.daily_infected.len());
 
-            for i in 3..(self.daily_infected.len()-3) {
-                let mut media_mobile = 0.;
-                for j in -3..=3 {
-                    media_mobile += self.daily_infected[((i as i32)-(j as i32)) as usize] as f32;
-                }
-                self.weekly_infected[i-3] = media_mobile / 7.0; // media settimanale
-            }
-            // println!("Vec_output {:?}\n\n\n", self.weekly_infected);
-        }
+        //     for i in 3..(self.daily_infected.len()-3) {
+        //         let mut media_mobile = 0.;
+        //         for j in -3..=3 {
+        //             media_mobile += self.daily_infected[((i as i32)-(j as i32)) as usize] as f32;
+        //         }
+        //         self.weekly_infected[i-3] = media_mobile / 7.0; // media settimanale
+        //     }
+        //     // println!("Vec_output {:?}\n\n\n", self.weekly_infected);
+        // }
 
         false
     }
