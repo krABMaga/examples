@@ -13,6 +13,7 @@ pub static MOMENTUM: f32 = 1.0;
 pub static JUMP: f32 = 0.7;
 pub static DISCRETIZATION: f32 = 10.0 / 1.5;
 pub static TOROIDAL: bool = true;
+pub static NEIGHBOROOD_RADIUS: f32 = 10.;
 
 #[cfg(feature="explore")]
 fn main() {

@@ -21,7 +21,7 @@ use mpi::{
 use rust_ab::Equivalence;
 
 use crate::model::state::Flocker;
-use crate::{AVOIDANCE, COHESION, CONSISTENCY, JUMP, MOMENTUM, RANDOMNESS};
+use crate::{AVOIDANCE, COHESION, CONSISTENCY, JUMP, MOMENTUM, RANDOMNESS,NEIGHBOROOD_RADIUS};
 
 #[derive(Clone, Copy)]
 pub struct Bird {
@@ -43,7 +43,7 @@ impl Agent for Bird {
     fn step(&mut self, state: &mut dyn State) {
         let state = state.as_any().downcast_ref::<Flocker>().unwrap();
         // println!("{} in process {}",self,state.universe.world().rank()+1);
-        let vec = state.field1.get_neighbors_within_distance(self.pos, 10.0);
+        let vec = state.field1.get_neighbors_within_distance(self.pos, NEIGHBOROOD_RADIUS);
 
         let width = state.dim.0;
         let height = state.dim.1;
@@ -154,7 +154,7 @@ impl Agent for Bird {
         self.pos = Real2D { x: loc_x, y: loc_y };
         drop(vec);
 
-        if self.pos.x <= state.partition.0 + 10.0 {
+        if self.pos.x <= state.partition.0 + NEIGHBOROOD_RADIUS {
             if self.pos.x < state.partition.0{
                 // println!("{} migrated to left",self);
                 self.migrated = true;
@@ -164,7 +164,7 @@ impl Agent for Bird {
             state.l_aoi.lock().unwrap().push(*self);
             
         }
-        if self.pos.x >= state.partition.1 - 10.0 {
+        if self.pos.x >= state.partition.1 - NEIGHBOROOD_RADIUS{
             if self.pos.x >= state.partition.1{
                 // println!("{} migrated to right",self);
                 self.migrated = true;
