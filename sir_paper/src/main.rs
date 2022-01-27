@@ -18,11 +18,11 @@ pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 
 // GA specific parameters
-pub const MUTATION_RATE: f64 = 0.0;
+pub const MUTATION_RATE: f64 = 0.1;
 pub const DESIRED_FITNESS: f32 = 0.;
 pub const MAX_GENERATION: u32 = 10; // 1000
 pub const INDIVIDUALS: u32 = 60; // 100
-pub const REPETITION: u32 = 10;
+pub const REPETITION: u32 = 20;
 
 lazy_static! {
     pub static ref DATA: Vec<f32> = {
@@ -101,29 +101,30 @@ fn main() {
 fn init_population() -> Vec<String> {
     // create an array of EpidemicNetworkState
     let mut population = Vec::new();
-
+    
+    let mut rng = rand::thread_rng();
     // create n=INDIVIDUALS individuals
     for _ in 0..INDIVIDUALS {
         // create the individual
-        let mut rng = rand::thread_rng();
         let x = rng.gen_range(0.0..=1.0_f32).to_string(); // spread chance
         let y = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
                                                           // let y = rng.gen_range(0.14..=0.3_f32).to_string(); // recovery chance beween 3 and 7 days
-
         population.push(format!("{};{}", x, y));
     }
 
+    // println!("Initial population {:?}", population);
+    
     // return the array of individuals, i.e. the population (only the parameters)
     population
 }
 
 fn selection(population_fitness: &mut Vec<(String, f32)>) {
     // weighted tournament selection
-    let mut rng = rand::thread_rng();
-    let mut len = population_fitness.len();
+    // let mut rng = rand::thread_rng();
+    // let mut len = population_fitness.len();
 
-    // build an array containing the fitness values in order to be used for the
-    // weighted selection
+    // // build an array containing the fitness values in order to be used for the
+    // // weighted selection
     // let mut weight = Vec::new();
     // for individual_fitness in population_fitness.iter_mut() {
     //     let mut single_weight: f32;
@@ -174,37 +175,7 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
     // }
     // *population_fitness = new_population;
 
-    let mut new_population: Vec<(String, f32)> = Vec::new();
-
-    if len % 2 == 1 {
-        len = (len / 2) + 1;
-    } else {
-        len /= 2;
-    }
-
-    for i in 0..len {
-        
-        let idx_one = rng.gen_range(0..len);
-
-        if i == len - 1 && population_fitness.len() % 2 == 1 {
-            new_population.push(population_fitness[idx_one].clone());
-            continue;
-        }
-
-        let mut idx_two = rng.gen_range(0..len);
-
-        while idx_one == idx_two {
-            idx_two = rng.gen_range(0..len);
-        }
-
-        // choose the individual with the highest fitness
-        if population_fitness[idx_one].1 < population_fitness[idx_two].1 {
-            new_population.push(population_fitness[idx_two].clone());
-        } else {
-            new_population.push(population_fitness[idx_one].clone());
-        }
-    }
-    *population_fitness = new_population;
+    // println!("SELECTED ITEM\n{:?}", population_fitness);
 }
 
 fn crossover(population: &mut Vec<String>) {
@@ -215,31 +186,29 @@ fn crossover(population: &mut Vec<String>) {
 
     // let mut parents = population.clone();
 
-    let mut additional_individuals = INDIVIDUALS as usize - population.len(); // N/2
-    let len = population.len();
-    while additional_individuals > 0 {
+
+    // let mut additional_individuals = INDIVIDUALS as usize - population.len(); // N/2
+
+    let mut len = population.len();
+    if len % 2 == 1 {
+        len = (len / 2) + 1;
+    } else {
+        len /= 2;
+    }
+
+    let mut sons:Vec<String> = Vec::new();
+    for i in 0..len {
         // select two random individuals
-        let idx_one = rng.gen_range(0..len);
+        let idx_one = rng.gen_range(0..population.len());
         //let parent_one = parents[idx_one].clone();
         let parent_one = population[idx_one].clone();
-        //parents.remove(idx_one);
-
-        // if additional_individuals == 1 {
-        //     population.push(parent_one);
-        //     additional_individuals -= 1;
-        //     continue;
-        // }
-
-        let mut idx_two = rng.gen_range(0..len);
-
+        let mut idx_two = rng.gen_range(0..population.len());
         while idx_one == idx_two {
-            idx_two = rng.gen_range(0..len);
+            idx_two = rng.gen_range(0..population.len());
         }
-
         // let parent_two = parents[idx_two].clone();
         let parent_two = population[idx_two].clone();
-        //parents.remove(idx_two);
-
+        
         let parent_one: Vec<&str> = parent_one.split(';').collect();
         let one_spread = parent_one[0]
             .parse::<f32>()
@@ -255,19 +224,90 @@ fn crossover(population: &mut Vec<String>) {
         let two_recovery = parent_two[1]
             .parse::<f32>()
             .expect("Unable to parse str to f32!");
-
+            
         let new_individual = format!(
             "{};{}",
             (one_spread + two_spread) / 2.,
             (one_recovery + two_recovery) / 2.
         );
 
-        println!("\tNew individual {:?}\n", new_individual);
+        sons.push(new_individual);
 
-        population.push(new_individual);
-
-        additional_individuals -= 1;
     }
+
+    population.truncate(len);
+    population.append(&mut sons);
+
+    // let mut fikifiki: Vec<u32> = vec![0; additional_individuals as usize];
+
+    // let len = population.len();
+    // while additional_individuals > 0 {
+    //     // select two random individuals
+    //     let idx_one = rng.gen_range(0..len);
+    //     //let parent_one = parents[idx_one].clone();
+    //     let parent_one = population[idx_one].clone();
+    //     //parents.remove(idx_one);
+
+    //     // if additional_individuals == 1 {
+    //     //     population.push(parent_one);
+    //     //     additional_individuals -= 1;
+    //     //     continue;
+    //     // }
+
+    //     let mut idx_two = rng.gen_range(0..len);
+
+    //     while idx_one == idx_two {
+    //         idx_two = rng.gen_range(0..len);
+    //     }
+
+    //     // if fikifiki[idx_one] == 2 || fikifiki[idx_two] == 2 {
+    //     //     println!("Idx {} OR {} preso più di 2 volte?", idx_one, idx_two);
+    //     //     continue;
+    //     // }
+
+    //     // let parent_two = parents[idx_two].clone();
+    //     let parent_two = population[idx_two].clone();
+    //     //parents.remove(idx_two);
+
+    //     let parent_one: Vec<&str> = parent_one.split(';').collect();
+    //     let one_spread = parent_one[0]
+    //         .parse::<f32>()
+    //         .expect("Unable to parse str to f32!");
+    //     let one_recovery = parent_one[1]
+    //         .parse::<f32>()
+    //         .expect("Unable to parse str to f32!");
+
+    //     let parent_two: Vec<&str> = parent_two.split(';').collect();
+    //     let two_spread = parent_two[0]
+    //         .parse::<f32>()
+    //         .expect("Unable to parse str to f32!");
+    //     let two_recovery = parent_two[1]
+    //         .parse::<f32>()
+    //         .expect("Unable to parse str to f32!");
+
+    //     if one_spread == two_spread || one_recovery == two_recovery { 
+    //         continue; 
+    //     }
+            
+    //     let new_individual = format!(
+    //         "{};{}",
+    //         (one_spread + two_spread) / 2.,
+    //         (one_recovery + two_recovery) / 2.
+    //     );
+
+    //     // fikifiki[idx_one] += 1;
+    //     // fikifiki[idx_two] += 1;
+
+    //     // println!("\n\tParent one {:?}", parent_one);
+    //     // println!("\tParent two {:?}", parent_two);
+    //     // println!("\t\tNew individual {:?}\n", new_individual);
+
+    //     population.push(new_individual);
+
+    //     additional_individuals -= 1;
+    // }
+
+    // println!("fikifiki {:?}", fikifiki);
 }
 
 fn mutation(individual: &mut String) {

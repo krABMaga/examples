@@ -3,4 +3,4 @@ Cargo.lock
 .idea
 # *.csv
 *.txt
-*.out
+#*.out

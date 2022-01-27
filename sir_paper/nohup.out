@@ -1,0 +1,27 @@
+warning: unused import: `rand::distributions::weighted::WeightedIndex`
+ --> src/main.rs:1:5
+  |
+1 | use rand::distributions::weighted::WeightedIndex;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused variable: `population_fitness`
+   --> src/main.rs:121:14
+    |
+121 | fn selection(population_fitness: &mut Vec<(String, f32)>) {
+    |              ^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_population_fitness`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `i`
+   --> src/main.rs:200:9
+    |
+200 |     for i in 0..len {
+    |         ^ help: if this is intentional, prefix it with an underscore: `_i`
+
+warning: `sir_ga_exploration` (bin "sir_ga_exploration") generated 3 warnings
+    Finished release [optimized] target(s) in 0.06s
+     Running `target/release/sir_ga_exploration`
+Running parallel GA exploration...
+Computing generation 1...
