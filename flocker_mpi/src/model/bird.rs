@@ -6,16 +6,19 @@ use rust_ab::engine::state::State;
 use rust_ab::rand;
 use rust_ab::rand::Rng;
 use std::hash::{Hash, Hasher};
-extern crate mpi;
 
 
-extern crate memoffset;
-use memoffset::offset_of;
+
+use rust_ab::mpi;
+
+use rust_ab::offset_of;
+
 use mpi::{
     datatype::{UncommittedUserDatatype, UserDatatype},
-    traits::*,
     Address,
 };
+
+use rust_ab::Equivalence;
 
 use crate::model::state::Flocker;
 use crate::{AVOIDANCE, COHESION, CONSISTENCY, JUMP, MOMENTUM, RANDOMNESS};

@@ -1,7 +1,8 @@
 use crate::model::bird::Bird;
 use crate::{DISCRETIZATION, TOROIDAL};
-extern crate mpi;
-use mpi::traits::*;
+
+use rust_ab::mpi::*;
+use rust_ab::mpi::traits::*;
 
 use rust_ab::engine::fields::field::Field;
 use rust_ab::engine::fields::field_2d::Field2D;
@@ -12,7 +13,7 @@ use rust_ab::rand;
 use rust_ab::rand::Rng;
 use std::any::Any;
 use std::sync::Mutex;
-use mpi::environment::Universe;
+use rust_ab::mpi::environment::Universe;
 
 
 pub struct Flocker {
@@ -24,7 +25,6 @@ pub struct Flocker {
     pub partition: (f32,f32),
     pub l_aoi: Mutex<Vec<Bird>>,
     pub r_aoi: Mutex<Vec<Bird>>
-
 }
 
 impl Flocker {
@@ -59,11 +59,15 @@ impl State for Flocker {
         let rank = world.rank();
         let size = world.size();
         let partition_length = self.dim.0 / size as f32;
-        let mut birds_buffer = Vec::with_capacity(self.initial_flockers as usize);
+        let partition_start = rank as f32 * partition_length;
+        let partition_end = (rank+1) as f32 * partition_length;
+        self.partition = (partition_start,partition_end);
 
+        //master process initializes birds
         if rank == 0 {
+            let mut partitions = std::iter::repeat(Vec::new()).take(size as usize).collect::<Vec<Vec<Bird>>>();
             let mut rng = rand::thread_rng();
-            // Should be moved in the init method on the model exploration changes
+            
             for bird_id in 0..self.initial_flockers{
                 let r1: f32 = rng.gen();
                 let r2: f32 = rng.gen();
@@ -73,34 +77,33 @@ impl State for Flocker {
                     y: self.dim.1 * r2,
                 };
                 let bird = Bird::new(bird_id, pos, last_d);
-                birds_buffer.push(bird);
+                let destination_rank = (bird.pos.x / partition_length).floor() as usize;
+                partitions[destination_rank].push(bird);
             }
+
+            //each partition is sent to a process
+            for (destination,partition) in partitions[1..].iter().enumerate(){
+                println!("master sending to process {}, {} birds",destination+1,partition.len());
+                world.process_at_rank(destination as i32 + 1).send(&partition[..]);
+            }
+
+            //master process initializes its partition
+            for bird in partitions[0].iter(){
+                self.field1.set_object_location(*bird,bird.pos);
+                schedule.schedule_repeating(Box::new(*bird),0.0,0);
+            }
+
         }
+        //worker processes receive their partition
         else{
-            let last_d = Real2D { x: 0., y: 0. };
-            let pos = last_d;
-            for bird_id in 0..self.initial_flockers{
-
-                birds_buffer.push( Bird::new(bird_id,pos,last_d) );
-            }
-        }
-        world.process_at_rank(0).broadcast_into(&mut birds_buffer[..]);
-        let partition_start = rank as f32 * partition_length;
-        let partition_end = (rank+1) as f32 * partition_length;
-        self.partition = (partition_start,partition_end);
-
-        let aoi_start = ( (partition_start-10.0)%self.dim.0 + self.dim.0)%self.dim.0;
-        let aoi_end = (partition_end + 10.0) % self.dim.0;
-
-        // println!("process {} limits: partition {} to {}, aoi: {} to {}",rank+1, partition_start, partition_end,aoi_start,aoi_end); 
-        for bird in birds_buffer{
-            if  (bird.pos.x >= aoi_start && bird.pos.x <= aoi_end) || (bird.pos.x >= partition_start && bird.pos.x < partition_end) {
+            let (birds,_) = world.process_at_rank(0).receive_vec::<Bird>();
+            println!("process {} received {} birds",rank,birds.len());
+            for bird in birds{
                 self.field1.set_object_location(bird,bird.pos);
-            }
-            if bird.pos.x >= partition_start && bird.pos.x < partition_end {
                 schedule.schedule_repeating(Box::new(bird),0.0,0);
             }
         }
+       
     }
 
     fn after_step(&mut self,schedule:&mut Schedule){
@@ -120,17 +123,12 @@ impl State for Flocker {
         self.r_aoi.lock().unwrap().clear();
         self.l_aoi.lock().unwrap().clear();
 
-        let bd = Bird::equivalent_datatype();
-
-        let r_aoi_buff = unsafe { mpi::datatype::View::with_count_and_datatype(&r_aoi[..],r_aoi.len() as i32, &bd)};
-        let l_aoi_buff = unsafe { mpi::datatype::View::with_count_and_datatype(&l_aoi[..],l_aoi.len() as i32, &bd)};
-        let mut r_buffer = unsafe { mpi::datatype::MutView::with_count_and_datatype(&mut r_birds[..], self.initial_flockers as i32, &bd)};
-        let mut l_buffer = unsafe { mpi::datatype::MutView::with_count_and_datatype(&mut l_birds[..], self.initial_flockers as i32, &bd)};
+        //processes exchange information about agents around the border (l_aoi and r_aoi)
+        let s1 = rust_ab::mpi::point_to_point::send_receive_into(&l_aoi[..],&l_process,&mut r_birds[..],&r_process);
         
-        let s1 = mpi::point_to_point::send_receive_into(&l_aoi_buff,&l_process,&mut r_buffer,&r_process);
-       
-        let s2 = mpi::point_to_point::send_receive_into(&r_aoi_buff,&r_process,&mut l_buffer,&l_process);
+        let s2 = rust_ab::mpi::point_to_point::send_receive_into(&r_aoi[..],&r_process,&mut l_birds[..],&l_process);
 
+        
         let received_r = s1.count(Bird::equivalent_datatype()) as usize;
         for mut bird in r_birds.into_iter().take(received_r){
             // println!("p{} received {} from RIGHT step {}, {}",rank+1,bird,self.step ,if bird.migrated {"MIGRATED"}else{"AOI"});

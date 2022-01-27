@@ -19,8 +19,8 @@ readme = "README.md"
 
 [dependencies]
 rust-ab = {git="https://github.com/rust-ab/rust-ab", branch="main" }
-mpi = { git = "https://github.com/bsteinb/rsmpi", rev = "f9aec8b8d82"}
-memoffset={ version="0.6.5"}
+# mpi = { git = "https://github.com/bsteinb/rsmpi", rev = "f9aec8b8d82"}
+# memoffset = { version = "0.6.4"}
 
 [features]
 explore = ["rust-ab/explore"]
