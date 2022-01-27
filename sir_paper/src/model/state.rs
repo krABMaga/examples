@@ -4,9 +4,9 @@ use rust_ab::engine::fields::field::Field;
 use rust_ab::engine::fields::network::Network;
 use rust_ab::engine::schedule::Schedule;
 use rust_ab::engine::state::State;
+use rust_ab::fmt;
 use rust_ab::rand;
 use rust_ab::rand::Rng;
-use rust_ab::fmt;
 use std::any::Any;
 use std::sync::{Arc, Mutex};
 
@@ -52,7 +52,7 @@ impl EpidemicNetworkState {
 
 impl fmt::Display for EpidemicNetworkState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Rt {:.4}", self.rt)
+        write!(f, "Rt {:.4} - Step {}", self.rt, self.step)
     }
 }
 
@@ -152,7 +152,6 @@ impl State for EpidemicNetworkState {
     // }
 
     fn end_condition(&mut self, schedule: &mut Schedule) -> bool {
-
         // check if there are no more infected node
         let mut infected: usize = 0;
         let agents = schedule.get_all_events();
@@ -168,7 +167,7 @@ impl State for EpidemicNetworkState {
 
         let infected_nodes = self.infected_nodes.lock().unwrap();
         // compute the RT after 30 days
-        if self.step == 32 { 
+        if self.step == 32 {
             let mut counter = 0;
 
             let mut value = 0;
@@ -187,19 +186,19 @@ impl State for EpidemicNetworkState {
 
         // count the daily infection
         let mut newly_infected = 0;
-        for i in 0..infected_nodes.len(){
+        for i in 0..infected_nodes.len() {
             newly_infected += infected_nodes[i];
         } // tutti gli infettati dei giorni precedenti + i nuovi
-        
+
         // per ottenere solo i nuovi togliamo da newly_infected old_infected
-        // newly infecteed di ieri - newly_infected di oggi  
+        // newly infecteed di ieri - newly_infected di oggi
         let output = newly_infected - self.old_infected;
 
         // vettore con gli infetti del giorno [i] = nuovi infetti giorno i
-        self.daily_infected[self.step as usize - 1] = output;         
+        self.daily_infected[self.step as usize - 1] = output;
 
-        // println!("AFTER Day {} - Daily infected {} - old infected {} - Cumulative sum (old + new) {}", 
-        //     self.step, 
+        // println!("AFTER Day {} - Daily infected {} - old infected {} - Cumulative sum (old + new) {}",
+        //     self.step,
         //     output,
         //     self.old_infected,
         //     newly_infected);
@@ -207,8 +206,8 @@ impl State for EpidemicNetworkState {
         // aggiorno gli infetti del giorno per usarli il giorno dopo
         self.old_infected = newly_infected;
 
-        // // trasformiamo l'array di 66 giorni in un array di 60 giorni 
-        // // in cui ogni posizione contiene la media settimanale        
+        // // trasformiamo l'array di 66 giorni in un array di 60 giorni
+        // // in cui ogni posizione contiene la media settimanale
         // if self.step > 36 {
         //     // println!("Calcolo la media mobile al passo {}, daily infected len {}", self.step, self.daily_infected.len());
 

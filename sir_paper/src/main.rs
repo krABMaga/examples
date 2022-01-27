@@ -13,7 +13,7 @@ mod model;
 
 // generic model parameters
 pub static INIT_EDGES: usize = 1;
-pub const NUM_NODES: u32 = 100_000;
+pub const NUM_NODES: u32 = 10_000;
 pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 
@@ -22,11 +22,11 @@ pub const MUTATION_RATE: f64 = 0.1;
 pub const DESIRED_FITNESS: f32 = 0.;
 pub const MAX_GENERATION: u32 = 10; // 1000
 pub const INDIVIDUALS: u32 = 60; // 100
-pub const REPETITION: u32 = 5;
+pub const REPETITION: u32 = 10;
 
 lazy_static! {
     pub static ref DATA: Vec<f32> = {
-        let mut rdr = Reader::from_path("data/data_perc.csv").unwrap();
+        let mut rdr = Reader::from_path("data/data_perc_60.csv").unwrap();
 
         let mut x: Vec<f32> = Vec::new();
 
@@ -39,13 +39,10 @@ lazy_static! {
     };
 }
 
-pub const STEP: u64 = 66;
+pub const STEP: u64 = 68;
 
 fn main() {
-
-    // let mut epidemic_network = EpidemicNetworkState::new_with_parameters("0.08446825;0.068867095");
-
-    // for i in 0..100{
+    // for i in 0..5{
     //     simulate!(STEP, &mut epidemic_network, 1, Info::Verbose);
     //     let mut normalized: Vec<f32> = Vec::new();
     //     for i in 0..epidemic_network.weekly_infected.len() {
@@ -56,9 +53,9 @@ fn main() {
     //     for k in 0..30 {
     //         state_error += (DATA[k] - epidemic_network.weekly_infected[k]).powf(2.);
     //     }
-        
-    //     if state_error < 1. && state_error != 0.000023020513{   
-    //         let file_name = format!("sim_data{}.csv", i);
+
+    //     if state_error < 5. && state_error != 0.000023020513{
+    //         let file_name = format!("sim_data_0_{}.csv", i);
 
     //         let mut file = OpenOptions::new()
     //             .read(true)
@@ -67,8 +64,8 @@ fn main() {
     //             .create(true)
     //             .open(file_name.to_string())
     //             .unwrap();
-        
-    //         writeln!(file, "{:#?}", state_error).expect("Unable to write file.");
+
+    //         writeln!(file, "Error {:#?} using 0.05284346;0.039507512", state_error).expect("Unable to write file.");
     //         for i in 0..normalized.len() {
     //             writeln!(file, "{:#?}", normalized[i]).expect("Unable to write file.");
     //         }
@@ -108,7 +105,7 @@ fn init_population() -> Vec<String> {
         let mut rng = rand::thread_rng();
         let x = rng.gen_range(0.0..=1.0_f32).to_string(); // spread chance
         let y = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
-        // let y = rng.gen_range(0.14..=0.3_f32).to_string(); // recovery chance beween 3 and 7 days
+                                                          // let y = rng.gen_range(0.14..=0.3_f32).to_string(); // recovery chance beween 3 and 7 days
 
         population.push(format!("{};{}", x, y));
     }
@@ -180,41 +177,59 @@ fn crossover(population: &mut Vec<String>) {
     // a = xa, ya || b = xb, yb
     // child will be (xa, yb) or (xb, ya)
 
-    let mut parents = population.clone();
+    // let mut parents = population.clone();
 
     let mut additional_individuals = INDIVIDUALS as usize - population.len(); // N/2
-
+    let len = population.len();
     while additional_individuals > 0 {
         // select two random individuals
-        let idx_one = rng.gen_range(0..parents.len());
-        let parent_one = parents[idx_one].clone();
-        parents.remove(idx_one);
+        let idx_one = rng.gen_range(0..len);
+        //let parent_one = parents[idx_one].clone();
+        let parent_one = population[idx_one].clone();
+        //parents.remove(idx_one);
 
-        if additional_individuals == 1 {
-            population.push(parent_one);
-            additional_individuals -= 1;
-            continue;
+        // if additional_individuals == 1 {
+        //     population.push(parent_one);
+        //     additional_individuals -= 1;
+        //     continue;
+        // }
+
+        let mut idx_two = rng.gen_range(0..len);
+
+        while idx_one == idx_two {
+            idx_two = rng.gen_range(0..len);
         }
 
-        let idx_two = rng.gen_range(0..parents.len());
-        let parent_two = parents[idx_two].clone();
-        parents.remove(idx_two);
+        // let parent_two = parents[idx_two].clone();
+        let parent_two = population[idx_two].clone();
+        //parents.remove(idx_two);
 
         let parent_one: Vec<&str> = parent_one.split(';').collect();
-        let one_spread = parent_one[0];
-        let one_recovery = parent_one[1];
+        let one_spread = parent_one[0]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let one_recovery = parent_one[1]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
 
         let parent_two: Vec<&str> = parent_two.split(';').collect();
-        let two_spread = parent_two[0];
-        let two_recovery = parent_two[1];
+        let two_spread = parent_two[0]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let two_recovery = parent_two[1]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
 
-        let new_individual_one = format!("{};{}", one_spread, two_recovery);
-        let new_individual_two = format!("{};{}", two_spread, one_recovery);
+        let new_individual = format!(
+            "{};{}",
+            (one_spread + two_spread) / 2.,
+            (one_recovery + two_recovery) / 2.
+        );
 
-        population.push(new_individual_one);
-        population.push(new_individual_two);
+        population.push(new_individual);
+        //population.push(new_individual_two);
 
-        additional_individuals -= 2;
+        additional_individuals -= 1;
     }
 }
 
@@ -228,36 +243,42 @@ fn mutation(individual: &mut String) {
     // mutate one random parameter
     // randomly increase or decrease spread orrecovery
     if rng.gen_bool(MUTATION_RATE) {
+        let x = 0.1;
+
         if rng.gen_bool(0.5) {
             // mutate spread
-            let x = rng.gen_range(0.01..=0.2_f32);
+            //let x = rng.gen_range(0.01..=0.2_f32);
             let mut new_spread = one_spread
                 .parse::<f32>()
                 .expect("Unable to parse str to f32!");
             if rng.gen_bool(0.5) {
-                if new_spread + x < 1.0 {
-                    new_spread += x;
+                new_spread += x;
+                if new_spread > 1.0 {
+                    new_spread = 1.;
                 }
             } else {
-                if new_spread - x > 0. {
-                    new_spread -= x;
+                new_spread -= x;
+                if new_spread < 0. {
+                    new_spread = 0.;
                 }
             }
             new_ind = format!("{};{}", new_spread, one_recovery);
         } else {
             // mutate recovery
-            let x = rng.gen_range(0.01..=0.2_f32);
+            // let x = rng.gen_range(0.01..=0.2_f32);
             let mut new_recovery = one_recovery
                 .parse::<f32>()
                 .expect("Unable to parse str to f32!");
 
             if rng.gen_bool(0.5) {
-                if new_recovery + x < 1.0 {
-                    new_recovery += x;
+                new_recovery += x;
+                if new_recovery > 1.0 {
+                    new_recovery = 1.;
                 }
             } else {
-                if new_recovery - x > 0. {
-                    new_recovery -= x;
+                new_recovery -= x;
+                if new_recovery < 0. {
+                    new_recovery = 0.;
                 }
             }
             new_ind = format!("{};{}", one_spread, new_recovery);
@@ -272,16 +293,15 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     for i in 0..computed_ind.len() {
         // stessa simulazione runnata n volte
 
-
-        // trasformiamo l'array di 66 giorni in un array di 60 giorni 
-        // in cui ogni posizione contiene la media settimanale        
-        
-        for h in 3..(computed_ind[i].0.daily_infected.len()-3) {
+        // trasformiamo l'array di 66 giorni in un array di 60 giorni
+        // in cui ogni posizione contiene la media settimanale
+        for h in 3..(computed_ind[i].0.daily_infected.len() - 3) {
             let mut media_mobile = 0.;
             for g in -3..=3 {
-                media_mobile += computed_ind[i].0.daily_infected[((h as i32)-(g as i32)) as usize] as f32;
+                media_mobile +=
+                    computed_ind[i].0.daily_infected[((h as i32) - (g as i32)) as usize] as f32;
             }
-            computed_ind[i].0.weekly_infected[h-3] = media_mobile / 7.0; // media settimanale
+            computed_ind[i].0.weekly_infected[h - 3] = media_mobile / 7.0; // media settimanale
         }
 
         // println!("Weekly infected of individual {}", i);
@@ -292,25 +312,22 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
             // println!("-- {:#?}", computed_ind[i].0.weekly_infected[j]);
         }
         // println!("-------------");
-        
 
         // calcolo l'errore rispetto agli observed results usando la formula
         // sommatoria da i=0 a n=30 di (s[i] - o[i])^2
         // dove s[i] è la media settimanale del giorno i calcolato dalla simulazione
         // e o[i] è la media settimanale del giorno i osservato (contenuto nel file csv)
         let mut ind_error = 0.;
-        for k in 0..30 {
-            // if k not exits
-            // i.e. the simulation did not reach (36 steps / 30 days)
+        for k in 0..61 {
             ind_error += (DATA[k] - computed_ind[i].0.weekly_infected[k]).powf(2.);
-            
+            // println!("Ind error {}", ind_error);
         }
         error += ind_error;
 
         // println!("\tIndividual {} has error {:?}", i, ind_error);
     }
 
-    // println!("Fitness is {}", error / computed_ind.len() as f32);
+    println!("Fitness is {}", error / computed_ind.len() as f32);
 
     error / computed_ind.len() as f32
 }
@@ -318,52 +335,55 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
 fn cmp(fitness1: &f32, fitness2: &f32) -> bool {
     *fitness1 < *fitness2
 }
-/*
-fn old_fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
-    // Sort the array using the RT
-    // computed_ind.sort_by(|s1, s2| s1.0.rt.partial_cmp(&s2.0.rt).unwrap_or(Equal));
 
-    // println!("Sorted RT: -------------------------------");
-    // for i in 0..computed_ind.len() {
-    //     print!("{}\t", computed_ind[i].0.rt);
-    // }
-    // println!("\n-------------------------------");
+// fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
+//     // Sort the array using the RT
+//     // computed_ind.sort_by(|s1, s2| s1.0.rt.partial_cmp(&s2.0.rt).unwrap_or(Equal));
 
-    // Get the median of the array
-    // let index = (computed_ind.len() + 1) / 2;
-    // let mut median = computed_ind[index - 1].0.rt;
-    // median = median * ( 1. - (30.computed_ind[index - 1].1.step as f32) / 30.);
+//     // println!("Sorted RT: -------------------------------");
+//     // for i in 0..computed_ind.len() {
+//     //     print!("{}\t", computed_ind[i].0.rt);
+//     // }
+//     // println!("\n-------------------------------");
 
-    // 1. - (DESIRED_RT - median).abs() / (DESIRED_RT.powf(2.) + median.powf(2.)).sqrt()
+//     // Get the median of the array
+//     // let index = (computed_ind.len() + 1) / 2;
+//     // let mut median = computed_ind[index - 1].0.rt;
+//     // median = median * ( 1. - (30.computed_ind[index - 1].1.step as f32) / 30.);
 
-    let mut sum_rt = 0.;
-    let mut rt_norm;
-    for ind in &*computed_ind {
-        rt_norm = ind.0.rt * (1. - (30. - ind.1.step as f32) / 30.);
-        sum_rt += rt_norm;
-    }
+//     // 1. - (DESIRED_RT - median).abs() / (DESIRED_RT.powf(2.) + median.powf(2.)).sqrt()
 
-    let mut avg = sum_rt / computed_ind.len() as f32;
-    avg = (avg * 1000.).round() / 1000.;
+//     let mut sum_rt = 0.;
+//     let mut rt_norm;
+//     for ind in &*computed_ind {
+//         rt_norm = ind.0.rt * (1. - (30. - ind.1.step as f32) / 30.);
+//         sum_rt += rt_norm;
+//     }
 
-    let fitness = 1. - (DESIRED_RT - avg).abs() / (DESIRED_RT.powf(2.) + avg.powf(2.)).sqrt();
-    // println!("Fitness: RT is {:?} - fitness is {}", avg, fitness);
+//     let mut avg = sum_rt / computed_ind.len() as f32;
+//     avg = (avg * 1000.).round() / 1000.;
 
-    // let to_write = format!(
-    //     "RT {} - Fitness {} - Spread {} - Recovery {}",
-    //     avg, fitness, computed_ind[0].0.spread, computed_ind[0].0.recovery
-    // );
+//     let fitness = 1. - (DESIRED_RT - avg).abs() / (DESIRED_RT.powf(2.) + avg.powf(2.)).sqrt();
+//     // println!("Fitness: RT is {:?} - fitness is {}", avg, fitness);
 
-    // let mut file = OpenOptions::new()
-    //     .read(true)
-    //     .append(true)
-    //     .write(true)
-    //     .create(true)
-    //     .open("results.txt")
-    //     .unwrap();
+//     // let to_write = format!(
+//     //     "RT {} - Fitness {} - Spread {} - Recovery {}",
+//     //     avg, fitness, computed_ind[0].0.spread, computed_ind[0].0.recovery
+//     // );
 
-    // writeln!(file, "{:#?}", to_write).expect("Unable to write file.");
+//     // let mut file = OpenOptions::new()
+//     //     .read(true)
+//     //     .append(true)
+//     //     .write(true)
+//     //     .create(true)
+//     //     .open("results.txt")
+//     //     .unwrap();
 
-    fitness
-}
- */
+//     // writeln!(file, "{:#?}", to_write).expect("Unable to write file.");
+
+//     fitness
+// }
+
+// fn cmp(fitness1: &f32, fitness2: &f32) -> bool {
+//     *fitness1 > *fitness2
+// }
