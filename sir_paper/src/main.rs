@@ -13,16 +13,16 @@ mod model;
 
 // generic model parameters
 pub static INIT_EDGES: usize = 1;
-pub const NUM_NODES: u32 = 10_000;
+pub const NUM_NODES: u32 = 5_000;
 pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 
 // GA specific parameters
 pub const MUTATION_RATE: f64 = 0.1;
 pub const DESIRED_FITNESS: f32 = 0.;
-pub const MAX_GENERATION: u32 = 200; // 1000
-pub const INDIVIDUALS: u32 = 128; // 100
-pub const REPETITION: u32 = 20;
+pub const MAX_GENERATION: u32 = 10; // 1000
+pub const INDIVIDUALS: u32 = 60; // 100
+pub const REPETITION: u32 = 100;
 
 lazy_static! {
     pub static ref DATA: Vec<f32> = {
@@ -39,62 +39,61 @@ lazy_static! {
     };
 }
 
-pub const STEP: u64 = 68;
+pub const STEP: u64 = 20;
 
 fn main() {
-    let mut epidemic_network = EpidemicNetworkState::new_with_parameters("0.31240836;0.0654924");
-    for i in 0..100 {
-        simulate!(STEP, &mut epidemic_network, 1, Info::Verbose);
-        let mut normalized: Vec<f32> = Vec::new();
+    // let mut epidemic_network = EpidemicNetworkState::new_with_parameters("0.355624;0.041708402");
+    // for i in 0..100 {
+    //     simulate!(STEP, &mut epidemic_network, 1, Info::Verbose);
+    //     let mut normalized: Vec<f32> = Vec::new();
 
-        for j in 0..epidemic_network.weekly_infected.len() {
-            normalized.push(epidemic_network.weekly_infected[j] / NUM_NODES as f32);
-        }
-        println!("Step {}\n{:?}\n", epidemic_network.step, normalized);
+    //     for j in 0..epidemic_network.weekly_infected.len() {
+    //         normalized.push(epidemic_network.weekly_infected[j] / NUM_NODES as f32);
+    //     }
 
-        let mut state_error = 0.;
-        for k in 0..61 {
-            state_error += (DATA[k] - normalized[k]).powf(2.);
-        }
+    //     let mut state_error = 0.;
+    //     for k in 0..61 {
+    //         state_error += (DATA[k] - normalized[k]).powf(2.);
+    //     }
 
-        if state_error < 0.000009416265 && epidemic_network.step > 60 {
-            let file_name = format!("sim_data_0_{}.csv", i);
+    //     if state_error < 0.000009416265 && epidemic_network.step > 60 {
+    //         let file_name = format!("sim_data_0_{}.csv", i);
 
-            let mut file = OpenOptions::new()
-                .read(true)
-                .append(true)
-                .write(true)
-                .create(true)
-                .open(file_name.to_string())
-                .unwrap();
+    //         let mut file = OpenOptions::new()
+    //             .read(true)
+    //             .append(true)
+    //             .write(true)
+    //             .create(true)
+    //             .open(file_name.to_string())
+    //             .unwrap();
 
-            writeln!(file, "Error {:#?}", state_error).expect("Unable to write file.");
-            for k in 0..normalized.len() {
-                writeln!(file, "{:#?}", normalized[k]).expect("Unable to write file.");
-            }
-        }
-        println!("Simulation {} has error {}", i, state_error);
-    }
-
-    // let result = explore_ga_parallel!(
-    //     init_population,
-    //     fitness,
-    //     selection,
-    //     mutation,
-    //     crossover,
-    //     cmp,
-    //     EpidemicNetworkState,
-    //     DESIRED_FITNESS,
-    //     MAX_GENERATION,
-    //     STEP,
-    //     REPETITION,
-    // );
-    // if !result.is_empty() {
-    //     // I'm the master
-    //     // build csv from all procexplore_result
-    //     let name = "explore_result".to_string();
-    //     let _res = write_csv(&name, &result);
+    //         writeln!(file, "Error {:#?} - RT {}", state_error, epidemic_network.rt).expect("Unable to write file.");
+    //         for k in 0..normalized.len() {
+    //             writeln!(file, "{:#?}", normalized[k]).expect("Unable to write file.");
+    //         }
+    //     }
+    //     println!("Simulation {} has error {}", i, state_error);
     // }
+
+    let result = explore_ga_parallel!(
+        init_population,
+        fitness,
+        selection,
+        mutation,
+        crossover,
+        cmp,
+        EpidemicNetworkState,
+        DESIRED_FITNESS,
+        MAX_GENERATION,
+        STEP,
+        REPETITION,
+    );
+    if !result.is_empty() {
+        // I'm the master
+        // build csv from all procexplore_result
+        let name = "explore_result".to_string();
+        let _res = write_csv(&name, &result);
+    }
 }
 
 // function that initialize the populatin
@@ -347,11 +346,17 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
         // where simulated[i] is the weekly average of new infected of the day i of the simulation
         // and observed[i] is the weekly average of new infected of the day i within the official data
         let mut ind_error = 0.;
-        for k in 0..61 {
+        for k in 0..20 {
             ind_error += (DATA[k] - computed_ind[i].0.weekly_infected[k]).powf(2.);
         }
         error += ind_error;
+        
+        //uno dei due si può rimuovere?
+        if computed_ind[i].0.step < 20 || computed_ind[i].0.rt == 0.0 {
+            error += 100.;
+        }
     }
+
     error / computed_ind.len() as f32
 }
 

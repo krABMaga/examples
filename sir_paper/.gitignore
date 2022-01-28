@@ -1,6 +1,6 @@
 /target
 Cargo.lock
 .idea
-*.csv
+# *.csv
 *.txt
-*.out
+# *.out

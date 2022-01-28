@@ -167,7 +167,7 @@ impl State for EpidemicNetworkState {
 
         let infected_nodes = self.infected_nodes.lock().unwrap();
         // compute the RT after 60 days
-        if self.step == 60 {
+        // if self.step == 60 {
             let mut counter = 0;
 
             let mut value = 0;
@@ -182,7 +182,7 @@ impl State for EpidemicNetworkState {
             } else {
                 self.rt = (value as f32 / counter as f32) as f32;
             }
-        }
+        // }
 
         // count the daily infection
         let mut newly_infected = 0;
