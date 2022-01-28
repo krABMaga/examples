@@ -48,7 +48,7 @@ impl EpidemicNetworkState {
         let recovery = parameters_ind[1]
             .parse::<f32>()
             .expect("Unable to parse str to f32!");
-      
+
         EpidemicNetworkState::new(spread, recovery, r)
     }
 }
@@ -61,7 +61,7 @@ impl fmt::Display for EpidemicNetworkState {
 
 impl State for EpidemicNetworkState {
     fn init(&mut self, schedule: &mut Schedule) {
-        let mut rng = rand::thread_rng();
+
         let my_seed: u64 = 0;
         let mut node_set = Vec::new();
         self.network = Network::new(false);
@@ -70,6 +70,7 @@ impl State for EpidemicNetworkState {
         // build a support array having the NodeStatus configuration
         let mut positions = vec![0; NUM_NODES as usize];
 
+        // let mut rng = rand::thread_rng();
         // let mut infected_counter = 0;
         // generate exactly INITIAL_INFECTED * NUM_NODES infected nodes
         // while infected_counter != (INITIAL_INFECTED * NUM_NODES as f32) as u32 {
@@ -168,61 +169,40 @@ impl State for EpidemicNetworkState {
             return true;
         }
 
+        // compute the rt
         let infected_nodes = self.infected_nodes.lock().unwrap();
-        // compute the RT after 60 days
-        // if self.step == 60 {
-            let mut counter = 0;
-
-            let mut value = 0;
-            for i in 3..infected_nodes.len() {
-                if infected_nodes[i] != 0 {
-                    counter += 1;
-                    value += infected_nodes[i];
-                }
+        let mut counter = 0;
+        let mut value = 0;
+        for i in 3..infected_nodes.len() {
+            if infected_nodes[i] != 0 {
+                counter += 1;
+                value += infected_nodes[i];
             }
-            if value == 0 {
-                self.rt = 0.;
-            } else {
-                self.rt = (value as f32 / counter as f32) as f32;
-            }
-        // }
-
+        }
+        if value == 0 {
+            self.rt = 0.;
+        } else {
+            self.rt = (value as f32 / counter as f32) as f32;
+        }
+        
         // count the daily infection
         let mut newly_infected = 0;
         for i in 0..infected_nodes.len() {
             newly_infected += infected_nodes[i];
-        } // tutti gli infettati dei giorni precedenti + i nuovi
-
-        // per ottenere solo i nuovi togliamo da newly_infected old_infected
-        // newly infecteed di ieri - newly_infected di oggi
+        } 
+        
+        // compute the daily weekly average of infection
         let output = newly_infected - self.old_infected;
-
-        // vettore con gli infetti del giorno [i] = nuovi infetti giorno i
         self.daily_infected[self.step as usize - 1] = output;
-
-        // println!("AFTER Day {} - Daily infected {} - old infected {} - Cumulative sum (old + new) {}",
-        //     self.step,
-        //     output,
-        //     self.old_infected,
-        //     newly_infected);
-
-        // aggiorno gli infetti del giorno per usarli il giorno dopo
         self.old_infected = newly_infected;
-
-        // // trasformiamo l'array di 66 giorni in un array di 60 giorni
-        // // in cui ogni posizione contiene la media settimanale
-        //if self.step > 36 {
-        // println!("Calcolo la media mobile al passo {}, daily infected len {}", self.step, self.daily_infected.len());
 
         for i in 3..(self.daily_infected.len() - 3) {
             let mut media_mobile = 0.;
             for j in -3..=3 {
                 media_mobile += self.daily_infected[((i as i32) - (j as i32)) as usize] as f32;
             }
-            self.weekly_infected[i - 3] = media_mobile / 7.0; // media settimanale
+            self.weekly_infected[i - 3] = media_mobile / 7.0; 
         }
-        // println!("Vec_output {:?}\n\n\n", self.weekly_infected);
-        //    }
 
         false
     }
