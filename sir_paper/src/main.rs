@@ -13,20 +13,20 @@ mod model;
 
 // generic model parameters
 pub static INIT_EDGES: usize = 1;
-pub const NUM_NODES: u32 = 5_000;
+pub const NUM_NODES: u32 = 10_000;
 pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 
 // GA specific parameters
-pub const MUTATION_RATE: f64 = 0.1;
+pub const MUTATION_RATE: f64 = 0.2;
 pub const DESIRED_FITNESS: f32 = 0.;
-pub const MAX_GENERATION: u32 = 10; // 1000
-pub const INDIVIDUALS: u32 = 60; // 100
-pub const REPETITION: u32 = 100;
+pub const MAX_GENERATION: u32 = 50; // 1000
+pub const INDIVIDUALS: u32 = 100; // 100
+pub const REPETITION: u32 = 50;
 
 lazy_static! {
     pub static ref DATA: Vec<f32> = {
-        let mut rdr = Reader::from_path("data/data_perc_60.csv").unwrap();
+        let mut rdr = Reader::from_path("data/data_perc.csv").unwrap();
 
         let mut x: Vec<f32> = Vec::new();
 
@@ -39,42 +39,72 @@ lazy_static! {
     };
 }
 
-pub const STEP: u64 = 20;
+pub const STEP: u64 = 37;
 
 fn main() {
-    // let mut epidemic_network = EpidemicNetworkState::new_with_parameters("0.355624;0.041708402");
-    // for i in 0..100 {
+
+    // let mut all_sim: Vec<Vec<f32>> = Vec::new();
+    // let mut avg: Vec<f32> = Vec::new();
+    
+    // for i in 0..50 {
+    //     let mut epidemic_network = EpidemicNetworkState::new_with_parameters(i, "0.047499306;0.2911332");
     //     simulate!(STEP, &mut epidemic_network, 1, Info::Verbose);
     //     let mut normalized: Vec<f32> = Vec::new();
-
     //     for j in 0..epidemic_network.weekly_infected.len() {
     //         normalized.push(epidemic_network.weekly_infected[j] / NUM_NODES as f32);
     //     }
-
     //     let mut state_error = 0.;
-    //     for k in 0..61 {
+    //     for k in 0..31 {
     //         state_error += (DATA[k] - normalized[k]).powf(2.);
     //     }
+    //     if epidemic_network.step > 30 {
+    //         // let file_name = format!("sim_data_0_{}.csv", i);
 
-    //     if state_error < 0.000009416265 && epidemic_network.step > 60 {
-    //         let file_name = format!("sim_data_0_{}.csv", i);
+    //         // let mut file = OpenOptions::new()
+    //         //     .read(true)
+    //         //     .append(true)
+    //         //     .write(true)
+    //         //     .create(true)
+    //         //     .open(file_name.to_string())
+    //         //     .unwrap();
 
-    //         let mut file = OpenOptions::new()
-    //             .read(true)
-    //             .append(true)
-    //             .write(true)
-    //             .create(true)
-    //             .open(file_name.to_string())
-    //             .unwrap();
+    //         // writeln!(file, "Error {:#?} - RT {}", state_error, epidemic_network.rt).expect("Unable to write file.");
+    //         // for k in 0..normalized.len() {
+    //         //     writeln!(file, "{:#?}", normalized[k]).expect("Unable to write file.");
+    //         // }
 
-    //         writeln!(file, "Error {:#?} - RT {}", state_error, epidemic_network.rt).expect("Unable to write file.");
-    //         for k in 0..normalized.len() {
-    //             writeln!(file, "{:#?}", normalized[k]).expect("Unable to write file.");
-    //         }
+    //         all_sim.push(normalized);
     //     }
     //     println!("Simulation {} has error {}", i, state_error);
     // }
 
+    // let mut avg_val = 0.;
+    // // for each day
+    // for x in 0..31 {
+    //     // for each simulation
+    //     for y in 0..all_sim.len(){
+    //         // sum the error of each day
+    //         avg_val += all_sim[y][x];
+    //     }
+    //     avg_val /= all_sim.len() as f32;
+    //     avg.push(avg_val);
+    //     avg_val = 0.;
+    // }
+
+    // let file_name = format!("sim_data_avg.csv");
+    // let mut file = OpenOptions::new()
+    //     .read(true)
+    //     .append(true)
+    //     .write(true)
+    //     .create(true)
+    //     .open(file_name.to_string())
+    //     .unwrap();
+
+    // // writeln!(file, "Error {:#?} - RT {}", state_error, epidemic_network.rt).expect("Unable to write file.");
+    // for i in 0..avg.len() {
+    //     writeln!(file, "{:#?}", avg[i]).expect("Unable to write file.");
+    // }
+    
     let result = explore_ga_parallel!(
         init_population,
         fitness,
@@ -94,6 +124,37 @@ fn main() {
         let name = "explore_result".to_string();
         let _res = write_csv(&name, &result);
     }
+}
+
+fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
+    let mut error = 0.;
+    for i in 0..computed_ind.len() {
+        // iterates through the weekly infected array to normalize it
+        for j in 0..computed_ind[i].0.weekly_infected.len() {
+            computed_ind[i].0.weekly_infected[j] /= NUM_NODES as f32;
+        }
+
+        // compute the error of the simulated results compared to the observed data
+        // using the summation of each value of 61 days
+        // (simulated[i] - observed[i])^2
+        // where simulated[i] is the weekly average of new infected of the day i of the simulation
+        // and observed[i] is the weekly average of new infected of the day i within the official data
+        let mut ind_error = 0.;
+        for k in 0..31 {
+            ind_error += (
+                (DATA[k] - computed_ind[i].0.weekly_infected[k]) / DATA[k]
+            ).powf(2.);
+        }
+        error += ind_error;
+    }
+    error / computed_ind.len() as f32
+}
+
+// we want to minimize the fitness, therefore the comparison
+// return true, meaning that fitness1 is better than fitness2,
+// if fitness1 is lower than fitness 2
+fn cmp(fitness1: &f32, fitness2: &f32) -> bool {
+    *fitness1 < *fitness2
 }
 
 // function that initialize the populatin
@@ -179,16 +240,16 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
 fn crossover(population: &mut Vec<String>) {
     let mut rng = rand::thread_rng();
 
-    // let mut additional_individuals = INDIVIDUALS as usize - population.len(); // N/2
-    let mut len = population.len();
-    if len % 2 == 1 {
-        len = (len / 2) + 1;
-    } else {
-        len /= 2;
+    let mut children: Vec<String> = Vec::new();
+
+    let twenty_perc = INDIVIDUALS as f32 * 0.2; // 100 * 0.2 = 20
+    for i in 0..(twenty_perc as usize) {
+        children.push(population[i].clone());
     }
 
-    let mut sons: Vec<String> = Vec::new();
-    for i in 0..len {
+    let children_num = INDIVIDUALS as f32 - twenty_perc; // 100 - 20 = 80
+
+    for _ in 0..(children_num as usize) {
         // select two random individuals
         let idx_one = rng.gen_range(0..population.len());
         let parent_one = population[idx_one].clone();
@@ -214,17 +275,61 @@ fn crossover(population: &mut Vec<String>) {
             .parse::<f32>()
             .expect("Unable to parse str to f32!");
 
+        let mut min;
+        let mut max;
+        let alpha = 0.1;
+
+        if one_spread <= two_spread {
+            min = one_spread;
+            max = two_spread;
+        } else {
+            min = two_spread;
+            max = one_spread;
+        }
+        
+        let mut range = max - min;
+        let mut p_min = 0.;
+        let mut p_max =1.0;
+        if min - (range * alpha) > 0. {
+            p_min = min - (range * alpha);
+        }
+        if max + (range * alpha) < 1.0 {
+            p_max = max + (range * alpha);
+        }
+
+        let new_spread = rng.gen_range(p_min..=p_max);
+
+        if one_recovery <= two_recovery {
+            min = one_recovery;
+            max = two_recovery;
+        } else {
+            min = two_recovery;
+            max = one_recovery;
+        }
+        
+        range = max - min;
+        p_min = 0.;
+        p_max =1.0;
+        if min - (range * alpha) > 0. {
+            p_min = min - (range * alpha);
+        }
+        if max + (range * alpha) < 1.0 {
+            p_max = max + (range * alpha);
+        }
+
+        let new_recovery = rng.gen_range(p_min..=p_max);
+        
         let new_individual = format!(
             "{};{}",
-            (one_spread + two_spread) / 2.,
-            (one_recovery + two_recovery) / 2.
+            new_spread,
+            new_recovery
         );
+        // println!("new individual {:?}", new_individual);
 
-        sons.push(new_individual);
+        children.push(new_individual);
     }
 
-    population.truncate(len);
-    population.append(&mut sons);
+    *population = children;
 
     // let len = population.len();
     // while additional_individuals > 0 {
@@ -330,41 +435,6 @@ fn mutation(individual: &mut String) {
         }
         *individual = new_ind;
     }
-}
-
-fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
-    let mut error = 0.;
-    for i in 0..computed_ind.len() {
-        // iterates through the weekly infected array to normalize it
-        for j in 0..computed_ind[i].0.weekly_infected.len() {
-            computed_ind[i].0.weekly_infected[j] /= NUM_NODES as f32;
-        }
-
-        // compute the error of the simulated results compared to the observed data
-        // using the summation of each value of 61 days
-        // (simulated[i] - observed[i])^2
-        // where simulated[i] is the weekly average of new infected of the day i of the simulation
-        // and observed[i] is the weekly average of new infected of the day i within the official data
-        let mut ind_error = 0.;
-        for k in 0..20 {
-            ind_error += (DATA[k] - computed_ind[i].0.weekly_infected[k]).powf(2.);
-        }
-        error += ind_error;
-        
-        //uno dei due si può rimuovere?
-        if computed_ind[i].0.step < 20 || computed_ind[i].0.rt == 0.0 {
-            error += 100.;
-        }
-    }
-
-    error / computed_ind.len() as f32
-}
-
-// we want to minimize the fitness, therefore the comparison
-// return true, meaning that fitness1 is better than fitness2,
-// if fitness1 is lower than fitness 2
-fn cmp(fitness1: &f32, fitness2: &f32) -> bool {
-    *fitness1 < *fitness2
 }
 
 // fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {

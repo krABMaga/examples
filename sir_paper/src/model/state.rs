@@ -15,6 +15,7 @@ pub struct EpidemicNetworkState {
     pub network: Network<NetNode, String>,
     pub recovery: f32,
     pub spread: f32,
+    pub initial_infected: usize,
     pub rt: f32,
     pub infected_nodes: Arc<Mutex<Vec<u32>>>, // each position of the array corresponds to one node
     pub daily_infected: Vec<u32>, // each position corresponds to the newly infected nodes
@@ -23,12 +24,13 @@ pub struct EpidemicNetworkState {
 }
 
 impl EpidemicNetworkState {
-    pub fn new(spread: f32, recovery: f32) -> EpidemicNetworkState {
+    pub fn new(spread: f32, recovery: f32, initial_infected: usize) -> EpidemicNetworkState {
         EpidemicNetworkState {
             step: 0,
             network: Network::new(false),
             recovery,
             spread,
+            initial_infected,
             rt: 0.,
             infected_nodes: Arc::new(Mutex::new(vec![0; NUM_NODES as usize])), // dimension is NUM_NODE
             old_infected: 0,
@@ -38,7 +40,7 @@ impl EpidemicNetworkState {
     }
 
     // GA required new function to convert the string into parameters
-    pub fn new_with_parameters(parameters: &str) -> EpidemicNetworkState {
+    pub fn new_with_parameters(r: usize, parameters: &str) -> EpidemicNetworkState {
         let parameters_ind: Vec<&str> = parameters.split(';').collect();
         let spread = parameters_ind[0]
             .parse::<f32>()
@@ -46,7 +48,8 @@ impl EpidemicNetworkState {
         let recovery = parameters_ind[1]
             .parse::<f32>()
             .expect("Unable to parse str to f32!");
-        EpidemicNetworkState::new(spread, recovery)
+      
+        EpidemicNetworkState::new(spread, recovery, r)
     }
 }
 
@@ -77,7 +80,7 @@ impl State for EpidemicNetworkState {
         //     }
         // }
 
-        let node_id = rng.gen_range(0..NUM_NODES) as usize;
+        let node_id = self.initial_infected;
         positions[node_id] = 1;
 
         // generates nodes
