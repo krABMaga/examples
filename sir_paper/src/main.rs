@@ -22,9 +22,9 @@ pub const NUM_NODES: u32 = 10_000;
 // GA specific parameters
 pub const MUTATION_RATE: f64 = 0.3;
 pub const DESIRED_FITNESS: f32 = 0.;
-pub const MAX_GENERATION: u32 = 200;
-pub const INDIVIDUALS: u32 = 100;
-pub const REPETITION: u32 = 100;
+pub const MAX_GENERATION: u32 = 50;
+pub const INDIVIDUALS: u32 = 60;
+pub const REPETITION: u32 = 10;
 
 lazy_static! {
     pub static ref DATA: Vec<f32> = {
@@ -46,38 +46,41 @@ pub const STEP: u64 = 37;
 fn main() {
     // let mut all_sim: Vec<Vec<f32>> = Vec::new();
     // let mut avg: Vec<f32> = Vec::new();
-
-    // for i in 0..50 {
+    // let mut errors: Vec<f32> = Vec::new();
+    // for i in 0..500 {
     //     let mut epidemic_network =
-    //         EpidemicNetworkState::new_with_parameters(i, "0.047499306;0.2911332");
+    //         EpidemicNetworkState::new_with_parameters(i, "0.028769534;0.01248315");
     //     simulate!(STEP, &mut epidemic_network, 1, Info::Verbose);
     //     let mut normalized: Vec<f32> = Vec::new();
     //     for j in 0..epidemic_network.weekly_infected.len() {
     //         normalized.push(epidemic_network.weekly_infected[j] / NUM_NODES as f32);
     //     }
 
-            // for k in 0..31 {
-            //     state_error += (
-            //         (DATA[k] - normalized[k]) / DATA[k]
-            //     ).powf(2.);
-            // }
+    //     let mut state_error = 0.;
+    //     for k in 0..31 {
+    //         state_error += (
+    //             (DATA[k] - normalized[k]) / DATA[k]
+    //         ).powf(2.);
+    //     }
+    //     errors.push(state_error);
 
-    //     if epidemic_network.step > 30 {
-    //         // let file_name = format!("sim_data_0_{}.csv", i);
+    //     if epidemic_network.step > 30{
+    //         if state_error < 5. {
+    //             let file_name = format!("sim_data_0_{}.csv", i);
 
-    //         // let mut file = OpenOptions::new()
-    //         //     .read(true)
-    //         //     .append(true)
-    //         //     .write(true)
-    //         //     .create(true)
-    //         //     .open(file_name.to_string())
-    //         //     .unwrap();
+    //             let mut file = OpenOptions::new()
+    //                 .read(true)
+    //                 .append(true)
+    //                 .write(true)
+    //                 .create(true)
+    //                 .open(file_name.to_string())
+    //                 .unwrap();
 
-    //         // writeln!(file, "Error {:#?} - RT {}", state_error, epidemic_network.rt).expect("Unable to write file.");
-    //         // for k in 0..normalized.len() {
-    //         //     writeln!(file, "{:#?}", normalized[k]).expect("Unable to write file.");
-    //         // }
-
+    //             writeln!(file, "Error {:#?} - RT {}", state_error, epidemic_network.rt).expect("Unable to write file.");
+    //             for k in 0..normalized.len() {
+    //                 writeln!(file, "{:#?}", normalized[k]).expect("Unable to write file.");
+    //             }
+    //         }
     //         all_sim.push(normalized);
     //     }
     //     println!("Simulation {} has error {}", i, state_error);
@@ -109,6 +112,12 @@ fn main() {
     // for i in 0..avg.len() {
     //     writeln!(file, "{:#?}", avg[i]).expect("Unable to write file.");
     // }
+    // let mut avg_error = 0.;
+    // for value in &errors {
+    //     avg_error += value;
+    // }
+    // avg_error /= errors.len() as f32;
+    // println!("Avg_error: {} - Errors {:?}", avg_error, errors);
 
     let result = explore_ga_parallel!(
         init_population,
@@ -146,11 +155,41 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
         // and observed[i] is the weekly average of new infected of the day i within the official data
         let mut ind_error = 0.;
         for k in 0..31 {
-            ind_error += ((DATA[k] - computed_ind[i].0.weekly_infected[k]) / DATA[k]).powf(2.);
+            ind_error += ((k+1) as f32).ln() * 
+                    ((DATA[k] - computed_ind[i].0.weekly_infected[k]).powf(2.)) ;
+                    // ((DATA[k] - computed_ind[i].0.weekly_infected[k]) / DATA[k]).powf(2.) ;
         }
+        ind_error = (ind_error/31.).sqrt();
         error += ind_error;
     }
     error / computed_ind.len() as f32
+
+    // let mut average_error = 0.;
+    // let N = computed_ind.len().clone();
+    // for run in computed_ind {
+    //     let mut avg_err = 0.;
+    //     // iterates through the weekly infected array to normalize it
+    //     // and compute the average
+    //     for day in &run.0.weekly_infected {
+    //         avg_err += day / NUM_NODES as f32;
+    //     }
+    //     avg_err /= run.0.weekly_infected.len() as f32;
+
+    //     let mut SST = 0.;
+    //     for day in &run.0.weekly_infected {
+    //         SST += (day - avg_err).powf(2.);
+    //     }
+       
+    //     let mut SSR = 0.;
+    //     for i in 0..31 {
+    //         SSR += (run.0.weekly_infected[i] - DATA[i]).powf(2.);
+    //     }
+
+    //     let COD = (1. - (SSR / SST)) * 100.; 
+    //     average_error += SSR / run.0.weekly_infected.len() as f32;
+    // }
+    // // println!("average_error {}", average_error / N as f32);
+    // average_error / N as f32
 }
 
 // we want to minimize the fitness, therefore the comparison
