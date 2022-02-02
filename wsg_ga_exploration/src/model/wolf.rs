@@ -11,7 +11,7 @@ use rust_ab::{
 use std::hash::{Hash, Hasher};
 
 use crate::model::state::{LifeState, WsgState};
-use crate::{ENERGY_CONSUME, GAIN_ENERGY_WOLF, MOMENTUM_PROBABILITY, WOLF_REPR};
+use crate::{ENERGY_CONSUME, HEIGHT, MOMENTUM_PROBABILITY, WIDTH};
 
 #[derive(Copy, Clone)]
 pub struct Wolf {
@@ -19,13 +19,13 @@ pub struct Wolf {
     pub animal_state: LifeState,
     pub loc: Int2D,
     pub last: Option<Int2D>,
-    pub energy: f64,
-    pub gain_energy: f64,
-    pub prob_reproduction: f64,
+    pub energy: f32,
+    pub gain_energy: f32,
+    pub prob_reproduction: f32,
 }
 
 impl Wolf {
-    pub fn new(id: u32, loc: Int2D, energy: f64, gain_energy: f64, prob_reproduction: f64) -> Wolf {
+    pub fn new(id: u32, loc: Int2D, energy: f32, gain_energy: f32, prob_reproduction: f32) -> Wolf {
         Wolf {
             id,
             loc,
@@ -53,12 +53,12 @@ impl Agent for Wolf {
 
         let mut moved = false;
         if self.last != None && rng.gen_bool(MOMENTUM_PROBABILITY) {
-            if let Some(last_loc) = self.last {
-                let xm = x + (x - last_loc.x);
-                let ym = y + (y - last_loc.y);
+            if let Some(last_pos) = self.last {
+                let xm = x + (x - last_pos.x);
+                let ym = y + (y - last_pos.y);
                 let new_loc = Int2D { x: xm, y: ym };
                 // TRY TO MOVE WITH MOMENTUM_PROBABILITY
-                if xm >= 0 && xm < state.width && ym >= 0 && ym < state.height {
+                if (0..WIDTH).contains(&xm) && (0..HEIGHT).contains(&ym) {
                     self.loc = new_loc;
                     self.last = Some(Int2D { x, y });
                     moved = true;
@@ -67,9 +67,9 @@ impl Agent for Wolf {
         }
         if !moved {
             let xmin = if x > 0 { -1 } else { 0 };
-            let xmax = if x < state.width - 1 { 1 } else { 0 };
+            let xmax = if x < WIDTH - 1 { 1 } else { 0 };
             let ymin = if y > 0 { -1 } else { 0 };
-            let ymax = if y < state.height - 1 { 1 } else { 0 };
+            let ymax = if y < HEIGHT - 1 { 1 } else { 0 };
 
             let nx = if rng.gen_bool(0.5) { xmin } else { xmax };
             let ny = if rng.gen_bool(0.5) { ymin } else { ymax };
@@ -103,13 +103,18 @@ impl Agent for Wolf {
             self.animal_state = LifeState::Dead;
         } else {
             //REPRODUCE
-            if rng.gen_bool(self.prob_reproduction) {
+            if rng.gen_bool(self.prob_reproduction as f64) {
                 self.energy /= 2.0;
                 let mut new_id = state.next_id.lock().unwrap();
 
                 //let init_energy = rng.gen_range(0..(2 * GAIN_ENERGY_WOLF as usize));
-                let new_wolf =
-                    Wolf::new(*new_id, self.loc, self.energy, GAIN_ENERGY_WOLF, WOLF_REPR);
+                let new_wolf = Wolf::new(
+                    *new_id,
+                    self.loc,
+                    self.energy,
+                    state.gain_energy_wolf,
+                    state.wolf_repr,
+                );
 
                 //schedule.schedule_repeating(Box::new(new_wolf), schedule.time + 1.0, 1);
                 *new_id += 1;

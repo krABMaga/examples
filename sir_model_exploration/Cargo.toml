@@ -1,5 +1,5 @@
-﻿[package]
-name = "wsg_model_exploration"
+[package]
+name = "sir_model_exploration"
 version = "0.2.0"
 authors = [
     "Carmine Spagnuolo <spagnuolocarmine@gmail.com>", 
@@ -11,14 +11,16 @@ authors = [
     "Luca Postiglione <lucapostiglione10@gmail.com>", 
     "Giuseppe D'Ambrosio <giuseppe.dambrosio14@gmail.com>"
 ]
-edition = "2021"
+edition = "2018"
 license = "MIT"
 readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rust-ab = { git="https://github.com/rust-ab/rust-ab", branch="visualization-bevy-0.6" }
+rust-ab = { git="https://github.com/rust-ab/rust-ab" }
 
 [features]
 distributed_mpi = ["rust-ab/distributed_mpi"]
+parallel = ["rust-ab/parallel"]
+

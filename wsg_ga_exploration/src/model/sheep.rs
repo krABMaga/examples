@@ -1,32 +1,34 @@
+use crate::model::state::{LifeState, WsgState};
+use crate::{ENERGY_CONSUME, HEIGHT, MOMENTUM_PROBABILITY, WIDTH};
+
 use core::fmt;
-use rust_ab::{
-    engine::{
-        agent::Agent,
-        location::{Int2D, Location2D},
-        state::State,
-    },
-    rand,
-    rand::Rng,
-};
+use rust_ab::engine::agent::Agent;
+use rust_ab::engine::location::{Int2D, Location2D};
+use rust_ab::engine::state::State;
+use rust_ab::rand;
+use rust_ab::rand::Rng;
 use std::hash::{Hash, Hasher};
 
-use crate::model::state::{LifeState, WsgState};
-use crate::{ENERGY_CONSUME, GAIN_ENERGY_WOLF, MOMENTUM_PROBABILITY, WOLF_REPR};
-
 #[derive(Copy, Clone)]
-pub struct Wolf {
+pub struct Sheep {
     pub id: u32,
     pub animal_state: LifeState,
     pub loc: Int2D,
     pub last: Option<Int2D>,
-    pub energy: f64,
-    pub gain_energy: f64,
-    pub prob_reproduction: f64,
+    pub energy: f32,
+    pub gain_energy: f32,
+    pub prob_reproduction: f32,
 }
 
-impl Wolf {
-    pub fn new(id: u32, loc: Int2D, energy: f64, gain_energy: f64, prob_reproduction: f64) -> Wolf {
-        Wolf {
+impl Sheep {
+    pub fn new(
+        id: u32,
+        loc: Int2D,
+        energy: f32,
+        gain_energy: f32,
+        prob_reproduction: f32,
+    ) -> Sheep {
+        Sheep {
             id,
             loc,
             last: None,
@@ -43,36 +45,44 @@ impl Wolf {
     }
 }
 
-impl Agent for Wolf {
+impl Agent for Sheep {
     fn step(&mut self, state: &mut dyn State) {
         let state = state.as_any().downcast_ref::<WsgState>().unwrap();
 
+        // CHECK IF I AM DEAD
+        if self.animal_state == LifeState::Dead {
+            return;
+        }
+
+        //MOVE
         let x = self.loc.x;
         let y = self.loc.y;
         let mut rng = rand::thread_rng();
 
         let mut moved = false;
         if self.last != None && rng.gen_bool(MOMENTUM_PROBABILITY) {
-            if let Some(last_loc) = self.last {
-                let xm = x + (x - last_loc.x);
-                let ym = y + (y - last_loc.y);
+            if let Some(last_pos) = self.last {
+                let xm = x + (x - last_pos.x);
+                let ym = y + (y - last_pos.y);
                 let new_loc = Int2D { x: xm, y: ym };
                 // TRY TO MOVE WITH MOMENTUM_PROBABILITY
-                if xm >= 0 && xm < state.width && ym >= 0 && ym < state.height {
+                if (0..WIDTH).contains(&xm) && (0..HEIGHT).contains(&ym) {
                     self.loc = new_loc;
                     self.last = Some(Int2D { x, y });
                     moved = true;
                 }
             }
         }
+
         if !moved {
             let xmin = if x > 0 { -1 } else { 0 };
-            let xmax = if x < state.width - 1 { 1 } else { 0 };
+            let xmax = if x < WIDTH - 1 { 1 } else { 0 };
             let ymin = if y > 0 { -1 } else { 0 };
-            let ymax = if y < state.height - 1 { 1 } else { 0 };
+            let ymax = if y < HEIGHT - 1 { 1 } else { 0 };
 
             let nx = if rng.gen_bool(0.5) { xmin } else { xmax };
             let ny = if rng.gen_bool(0.5) { ymin } else { ymax };
+
             self.loc = Int2D {
                 x: x + nx,
                 y: y + ny,
@@ -80,19 +90,13 @@ impl Agent for Wolf {
             self.last = Some(Int2D { x, y });
         }
 
-        state.wolves_grid.set_object_location(*self, &self.loc);
-
+        state.sheeps_grid.set_object_location(*self, &self.loc);
         //EAT
-        if let Some(sheeps) = state.sheeps_grid.get_objects(&self.loc) {
-            for mut sheep in sheeps {
-                if state.killed_sheeps.lock().unwrap().get(&sheep).is_none()
-                    && sheep.animal_state == LifeState::Alive
-                {
-                    sheep.animal_state = LifeState::Dead;
-                    state.sheeps_grid.set_object_location(sheep, &sheep.loc);
+        if state.grass_field.get_value_unbuffered(&self.loc).is_none() {
+            if let Some(grass_val) = state.grass_field.get_value(&self.loc) {
+                if grass_val >= state.full_grown {
+                    state.grass_field.set_value_location(0, &self.loc);
                     self.energy += self.gain_energy;
-                    state.killed_sheeps.lock().unwrap().insert(sheep);
-                    break;
                 }
             }
         }
@@ -103,17 +107,21 @@ impl Agent for Wolf {
             self.animal_state = LifeState::Dead;
         } else {
             //REPRODUCE
-            if rng.gen_bool(self.prob_reproduction) {
+            if rng.gen_bool(self.prob_reproduction as f64) {
                 self.energy /= 2.0;
                 let mut new_id = state.next_id.lock().unwrap();
 
-                //let init_energy = rng.gen_range(0..(2 * GAIN_ENERGY_WOLF as usize));
-                let new_wolf =
-                    Wolf::new(*new_id, self.loc, self.energy, GAIN_ENERGY_WOLF, WOLF_REPR);
+                let new_sheep = Sheep::new(
+                    *new_id,
+                    self.loc,
+                    self.energy,
+                    state.gain_energy_sheep,
+                    state.sheep_repr,
+                );
 
-                //schedule.schedule_repeating(Box::new(new_wolf), schedule.time + 1.0, 1);
+                //schedule.schedule_repeating(Box::new(new_sheep), schedule.time + 1.0, 0);
                 *new_id += 1;
-                state.new_wolves.lock().unwrap().push(new_wolf);
+                state.new_sheeps.lock().unwrap().push(new_sheep);
             }
         }
     }
@@ -127,15 +135,15 @@ impl Agent for Wolf {
     }
 }
 
-impl Eq for Wolf {}
+impl Eq for Sheep {}
 
-impl PartialEq for Wolf {
-    fn eq(&self, other: &Wolf) -> bool {
+impl PartialEq for Sheep {
+    fn eq(&self, other: &Sheep) -> bool {
         self.id == other.id
     }
 }
 
-impl Location2D<Int2D> for Wolf {
+impl Location2D<Int2D> for Sheep {
     fn get_location(self) -> Int2D {
         self.loc
     }
@@ -145,7 +153,7 @@ impl Location2D<Int2D> for Wolf {
     }
 }
 
-impl Hash for Wolf {
+impl Hash for Sheep {
     fn hash<H>(&self, state: &mut H)
     where
         H: Hasher,
@@ -154,7 +162,7 @@ impl Hash for Wolf {
     }
 }
 
-impl fmt::Display for Wolf {
+impl fmt::Display for Sheep {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.id)
     }

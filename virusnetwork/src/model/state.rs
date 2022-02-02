@@ -67,7 +67,7 @@ impl State for EpidemicNetworkState {
             node_set.push(node);
         }
         self.network
-            .preferential_attachment_BA(node_set, INIT_EDGES);
+            .preferential_attachment_BA(&node_set, INIT_EDGES);
     }
 
     fn update(&mut self, step: u64) {
@@ -91,7 +91,7 @@ impl State for EpidemicNetworkState {
     fn after_step(&mut self, _schedule: &mut Schedule) {
         // let mut susceptible: usize = 0;
         // let mut infected: usize = 0;
-        // let mut resistent: usize = 0;
+        // let mut resistant: usize = 0;
         // let agents = schedule.get_all_events();
 
         // for n in agents {
@@ -103,8 +103,8 @@ impl State for EpidemicNetworkState {
         //         NodeStatus::Infected => {
         //             infected += 1;
         //         }
-        //         NodeStatus::Resistent => {
-        //             resistent += 1;
+        //         NodeStatus::Resistant => {
+        //             resistant += 1;
         //         }
         //     }
         // }
@@ -112,8 +112,8 @@ impl State for EpidemicNetworkState {
         //     "Susceptible: {:?} Infected: {:?} Resistant: {:?} Tot: {:?}",
         //     susceptible,
         //     infected,
-        //     resistent,
-        //     susceptible + infected + resistent
+        //     resistant,
+        //     susceptible + infected + resistant
         // );
     }
 }

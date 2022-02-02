@@ -25,7 +25,7 @@ pub static INIT_EDGES: usize = 2;
 pub static VIRUS_SPREAD_CHANCE: f64 = 0.3;
 pub static VIRUS_CHECK_FREQUENCY: f64 = 0.2;
 pub static RECOVERY_CHANCE: f64 = 0.30;
-pub static GAIN_RESISTENCE_CHANCE: f64 = 0.20;
+pub static GAIN_RESISTANCE_CHANCE: f64 = 0.20;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
