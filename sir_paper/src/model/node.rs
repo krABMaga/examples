@@ -1,11 +1,10 @@
+use rust_ab::engine::state::State;
+use rust_ab::{engine::agent::Agent, rand::Rng};
 use std::{
     fmt,
     hash::{Hash, Hasher},
 };
-
-use rust_ab::engine::state::State;
-use rust_ab::rand;
-use rust_ab::{engine::agent::Agent, rand::Rng};
+use rust_ab::engine::fields::field::Field;
 
 use crate::model::state::EpidemicNetworkState;
 
@@ -35,35 +34,65 @@ impl NetNode {
 
 impl Agent for NetNode {
     fn step(&mut self, state: &mut dyn State) {
-        let state = state
-            .as_any()
-            .downcast_ref::<EpidemicNetworkState>()
+        let mut state = state
+            .as_any_mut()
+            .downcast_mut::<EpidemicNetworkState>()
             .unwrap();
 
-        let mut rng = rand::thread_rng();
+        // println!("Sono {} allo step {} ", self.id, state.step);
         match self.status {
             NodeStatus::Infected => {
-                if rng.gen_bool(state.recovery as f64) {
+     
+                //TODO rng
+                if state.rng.lock().unwrap().gen_bool(state.recovery as f64) {
                     self.status = NodeStatus::Resistant;
                 }
+                // if false {
+                //     self.status = NodeStatus::Resistant;
+                // }
             }
             NodeStatus::Susceptible => {
                 let neighborhood = state.network.get_edges(*self);
                 if neighborhood.is_none() {
                     return;
                 };
-
                 let neighborhood = neighborhood.unwrap();
+
+                
+     
                 // for each neighbor check if it is infected, if so check virus_spread
                 // and become infected
                 for edge in &neighborhood {
                     let node = state.network.get_object(edge.v).unwrap();
+
                     match node.status {
                         NodeStatus::Infected => {
-                            if rng.gen_bool(state.spread as f64) {
+                            let mut spread;
+
+                            if state.step > state.day {
+                                spread = state.spread2;
+                            } else {
+                                spread = state.spread;
+                            }
+                            // if spread == 0. {
+                            //     println!("spread 0 kitemmuorto");
+                            // }
+                            //TODO rng
+                            if state.rng.lock().unwrap().gen_bool(spread as f64) {
+                                // if true {
+                                // println!(
+                                //     "--Infected node {} - Infecting {}",
+                                //     node.id, self.id,
+                                // );
+                                // println!(
+                                //     "&&Infected node {} at step {} - Initial spread is {}",
+                                //     node.id, state.step, spread
+                                // );
                                 self.status = NodeStatus::Infected;
+
                                 // increase count of how many nodes node has infected
-                                state.infected_nodes.lock().unwrap()[edge.v as usize] += 1;
+                                state.infected_nodes[node.id as usize] += 1;
+                                // println!("Sono nodo {} mi ha infettato {} at step {}", self.id, node.id, state.step);
                                 break;
                             }
                         }

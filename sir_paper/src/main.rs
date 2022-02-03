@@ -1,17 +1,20 @@
-use rand::distributions::weighted::WeightedIndex;
-
 use rust_ab::{
     engine::{schedule::Schedule, state::State},
     rand::Rng,
+    // rand_pcg::Pcg64,
     *,
 };
 
+use rust_ab::rayon::prelude::*;
+
+use crate::rand_pcg::Pcg64;
+use rand::prelude::*;
+
+use model::node::*;
 use model::state::EpidemicNetworkState;
 use std::cmp::Ordering::Equal;
 // use std::io::Write;
 mod model;
-
-
 
 // generic model parameters
 // pub static DESIRED_RT: f32 = 2.;
@@ -39,65 +42,37 @@ lazy_static! {
         }
         x
     };
+    pub static ref RNG: Mutex<StdRng> = Mutex::new(StdRng::seed_from_u64(1));
 }
 
 pub const STEP: u64 = 37;
 
 fn main() {
-    // let mut all_sim: Vec<Vec<f32>> = Vec::new();
-    // let mut avg: Vec<f32> = Vec::new();
-    // let mut errors: Vec<f32> = Vec::new();
-    // for i in 0..500 {
-    //     let mut epidemic_network =
-    //         EpidemicNetworkState::new_with_parameters(i, "0.028769534;0.01248315");
-    //     simulate!(STEP, &mut epidemic_network, 1, Info::Verbose);
-    //     let mut normalized: Vec<f32> = Vec::new();
-    //     for j in 0..epidemic_network.weekly_infected.len() {
-    //         normalized.push(epidemic_network.weekly_infected[j] / NUM_NODES as f32);
+    // let mut avg_results: Vec<f32> = vec![0.0; 31];
+
+    // for i in 0..REPETITION as usize {
+    //     println!("Running simulation {}...", i);
+    //     let mut state =
+    //         EpidemicNetworkState::new_with_parameters(i, "0.11292993;0.25126308;0.5372935;24");
+    //     simulate!(STEP, &mut state, 1, Info::Verbose);
+    //     for j in 0..31 {
+    //         avg_results[j] += state.weekly_infected[j] / NUM_NODES as f32;
     //     }
-
-    //     let mut state_error = 0.;
-    //     for k in 0..31 {
-    //         state_error += (
-    //             (DATA[k] - normalized[k]) / DATA[k]
-    //         ).powf(2.);
-    //     }
-    //     errors.push(state_error);
-
-    //     if epidemic_network.step > 30{
-    //         if state_error < 5. {
-    //             let file_name = format!("sim_data_0_{}.csv", i);
-
-    //             let mut file = OpenOptions::new()
-    //                 .read(true)
-    //                 .append(true)
-    //                 .write(true)
-    //                 .create(true)
-    //                 .open(file_name.to_string())
-    //                 .unwrap();
-
-    //             writeln!(file, "Error {:#?} - RT {}", state_error, epidemic_network.rt).expect("Unable to write file.");
-    //             for k in 0..normalized.len() {
-    //                 writeln!(file, "{:#?}", normalized[k]).expect("Unable to write file.");
-    //             }
-    //         }
-    //         all_sim.push(normalized);
-    //     }
-    //     println!("Simulation {} has error {}", i, state_error);
     // }
 
-    // let mut avg_val = 0.;
-    // // for each day
-    // for x in 0..31 {
-    //     // for each simulation
-    //     for y in 0..all_sim.len() {
-    //         // sum the error of each day
-    //         avg_val += all_sim[y][x];
-    //     }
-    //     avg_val /= all_sim.len() as f32;
-    //     avg.push(avg_val);
-    //     avg_val = 0.;
+    // for j in 0..31 {
+    //     avg_results[j] /= REPETITION as f32;
     // }
+
+    // let mut ind_error = 0.;
+    // let mut sum = 0.;
+    // let alpha: f32 = 0.05;
+    // for k in 0..31 {
+    //     let weight = 1. / (alpha * (1. - alpha).powf(k as f32));
+    //     ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
+    //     sum += weight as f32;
+    // }
+    // ind_error = (ind_error / (sum * 31.)).sqrt();
 
     // let file_name = format!("sim_data_avg.csv");
     // let mut file = OpenOptions::new()
@@ -108,16 +83,13 @@ fn main() {
     //     .open(file_name.to_string())
     //     .unwrap();
 
-    // // writeln!(file, "Error {:#?} - RT {}", state_error, epidemic_network.rt).expect("Unable to write file.");
-    // for i in 0..avg.len() {
-    //     writeln!(file, "{:#?}", avg[i]).expect("Unable to write file.");
+    // for i in 0..avg_results.len() {
+    //     writeln!(file, "{:#?}", avg_results[i]).expect("Unable to write file.");
     // }
-    // let mut avg_error = 0.;
-    // for value in &errors {
-    //     avg_error += value;
-    // }
-    // avg_error /= errors.len() as f32;
-    // println!("Avg_error: {} - Errors {:?}", avg_error, errors);
+    // writeln!(file, "Error {:#?}", ind_error).expect("Unable to write file.");
+    // println!("Avg_error: {} ", ind_error);
+
+    // ---
 
     let result = explore_ga_parallel!(
         init_population,
@@ -141,55 +113,57 @@ fn main() {
 }
 
 fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
-    let mut error = 0.;
-    for i in 0..computed_ind.len() {
-        // iterates through the weekly infected array to normalize it
-        for j in 0..computed_ind[i].0.weekly_infected.len() {
-            computed_ind[i].0.weekly_infected[j] /= NUM_NODES as f32;
-        }
-
-        // compute the error of the simulated results compared to the observed data
-        // using the summation of each value of 61 days
-        // (simulated[i] - observed[i])^2
-        // where simulated[i] is the weekly average of new infected of the day i of the simulation
-        // and observed[i] is the weekly average of new infected of the day i within the official data
-        let mut ind_error = 0.;
-        for k in 0..31 {
-            ind_error += ((k+1) as f32).ln() * 
-                    ((DATA[k] - computed_ind[i].0.weekly_infected[k]).powf(2.)) ;
-                    // ((DATA[k] - computed_ind[i].0.weekly_infected[k]) / DATA[k]).powf(2.) ;
-        }
-        ind_error = (ind_error/31.).sqrt();
-        error += ind_error;
-    }
-    error / computed_ind.len() as f32
-
-    // let mut average_error = 0.;
-    // let N = computed_ind.len().clone();
-    // for run in computed_ind {
-    //     let mut avg_err = 0.;
+    // let mut error = 0.;
+    // for i in 0..computed_ind.len() {
     //     // iterates through the weekly infected array to normalize it
-    //     // and compute the average
-    //     for day in &run.0.weekly_infected {
-    //         avg_err += day / NUM_NODES as f32;
-    //     }
-    //     avg_err /= run.0.weekly_infected.len() as f32;
-
-    //     let mut SST = 0.;
-    //     for day in &run.0.weekly_infected {
-    //         SST += (day - avg_err).powf(2.);
-    //     }
-       
-    //     let mut SSR = 0.;
-    //     for i in 0..31 {
-    //         SSR += (run.0.weekly_infected[i] - DATA[i]).powf(2.);
+    //     for j in 0..computed_ind[i].0.weekly_infected.len() {
+    //         computed_ind[i].0.weekly_infected[j] /= NUM_NODES as f32;
     //     }
 
-    //     let COD = (1. - (SSR / SST)) * 100.; 
-    //     average_error += SSR / run.0.weekly_infected.len() as f32;
+    //     // compute the error of the simulated results compared to the observed data
+    //     // using the summation of each value of 61 days
+    //     // (simulated[i] - observed[i])^2
+    //     // where simulated[i] is the weekly average of new infected of the day i of the simulation
+    //     // and observed[i] is the weekly average of new infected of the day i within the official data
+    //     let mut ind_error = 0.;
+    //     // let alpha = 0.1;
+    //     for k in 0..31 {
+    //         ind_error +=
+    //             //((k+1) as f32).ln() *
+    //             // (alpha * (1 - alpha).powf(k-1)) *
+    //                 // ((DATA[k] - computed_ind[i].0.weekly_infected[k]).powf(2.));
+    //                 ((DATA[k] - computed_ind[i].0.weekly_infected[k]) / DATA[k]).powf(2.);
+    //     }
+    //     // ind_error = (ind_error/31.).sqrt();
+    //     error += ind_error;
     // }
-    // // println!("average_error {}", average_error / N as f32);
-    // average_error / N as f32
+    // error / computed_ind.len() as f32
+
+    let mut avg_results: Vec<f32> = vec![0.0; 31];
+
+    for j in 0..31 {
+        for i in 0..computed_ind.len() {
+            avg_results[j] += computed_ind[i].0.weekly_infected[j] / NUM_NODES as f32;
+        }
+        avg_results[j] /= computed_ind.len() as f32;
+    }
+
+    let mut ind_error = 0.;
+    let mut sum = 0.;
+    let alpha: f32 = 0.05;
+    for k in 0..31 {
+        let weight = 1. / (alpha * (1. - alpha).powf(k as f32));
+        ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
+        sum += weight as f32;
+    }
+    ind_error = (ind_error / (sum * 31.)).sqrt();
+    ind_error
+
+    // let mut ind_error = 0.;
+    // for k in 0..31 {
+    //     ind_error += ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
+    // }
+    // ind_error
 }
 
 // we want to minimize the fitness, therefore the comparison
@@ -203,15 +177,18 @@ fn cmp(fitness1: &f32, fitness2: &f32) -> bool {
 fn init_population() -> Vec<String> {
     // create an array of EpidemicNetworkState
     let mut population = Vec::new();
-
-    let mut rng = rand::thread_rng();
+    // let mut rng = Pcg64::seed_from_u64(2);
+    // let mut rng = Pcg64::from_rng(thread_rng()).unwrap();
+    let mut rng = StdRng::seed_from_u64(0);
     // create n=INDIVIDUALS individuals
     for _ in 0..INDIVIDUALS {
         // create the individual
+        //TODO rng
         let x = rng.gen_range(0.0..=1.0_f32).to_string(); // spread chance
         let y = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
-                                                          // let y = rng.gen_range(0.14..=0.3_f32).to_string(); // recovery chance beween 3 and 7 days
-        population.push(format!("{};{}", x, y));
+        let x2 = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
+        let day = rng.gen_range(0..=31_u64).to_string(); // recovery chance
+        population.push(format!("{};{};{};{}", x, y, x2, day));
     }
 
     // return the array of individuals, i.e. the population (only the parameters)
@@ -280,250 +257,306 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
 }
 
 fn crossover(population: &mut Vec<String>) {
-    let mut rng = rand::thread_rng();
+        let mut children: Vec<String> = Vec::new();
 
-    let mut children: Vec<String> = Vec::new();
-
-    let twenty_perc = INDIVIDUALS as f32 * 0.2;
-    for i in 0..(twenty_perc as usize) {
-        children.push(population[i].clone());
-    }
-
-    let children_num = INDIVIDUALS as f32 - twenty_perc;
-
-    for _ in 0..(children_num as usize) {
-        // select two random individuals
-        let idx_one = rng.gen_range(0..population.len());
-        let parent_one = population[idx_one].clone();
-        let mut idx_two = rng.gen_range(0..population.len());
-        while idx_one == idx_two {
-            idx_two = rng.gen_range(0..population.len());
+        let twenty_perc = INDIVIDUALS as f32 * 0.2;
+        for i in 0..(twenty_perc as usize) {
+            children.push(population[i].clone());
         }
-        let parent_two = population[idx_two].clone();
 
-        let parent_one: Vec<&str> = parent_one.split(';').collect();
-        let one_spread = parent_one[0]
-            .parse::<f32>()
-            .expect("Unable to parse str to f32!");
-        let one_recovery = parent_one[1]
-            .parse::<f32>()
-            .expect("Unable to parse str to f32!");
+        let children_num = INDIVIDUALS as f32 - twenty_perc;
 
-        let parent_two: Vec<&str> = parent_two.split(';').collect();
-        let two_spread = parent_two[0]
-            .parse::<f32>()
-            .expect("Unable to parse str to f32!");
-        let two_recovery = parent_two[1]
-            .parse::<f32>()
-            .expect("Unable to parse str to f32!");
-
-        let mut min;
-        let mut max;
-        let alpha = 0.1;
-
-        if one_spread <= two_spread {
-            min = one_spread;
-            max = two_spread;
-        } else {
-            min = two_spread;
-            max = one_spread;
+        if population.len() == 0 {
+            panic!("Population len can't be 0");
         }
-        let mut range = max - min;
-        let mut p_min = 0.;
-        let mut p_max = 1.0;
-        if min - (range * alpha) > 0. {
-            p_min = min - (range * alpha);
+
+        //println!("Crossover");
+        for _ in 0..(children_num as usize) {
+            // select two random individuals
+
+            let idx_one = RNG.lock().unwrap().gen_range(0..population.len());
+            let parent_one = population[idx_one].clone();
+            let mut idx_two = RNG.lock().unwrap().gen_range(0..population.len());
+            while idx_one == idx_two {
+                idx_two = RNG.lock().unwrap().gen_range(0..population.len());
+            }
+
+            let parent_two = population[idx_two].clone();
+
+            // take the parameters of parent_one
+            let parent_one: Vec<&str> = parent_one.split(';').collect();
+            let one_spread = parent_one[0]
+                .parse::<f32>()
+                .expect("Unable to parse str to f32!");
+            let one_recovery = parent_one[1]
+                .parse::<f32>()
+                .expect("Unable to parse str to f32!");
+            let one_spread2 = parent_one[2]
+                .parse::<f32>()
+                .expect("Unable to parse str to f32!");
+            let one_day = parent_one[3]
+                .parse::<u64>()
+                .expect("Unable to parse str to f32!");
+
+            // take the parameters of parent_two
+            let parent_two: Vec<&str> = parent_two.split(';').collect();
+            let two_spread = parent_two[0]
+                .parse::<f32>()
+                .expect("Unable to parse str to f32!");
+            let two_recovery = parent_two[1]
+                .parse::<f32>()
+                .expect("Unable to parse str to f32!");
+            let two_spread2 = parent_two[2]
+                .parse::<f32>()
+                .expect("Unable to parse str to f32!");
+            let two_day = parent_two[3]
+                .parse::<u64>()
+                .expect("Unable to parse str to f32!");
+
+            let mut min;
+            let mut max;
+            let alpha = 0.1;
+
+            // new spread
+            if one_spread <= two_spread {
+                min = one_spread;
+                max = two_spread;
+            } else {
+                min = two_spread;
+                max = one_spread;
+            }
+            let mut range = max - min;
+            let mut p_min = 0.;
+            let mut p_max = 1.0;
+            if min - (range * alpha) > 0. {
+                p_min = min - (range * alpha);
+            }
+            if max + (range * alpha) < 1.0 {
+                p_max = max + (range * alpha);
+            }
+            //check if range is 0..0
+            if p_min == 0. && p_max == 0. {
+                p_max = 1.;
+            }
+            //TODO RNG.lock().unwrap()
+            let new_spread = RNG.lock().unwrap().gen_range(p_min..=p_max);
+            // let new_spread = 0.5;
+
+            // new_recovery
+            if one_recovery <= two_recovery {
+                min = one_recovery;
+                max = two_recovery;
+            } else {
+                min = two_recovery;
+                max = one_recovery;
+            }
+            range = max - min;
+            p_min = 0.;
+            p_max = 1.0;
+            if min - (range * alpha) > 0. {
+                p_min = min - (range * alpha);
+            }
+            if max + (range * alpha) < 1.0 {
+                p_max = max + (range * alpha);
+            }
+            //check if range is 0..0
+            if p_min == 0. && p_max == 0. {
+                p_max = 1.;
+            }
+            //TODO RNG.lock().unwrap()
+            let new_recovery = RNG.lock().unwrap().gen_range(p_min..=p_max);
+            // let new_recovery = 0.5;
+
+            // new_spread2
+            if one_spread2 <= two_spread2 {
+                min = one_spread2;
+                max = two_spread2;
+            } else {
+                min = two_spread2;
+                max = one_spread2;
+            }
+            range = max - min;
+            p_min = 0.;
+            p_max = 1.0;
+            if min - (range * alpha) > 0. {
+                p_min = min - (range * alpha);
+            }
+            if max + (range * alpha) < 1.0 {
+                p_max = max + (range * alpha);
+            }
+            //TODO RNG.lock().unwrap()
+            let new_spread2 = RNG.lock().unwrap().gen_range(p_min..=p_max);
+
+            // new_day
+            let min_day;
+            let max_day;
+            if one_day <= two_day {
+                min_day = one_day;
+                max_day = two_day;
+            } else {
+                min_day = two_day;
+                max_day = one_day;
+            }
+            let range_day: f32 = (max_day - min_day) as f32;
+            p_min = 0.;
+            p_max = 31.;
+            if min_day as f32 - (range_day * alpha).ceil() > 0. {
+                p_min = min_day as f32 - (range_day * alpha);
+            }
+            if max_day as f32 + (range_day * alpha).ceil() < 31. {
+                p_max = max_day as f32 + (range_day * alpha);
+            }
+            //check if range is 0..0
+            if p_min == 0. && p_max == 0. {
+                p_max = 31.;
+            }
+            //TODO RNG.lock().unwrap()
+            let new_day = RNG.lock().unwrap().gen_range(p_min..=p_max).ceil();
+
+            let new_individual = format!(
+                "{};{};{};{}",
+                new_spread, new_recovery, new_spread2, new_day
+            );
+            children.push(new_individual);
         }
-        if max + (range * alpha) < 1.0 {
-            p_max = max + (range * alpha);
-        }
-        let new_spread = rng.gen_range(p_min..=p_max);
 
-        if one_recovery <= two_recovery {
-            min = one_recovery;
-            max = two_recovery;
-        } else {
-            min = two_recovery;
-            max = one_recovery;
-        }
-        range = max - min;
-        p_min = 0.;
-        p_max = 1.0;
-        if min - (range * alpha) > 0. {
-            p_min = min - (range * alpha);
-        }
-        if max + (range * alpha) < 1.0 {
-            p_max = max + (range * alpha);
-        }
-        let new_recovery = rng.gen_range(p_min..=p_max);
+        *population = children;
 
-        let new_individual = format!("{};{}", new_spread, new_recovery);
-        children.push(new_individual);
-    }
+        // let len = population.len();
+        // while additional_individuals > 0 {
+        //     // select two random individuals
+        //     let idx_one = RNG.lock().unwrap().gen_range(0..len);
+        //     //let parent_one = parents[idx_one].clone();
+        //     let parent_one = population[idx_one].clone();
+        //     //parents.remove(idx_one);
 
-    *population = children;
+        //     // if additional_individuals == 1 {
+        //     //     population.push(parent_one);
+        //     //     additional_individuals -= 1;
+        //     //     continue;
+        //     // }
 
-    // let len = population.len();
-    // while additional_individuals > 0 {
-    //     // select two random individuals
-    //     let idx_one = rng.gen_range(0..len);
-    //     //let parent_one = parents[idx_one].clone();
-    //     let parent_one = population[idx_one].clone();
-    //     //parents.remove(idx_one);
+        //     let mut idx_two = rng.gen_range(0..len);
 
-    //     // if additional_individuals == 1 {
-    //     //     population.push(parent_one);
-    //     //     additional_individuals -= 1;
-    //     //     continue;
-    //     // }
+        //     while idx_one == idx_two {
+        //         idx_two = rng.gen_range(0..len);
+        //     }
 
-    //     let mut idx_two = rng.gen_range(0..len);
+        //     let parent_two = population[idx_two].clone();
 
-    //     while idx_one == idx_two {
-    //         idx_two = rng.gen_range(0..len);
-    //     }
+        //     let parent_one: Vec<&str> = parent_one.split(';').collect();
+        //     let one_spread = parent_one[0]
+        //         .parse::<f32>()
+        //         .expect("Unable to parse str to f32!");
+        //     let one_recovery = parent_one[1]
+        //         .parse::<f32>()
+        //         .expect("Unable to parse str to f32!");
 
-    //     let parent_two = population[idx_two].clone();
+        //     let parent_two: Vec<&str> = parent_two.split(';').collect();
+        //     let two_spread = parent_two[0]
+        //         .parse::<f32>()
+        //         .expect("Unable to parse str to f32!");
+        //     let two_recovery = parent_two[1]
+        //         .parse::<f32>()
+        //         .expect("Unable to parse str to f32!");
 
-    //     let parent_one: Vec<&str> = parent_one.split(';').collect();
-    //     let one_spread = parent_one[0]
-    //         .parse::<f32>()
-    //         .expect("Unable to parse str to f32!");
-    //     let one_recovery = parent_one[1]
-    //         .parse::<f32>()
-    //         .expect("Unable to parse str to f32!");
+        //     if one_spread == two_spread || one_recovery == two_recovery {
+        //         continue;
+        //     }
 
-    //     let parent_two: Vec<&str> = parent_two.split(';').collect();
-    //     let two_spread = parent_two[0]
-    //         .parse::<f32>()
-    //         .expect("Unable to parse str to f32!");
-    //     let two_recovery = parent_two[1]
-    //         .parse::<f32>()
-    //         .expect("Unable to parse str to f32!");
+        //     let new_individual = format!(
+        //         "{};{}",
+        //         (one_spread + two_spread) / 2.,
+        //         (one_recovery + two_recovery) / 2.
+        //     );
 
-    //     if one_spread == two_spread || one_recovery == two_recovery {
-    //         continue;
-    //     }
+        //     population.push(new_individual);
 
-    //     let new_individual = format!(
-    //         "{};{}",
-    //         (one_spread + two_spread) / 2.,
-    //         (one_recovery + two_recovery) / 2.
-    //     );
-
-    //     population.push(new_individual);
-
-    //     additional_individuals -= 1;
-    // }
+        //     additional_individuals -= 1;
+        // }
 }
 
 fn mutation(individual: &mut String) {
-    let new_ind: String;
-    let new_individual: Vec<&str> = individual.split(';').collect();
-    let one_spread = new_individual[0];
-    let one_recovery = new_individual[1];
+        let new_ind: String;
+        let new_individual: Vec<&str> = individual.split(';').collect();
+        let one_spread = new_individual[0];
+        let one_recovery = new_individual[1];
+        let one_spread2 = new_individual[2];
+        let one_day = new_individual[3];
 
-    let mut rng = rand::thread_rng();
-    // mutate one random parameter
-    // randomly increase or decrease spread orrecovery
-    if rng.gen_bool(MUTATION_RATE) {
+        // let mut rng = Pcg64::seed_from_u64(2);
+        // let mut rng = StdRng::seed_from_u64(0);
 
-        // mutate spread
-        let mut new_spread = one_spread
-            .parse::<f32>()
-            .expect("Unable to parse str to f32!");
+        // mutate one random parameter
+        // randomly increase or decrease spread orrecovery
+        //TODO rng
+        if RNG.lock().unwrap().gen_bool(MUTATION_RATE) {
+            // if false {
+            // mutate spread
+            let mut new_spread = one_spread
+                .parse::<f32>()
+                .expect("Unable to parse str to f32!");
+            let alpha = 0.1;
+            let mut min = if new_spread - alpha < 0. {
+                0.
+            } else {
+                new_spread - alpha
+            };
+            let mut max = if new_spread + alpha > 1. {
+                1.
+            } else {
+                new_spread + alpha
+            };
+            new_spread = RNG.lock().unwrap().gen_range(min..=max);
 
-        let alpha = 0.1;
+            let mut new_spread2 = one_spread2
+                .parse::<f32>()
+                .expect("Unable to parse str to f32!");
+            min = if new_spread2 - alpha < 0. {
+                0.
+            } else {
+                new_spread2 - alpha
+            };
+            max = if new_spread2 + alpha > 1. {
+                1.
+            } else {
+                new_spread2 + alpha
+            };
+            new_spread2 = RNG.lock().unwrap().gen_range(min..=max);
 
-        let mut min = if new_spread - alpha < 0. {
-            0.
-        } else {
-            new_spread - alpha
-        };
+            let mut new_recovery = one_recovery
+                .parse::<f32>()
+                .expect("Unable to parse str to f32!");
+            min = if new_recovery - alpha < 0. {
+                0.
+            } else {
+                new_recovery - alpha
+            };
+            max = if new_recovery + alpha > 1. {
+                1.
+            } else {
+                new_recovery + alpha
+            };
+            new_recovery = RNG.lock().unwrap().gen_range(min..=max);
 
-        let mut max = if new_spread + alpha > 1. {
-            1.
-        } else {
-            new_spread + alpha
-        };
+            let mut new_day = one_day.parse::<u64>().expect("Unable to parse str to u64!");
+            let alpha: u64 = 1;
+            let min: u64 = if new_day - alpha < 0 {
+                0
+            } else {
+                new_day - alpha
+            };
+            let max: u64 = if new_day + alpha > 31 {
+                31
+            } else {
+                new_day + alpha
+            };
+            new_day = RNG.lock().unwrap().gen_range(min..=max);
 
-        new_spread = rng.gen_range(min..=max);
-
-        // mutate recovery
-        let mut new_recovery = one_recovery
-        .parse::<f32>()
-        .expect("Unable to parse str to f32!");
-
-        let alpha = 0.1;
-
-        min = if new_recovery - alpha < 0. {
-        0.
-        } else {
-            new_recovery - alpha
-        };
-
-        max = if new_recovery + alpha > 1. {
-            1.
-        } else {
-            new_recovery + alpha
-        };
-
-        new_recovery = rng.gen_range(min..=max);
-       
-        new_ind = format!("{};{}", new_spread, new_recovery);
-
-        *individual = new_ind;
-    }
+            new_ind = format!(
+                "{};{};{};{}",
+                new_spread, new_recovery, new_spread2, new_day
+            );
+            *individual = new_ind;
+        }
 }
-
-// fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
-//     // Sort the array using the RT
-//     // computed_ind.sort_by(|s1, s2| s1.0.rt.partial_cmp(&s2.0.rt).unwrap_or(Equal));
-
-//     // println!("Sorted RT: -------------------------------");
-//     // for i in 0..computed_ind.len() {
-//     //     print!("{}\t", computed_ind[i].0.rt);
-//     // }
-//     // println!("\n-------------------------------");
-
-//     // Get the median of the array
-//     // let index = (computed_ind.len() + 1) / 2;
-//     // let mut median = computed_ind[index - 1].0.rt;
-//     // median = median * ( 1. - (30.computed_ind[index - 1].1.step as f32) / 30.);
-
-//     // 1. - (DESIRED_RT - median).abs() / (DESIRED_RT.powf(2.) + median.powf(2.)).sqrt()
-
-//     let mut sum_rt = 0.;
-//     let mut rt_norm;
-//     for ind in &*computed_ind {
-//         rt_norm = ind.0.rt * (1. - (30. - ind.1.step as f32) / 30.);
-//         sum_rt += rt_norm;
-//     }
-
-//     let mut avg = sum_rt / computed_ind.len() as f32;
-//     avg = (avg * 1000.).round() / 1000.;
-
-//     let fitness = 1. - (DESIRED_RT - avg).abs() / (DESIRED_RT.powf(2.) + avg.powf(2.)).sqrt();
-//     // println!("Fitness: RT is {:?} - fitness is {}", avg, fitness);
-
-//     // let to_write = format!(
-//     //     "RT {} - Fitness {} - Spread {} - Recovery {}",
-//     //     avg, fitness, computed_ind[0].0.spread, computed_ind[0].0.recovery
-//     // );
-
-//     // let mut file = OpenOptions::new()
-//     //     .read(true)
-//     //     .append(true)
-//     //     .write(true)
-//     //     .create(true)
-//     //     .open("results.txt")
-//     //     .unwrap();
-
-//     // writeln!(file, "{:#?}", to_write).expect("Unable to write file.");
-
-//     fitness
-// }
-
-// fn cmp(fitness1: &f32, fitness2: &f32) -> bool {
-//     *fitness1 > *fitness2
-// }
