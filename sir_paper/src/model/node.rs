@@ -68,7 +68,6 @@ impl Agent for NetNode {
                     match node.status {
                         NodeStatus::Infected => {
                             let mut spread;
-
                             if state.step > state.day {
                                 spread = state.spread2;
                             } else {

@@ -110,6 +110,28 @@ fn main() {
         let name = "explore_result".to_string();
         let _res = write_csv(&name, &result);
     }
+    writeln!(file, "Error {:#?}", ind_error).expect("Unable to write file.");
+    println!("Avg_error: {} ", ind_error);
+
+    // let result = explore_ga_parallel!(
+    //     init_population,
+    //     fitness,
+    //     selection,
+    //     mutation,
+    //     crossover,
+    //     cmp,
+    //     EpidemicNetworkState,
+    //     DESIRED_FITNESS,
+    //     MAX_GENERATION,
+    //     STEP,
+    //     REPETITION,
+    // );
+    // if !result.is_empty() {
+    //     // I'm the master
+    //     // build csv from all procexplore_result
+    //     let name = "explore_result".to_string();
+    //     let _res = write_csv(&name, &result);
+    // }
 }
 
 fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
