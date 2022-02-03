@@ -60,7 +60,13 @@ impl Agent for NetNode {
                     let node = state.network.get_object(edge.v).unwrap();
                     match node.status {
                         NodeStatus::Infected => {
-                            if rng.gen_bool(state.spread as f64) {
+                            let mut spread;
+                            if state.step > state.day {
+                                spread = state.spread2;
+                            } else {
+                                spread = state.spread;
+                            }
+                            if state.rng.lock().unwrap().gen_bool(spread as f64) {
                                 self.status = NodeStatus::Infected;
                                 // increase count of how many nodes node has infected
                                 state.infected_nodes.lock().unwrap()[edge.v as usize] += 1;

@@ -9,6 +9,11 @@ use rust_ab::rand;
 use rust_ab::rand::Rng;
 use std::any::Any;
 use std::sync::{Arc, Mutex};
+use crate::rand::rngs::StdRng;
+use rust_ab::rand::SeedableRng;
+use rust_ab::rand_pcg::Pcg64;
+
+pub const MY_SEED: u64 = 1;
 
 pub struct EpidemicNetworkState {
     pub step: u64,
@@ -21,21 +26,33 @@ pub struct EpidemicNetworkState {
     pub daily_infected: Vec<u32>, // each position corresponds to the newly infected nodes
     pub old_infected: u32,
     pub weekly_infected: Vec<f32>,
+    pub rng: Arc<Mutex<Pcg64>>,
+    pub day: u64,
+    pub spread2: f32,
 }
 
 impl EpidemicNetworkState {
-    pub fn new(spread: f32, recovery: f32, initial_infected: usize) -> EpidemicNetworkState {
+    pub fn new(
+        spread: f32,
+        recovery: f32,
+        spread2: f32,
+        day: u64,
+        initial_infected: usize,
+    ) -> EpidemicNetworkState {
         EpidemicNetworkState {
             step: 0,
             network: Network::new(false),
-            recovery,
-            spread,
-            initial_infected,
-            rt: 0.,
-            infected_nodes: Arc::new(Mutex::new(vec![0; NUM_NODES as usize])), // dimension is NUM_NODE
+            rng: Arc::new(Mutex::new(Pcg64::seed_from_u64(MY_SEED))),
+            spread,           // virus spread chanceMY_SEED
+            recovery,         // node recovery chance
+            spread2,          // virus spread chance second period
+            day,              // day when spread2 is applied
+            initial_infected, // id of the initial infected node
+            rt: 0.,           // transmission rate
+            infected_nodes: Arc::new(Mutex::new(vec![0; NUM_NODES as usize])),
             old_infected: 0,
-            daily_infected: vec![0; STEP as usize], // dimension is STEP
-            weekly_infected: vec![0.; STEP as usize], // media settimanale giornaliera per 60 giorni
+            daily_infected: vec![0; STEP as usize],
+            weekly_infected: vec![0.; STEP as usize],
         }
     }
 
@@ -48,8 +65,13 @@ impl EpidemicNetworkState {
         let recovery = parameters_ind[1]
             .parse::<f32>()
             .expect("Unable to parse str to f32!");
-
-        EpidemicNetworkState::new(spread, recovery, r)
+        let spread2 = parameters_ind[2]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let day = parameters_ind[3]
+            .parse::<u64>()
+            .expect("Unable to parse str to usize!");
+        EpidemicNetworkState::new(spread, recovery, spread2, day, r)
     }
 }
 
@@ -62,24 +84,12 @@ impl fmt::Display for EpidemicNetworkState {
 impl State for EpidemicNetworkState {
     fn init(&mut self, schedule: &mut Schedule) {
 
-        let my_seed: u64 = 0;
         let mut node_set = Vec::new();
         self.network = Network::new(false);
         self.rt = 0.;
 
         // build a support array having the NodeStatus configuration
         let mut positions = vec![0; NUM_NODES as usize];
-
-        // let mut rng = rand::thread_rng();
-        // let mut infected_counter = 0;
-        // generate exactly INITIAL_INFECTED * NUM_NODES infected nodes
-        // while infected_counter != (INITIAL_INFECTED * NUM_NODES as f32) as u32 {
-        //     let node_id = rng.gen_range(0..NUM_NODES) as usize;
-        //     if positions[node_id] == 0 {
-        //         positions[node_id] = 1;
-        //         infected_counter += 1;
-        //     }
-        // }
 
         let node_id = self.initial_infected;
         positions[node_id] = 1;
@@ -99,7 +109,7 @@ impl State for EpidemicNetworkState {
         }
         self.network.update();
         self.network
-            .preferential_attachment_BA_with_seed(&node_set, INIT_EDGES, my_seed);
+            .preferential_attachment_BA_with_seed(&node_set, INIT_EDGES, MY_SEED);
     }
 
     fn update(&mut self, step: u64) {

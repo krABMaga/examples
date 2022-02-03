@@ -44,100 +44,74 @@ lazy_static! {
 pub const STEP: u64 = 37;
 
 fn main() {
-    // let mut all_sim: Vec<Vec<f32>> = Vec::new();
-    // let mut avg: Vec<f32> = Vec::new();
-    // let mut errors: Vec<f32> = Vec::new();
-    // for i in 0..500 {
-    //     let mut epidemic_network =
-    //         EpidemicNetworkState::new_with_parameters(i, "0.028769534;0.01248315");
-    //     simulate!(STEP, &mut epidemic_network, 1, Info::Verbose);
-    //     let mut normalized: Vec<f32> = Vec::new();
-    //     for j in 0..epidemic_network.weekly_infected.len() {
-    //         normalized.push(epidemic_network.weekly_infected[j] / NUM_NODES as f32);
-    //     }
+    let mut avg_results: Vec<f32> = vec![0.0; 31];
 
-    //     let mut state_error = 0.;
-    //     for k in 0..31 {
-    //         state_error += (
-    //             (DATA[k] - normalized[k]) / DATA[k]
-    //         ).powf(2.);
-    //     }
-    //     errors.push(state_error);
-
-    //     if epidemic_network.step > 30{
-    //         if state_error < 5. {
-    //             let file_name = format!("sim_data_0_{}.csv", i);
-
-    //             let mut file = OpenOptions::new()
-    //                 .read(true)
-    //                 .append(true)
-    //                 .write(true)
-    //                 .create(true)
-    //                 .open(file_name.to_string())
-    //                 .unwrap();
-
-    //             writeln!(file, "Error {:#?} - RT {}", state_error, epidemic_network.rt).expect("Unable to write file.");
-    //             for k in 0..normalized.len() {
-    //                 writeln!(file, "{:#?}", normalized[k]).expect("Unable to write file.");
-    //             }
-    //         }
-    //         all_sim.push(normalized);
-    //     }
-    //     println!("Simulation {} has error {}", i, state_error);
-    // }
-
-    // let mut avg_val = 0.;
-    // // for each day
-    // for x in 0..31 {
-    //     // for each simulation
-    //     for y in 0..all_sim.len() {
-    //         // sum the error of each day
-    //         avg_val += all_sim[y][x];
-    //     }
-    //     avg_val /= all_sim.len() as f32;
-    //     avg.push(avg_val);
-    //     avg_val = 0.;
-    // }
-
-    // let file_name = format!("sim_data_avg.csv");
-    // let mut file = OpenOptions::new()
-    //     .read(true)
-    //     .append(true)
-    //     .write(true)
-    //     .create(true)
-    //     .open(file_name.to_string())
-    //     .unwrap();
-
-    // // writeln!(file, "Error {:#?} - RT {}", state_error, epidemic_network.rt).expect("Unable to write file.");
-    // for i in 0..avg.len() {
-    //     writeln!(file, "{:#?}", avg[i]).expect("Unable to write file.");
-    // }
-    // let mut avg_error = 0.;
-    // for value in &errors {
-    //     avg_error += value;
-    // }
-    // avg_error /= errors.len() as f32;
-    // println!("Avg_error: {} - Errors {:?}", avg_error, errors);
-
-    let result = explore_ga_parallel!(
-        init_population,
-        fitness,
-        selection,
-        mutation,
-        crossover,
-        cmp,
-        EpidemicNetworkState,
-        DESIRED_FITNESS,
-        MAX_GENERATION,
-        STEP,
-        REPETITION,
-    );
-    if !result.is_empty() {
-        // I'm the master
-        // build csv from all procexplore_result
-        let name = "explore_result".to_string();
-        let _res = write_csv(&name, &result);
+    for i in 0..REPETITION as usize {
+        println!("Running simulation {}...", i);
+        let mut state =
+            EpidemicNetworkState::new_with_parameters(i, "0.078856565;0.1320176;0.33330417;23"); //0.04851025 with Pcg64
+        simulate!(STEP, &mut state, 1, Info::Verbose);
+        let mut schedule: Schedule = Schedule::new();
+        state.init(&mut schedule);
+        for i in 0..STEP {
+            schedule.step(&mut state);
+            if state.end_condition(&mut schedule) {
+                break;
+            }
+        }
+        for j in 0..31 {
+            avg_results[j] += state.weekly_infected[j] / NUM_NODES as f32;
+        }
     }
+
+    for j in 0..31 {
+        avg_results[j] /= REPETITION as f32;
+    }
+
+    let mut ind_error = 0.;
+    let mut sum = 0.;
+    let alpha: f32 = 0.05;
+    for k in 0..31 {
+        let weight = 1. / (alpha * (1. - alpha).powf(k as f32));
+        ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
+        sum += weight as f32;
+    }
+    ind_error = (ind_error / (sum * 31.)).sqrt();
+
+    let file_name = format!("sim_data_avg.csv");
+    let mut file = OpenOptions::new()
+        .read(true)
+        .append(true)
+        .write(true)
+        .create(true)
+        .open(file_name.to_string())
+        .unwrap();
+
+    for i in 0..avg_results.len() {
+        writeln!(file, "{:#?}", avg_results[i]).expect("Unable to write file.");
+    }
+    writeln!(file, "Error {:#?}", ind_error).expect("Unable to write file.");
+    println!("Avg_error: {} ", ind_error);
+
+    // let result = explore_ga_parallel!(
+    //     init_population,
+    //     fitness,
+    //     selection,
+    //     mutation,
+    //     crossover,
+    //     cmp,
+    //     EpidemicNetworkState,
+    //     DESIRED_FITNESS,
+    //     MAX_GENERATION,
+    //     STEP,
+    //     REPETITION,
+    // );
+    // if !result.is_empty() {
+    //     // I'm the master
+    //     // build csv from all procexplore_result
+    //     let name = "explore_result".to_string();
+    //     let _res = write_csv(&name, &result);
+    // }
 }
 
 fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
