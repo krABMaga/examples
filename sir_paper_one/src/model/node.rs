@@ -57,12 +57,8 @@ impl Agent for NetNode {
 
                     match node.status {
                         NodeStatus::Infected => {
-                            let spread;
-                            if state.step > state.day {
-                                spread = state.spread2;
-                            } else {
-                                spread = state.spread;
-                            }
+                            let spread = state.spread;
+
                             if state.rng.lock().unwrap().gen_bool(spread as f64) {
                                 self.status = NodeStatus::Infected;
                                 // increase count of how many nodes node has infected

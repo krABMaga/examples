@@ -14,12 +14,12 @@ mod model;
 // pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 pub static INIT_EDGES: usize = 1;
-pub const NUM_NODES: u32 = 100_000;
+pub const NUM_NODES: u32 = 10_000;
 
 // GA specific parameters
 pub const MUTATION_RATE: f64 = 0.2;
 pub const DESIRED_FITNESS: f32 = 0.;
-pub const MAX_GENERATION: u32 = 150;
+pub const MAX_GENERATION: u32 = 100;
 pub const INDIVIDUALS: u32 = 60;
 pub const REPETITION: u32 = 20;
 
@@ -43,68 +43,68 @@ lazy_static! {
 pub const STEP: u64 = 37;
 
 fn main() {
-    // let mut avg_results: Vec<f32> = vec![0.0; 31];
-    // let parameters = "0.0694758;0.10743098;0.34872502;20";
+    let mut avg_results: Vec<f32> = vec![0.0; 31];
+    let parameters = "0.04138078;0.0019284919";
 
-    // for i in 0..REPETITION as usize {
-    //     println!("Running simulation {}...", i);
-    //     let mut state = EpidemicNetworkState::new_with_parameters(i, parameters);
-    //     simulate!(STEP, &mut state, 1, Info::Verbose);
-    //     for j in 0..31 {
-    //         avg_results[j] += state.weekly_infected[j] / NUM_NODES as f32;
-    //     }
-    // }
-
-    // for j in 0..31 {
-    //     avg_results[j] /= REPETITION as f32;
-    // }
-
-    // let mut ind_error = 0.;
-    // let mut sum = 0.;
-    // let alpha: f32 = 0.1;
-    // for k in 0..31 {
-    //     let weight = 1. / (alpha * (1. - alpha).powf(k as f32));
-    //     ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
-    //     sum += weight as f32;
-    // }
-    // ind_error = (ind_error / (sum * 31.)).sqrt();
-
-    // let file_name = format!("sim_data_avg.csv");
-    // let mut file = OpenOptions::new()
-    //     .read(true)
-    //     .append(true)
-    //     .write(true)
-    //     .create(true)
-    //     .open(file_name.to_string())
-    //     .unwrap();
-
-    //     writeln!(file, "{:#?}", parameters).expect("Unable to write file.");
-    //     writeln!(file, "Error {:#?}", ind_error).expect("Unable to write file.");
-
-    // for i in 0..avg_results.len() {
-    //     writeln!(file, "{:#?}", avg_results[i]).expect("Unable to write file.");
-    // }
-    // println!("Avg_error: {} ", ind_error);
-
-    let result = explore_ga_parallel!(
-        init_population,
-        fitness,
-        selection,
-        mutation,
-        crossover,
-        cmp,
-        EpidemicNetworkState,
-        DESIRED_FITNESS,
-        MAX_GENERATION,
-        STEP,
-        REPETITION,
-    );
-    if !result.is_empty() {
-        // I'm the master
-        // build csv from all procexplore_result
-        let name = "explore_result".to_string();
-        let _res = write_csv(&name, &result);
+    for i in 0..REPETITION as usize {
+        println!("Running simulation {}...", i);
+        let mut state = EpidemicNetworkState::new_with_parameters(i, parameters);
+        simulate!(STEP, &mut state, 1, Info::Verbose);
+        for j in 0..31 {
+            avg_results[j] += state.weekly_infected[j] / NUM_NODES as f32;
+        }
     }
+
+    for j in 0..31 {
+        avg_results[j] /= REPETITION as f32;
+    }
+
+    let mut ind_error = 0.;
+    let mut sum = 0.;
+    let alpha: f32 = 0.1;
+    for k in 0..31 {
+        let weight = 1. / (alpha * (1. - alpha).powf(k as f32));
+        ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
+        sum += weight as f32;
+    }
+    ind_error = (ind_error / (sum * 31.)).sqrt();
+
+    let file_name = format!("sim_data_avg.csv");
+    let mut file = OpenOptions::new()
+        .read(true)
+        .append(true)
+        .write(true)
+        .create(true)
+        .open(file_name.to_string())
+        .unwrap();
+
+        writeln!(file, "{:#?}", parameters).expect("Unable to write file.");
+        writeln!(file, "Error {:#?}", ind_error).expect("Unable to write file.");
+
+    for i in 0..avg_results.len() {
+        writeln!(file, "{:#?}", avg_results[i]).expect("Unable to write file.");
+    }
+    println!("Avg_error: {} ", ind_error);
+
+    // let result = explore_ga_parallel!(
+    //     init_population,
+    //     fitness,
+    //     selection,
+    //     mutation,
+    //     crossover,
+    //     cmp,
+    //     EpidemicNetworkState,
+    //     DESIRED_FITNESS,
+    //     MAX_GENERATION,
+    //     STEP,
+    //     REPETITION,
+    // );
+    // if !result.is_empty() {
+    //     // I'm the master
+    //     // build csv from all procexplore_result
+    //     let name = "explore_result".to_string();
+    //     let _res = write_csv(&name, &result);
+    // }
 }
 
 fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
@@ -172,9 +172,7 @@ fn init_population() -> Vec<String> {
         // create the individual
         let x = rng.gen_range(0.0..=1.0_f32).to_string(); // spread chance
         let y = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
-        let x2 = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
-        let day = rng.gen_range(0..=31_u64).to_string(); // recovery chance
-        population.push(format!("{};{};{};{}", x, y, x2, day));
+        population.push(format!("{};{}", x, y));
     }
 
     // return the array of individuals, i.e. the population (only the parameters)
@@ -275,12 +273,6 @@ fn crossover(population: &mut Vec<String>) {
         let one_recovery = parent_one[1]
             .parse::<f32>()
             .expect("Unable to parse str to f32!");
-        let one_spread2 = parent_one[2]
-            .parse::<f32>()
-            .expect("Unable to parse str to f32!");
-        let one_day = parent_one[3]
-            .parse::<u64>()
-            .expect("Unable to parse str to f32!");
 
         // take the parameters of parent_two
         let parent_two: Vec<&str> = parent_two.split(';').collect();
@@ -289,12 +281,6 @@ fn crossover(population: &mut Vec<String>) {
             .expect("Unable to parse str to f32!");
         let two_recovery = parent_two[1]
             .parse::<f32>()
-            .expect("Unable to parse str to f32!");
-        let two_spread2 = parent_two[2]
-            .parse::<f32>()
-            .expect("Unable to parse str to f32!");
-        let two_day = parent_two[3]
-            .parse::<u64>()
             .expect("Unable to parse str to f32!");
 
         let mut min;
@@ -347,57 +333,9 @@ fn crossover(population: &mut Vec<String>) {
         }
         let new_recovery = RNG.lock().unwrap().gen_range(p_min..=p_max);
 
-        // new_spread2
-        if one_spread2 <= two_spread2 {
-            min = one_spread2;
-            max = two_spread2;
-        } else {
-            min = two_spread2;
-            max = one_spread2;
-        }
-        range = max - min;
-        p_min = 0.;
-        p_max = 1.0;
-        if min - (range * alpha) > 0. {
-            p_min = min - (range * alpha);
-        }
-        if max + (range * alpha) < 1.0 {
-            p_max = max + (range * alpha);
-        }
-        if p_min >= p_max {
-            p_min = 0.;
-            p_max = 1.;
-        }
-        let new_spread2 = RNG.lock().unwrap().gen_range(p_min..=p_max);
-
-        // new_day
-        let min_day;
-        let max_day;
-        if one_day <= two_day {
-            min_day = one_day;
-            max_day = two_day;
-        } else {
-            min_day = two_day;
-            max_day = one_day;
-        }
-        let range_day: f32 = (max_day - min_day) as f32;
-        p_min = 0.;
-        p_max = 31.;
-        if min_day as f32 - (range_day * alpha).ceil() > 0. {
-            p_min = min_day as f32 - (range_day * alpha);
-        }
-        if max_day as f32 + (range_day * alpha).ceil() < 31. {
-            p_max = max_day as f32 + (range_day * alpha);
-        }
-        if p_min >= p_max {
-            p_min = 0.;
-            p_max = 31.;
-        }
-        let new_day = RNG.lock().unwrap().gen_range(p_min..=p_max).ceil();
-
         let new_individual = format!(
-            "{};{};{};{}",
-            new_spread, new_recovery, new_spread2, new_day
+            "{};{}",
+            new_spread, new_recovery
         );
         children.push(new_individual);
     }
@@ -463,8 +401,6 @@ fn mutation(individual: &mut String) {
     let new_individual: Vec<&str> = individual.split(';').collect();
     let one_spread = new_individual[0];
     let one_recovery = new_individual[1];
-    let one_spread2 = new_individual[2];
-    let one_day = new_individual[3];
 
     // mutate one random parameter
     // randomly increase or decrease spread orrecovery
@@ -490,25 +426,6 @@ fn mutation(individual: &mut String) {
         }
         new_spread = RNG.lock().unwrap().gen_range(min..=max);
 
-        let mut new_spread2 = one_spread2
-            .parse::<f32>()
-            .expect("Unable to parse str to f32!");
-        min = if new_spread2 - alpha < 0. {
-            0.
-        } else {
-            new_spread2 - alpha
-        };
-        max = if new_spread2 + alpha > 1. {
-            1.
-        } else {
-            new_spread2 + alpha
-        };
-        if min >= max {
-            min = 0.;
-            max = 1.;
-        }
-        new_spread2 = RNG.lock().unwrap().gen_range(min..=max);
-
         let mut new_recovery = one_recovery
             .parse::<f32>()
             .expect("Unable to parse str to f32!");
@@ -528,27 +445,9 @@ fn mutation(individual: &mut String) {
         }
         new_recovery = RNG.lock().unwrap().gen_range(min..=max);
 
-        let mut new_day = one_day.parse::<u64>().expect("Unable to parse str to u64!");
-        let alpha: u64 = 1;
-        let mut min: u64 = if new_day - alpha < 0 {
-            0
-        } else {
-            new_day - alpha
-        };
-        let mut max: u64 = if new_day + alpha > 31 {
-            31
-        } else {
-            new_day + alpha
-        };
-        if min >= max {
-            min = 0;
-            max = 31;
-        }
-        new_day = RNG.lock().unwrap().gen_range(min..=max);
-
         new_ind = format!(
-            "{};{};{};{}",
-            new_spread, new_recovery, new_spread2, new_day
+            "{};{}",
+            new_spread, new_recovery
         );
         *individual = new_ind;
     }

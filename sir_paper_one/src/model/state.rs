@@ -24,16 +24,12 @@ pub struct EpidemicNetworkState {
     pub old_infected: u32,
     pub weekly_infected: Vec<f32>,
     pub rng: Arc<Mutex<StdRng>>,
-    pub day: u64,
-    pub spread2: f32,
 }
 
 impl EpidemicNetworkState {
     pub fn new(
         spread: f32,
         recovery: f32,
-        spread2: f32,
-        day: u64,
         initial_infected: usize,
     ) -> EpidemicNetworkState {
         EpidemicNetworkState {
@@ -42,8 +38,6 @@ impl EpidemicNetworkState {
             rng: Arc::new(Mutex::new(StdRng::seed_from_u64(MY_SEED))),
             spread,           // virus spread chanceMY_SEED
             recovery,         // node recovery chance
-            spread2,          // virus spread chance second period
-            day,              // day when spread2 is applied
             initial_infected, // id of the initial infected node
             rt: 0.,           // transmission rate
             infected_nodes: vec![0; NUM_NODES as usize],
@@ -62,13 +56,7 @@ impl EpidemicNetworkState {
         let recovery = parameters_ind[1]
             .parse::<f32>()
             .expect("Unable to parse str to f32!");
-        let spread2 = parameters_ind[2]
-            .parse::<f32>()
-            .expect("Unable to parse str to f32!");
-        let day = parameters_ind[3]
-            .parse::<u64>()
-            .expect("Unable to parse str to usize!");
-        EpidemicNetworkState::new(spread, recovery, spread2, day, r)
+        EpidemicNetworkState::new(spread, recovery, r)
     }
 }
 
