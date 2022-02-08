@@ -14,19 +14,23 @@ mod model;
 // pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 pub static INIT_EDGES: usize = 1;
-pub const NUM_NODES: u32 = 5_000;
+pub const NUM_NODES: u32 = 10_000;
 
 // GA specific parameters
-pub const MUTATION_RATE: f64 = 0.3;
+lazy_static! {
+    static ref MUTATION_RATE: Mutex<f64> = Mutex::new(0.8);
+}
+// pub static mut MUTATION_RATE: f64 = 0.7;
 pub const DESIRED_FITNESS: f32 = 0.;
 pub const MAX_GENERATION: u32 = 2_000;
-pub const INDIVIDUALS: u32 = 500;
-pub const REPETITION: u32 = 20;
-pub const IS_GA:bool = true;
+pub const INDIVIDUALS: u32 = 100;
+pub const REPETITIONS: u32 = 10;
+pub const ALPHA: f32 = 0.275;
+pub const IS_GA: bool = true;
 
 lazy_static! {
     pub static ref DATA: Vec<f32> = {
-        let mut rdr = Reader::from_path("data/data_perc.csv").unwrap();
+        let mut rdr = Reader::from_path("data/data_perc_full.csv").unwrap();
 
         let mut x: Vec<f32> = Vec::new();
 
@@ -38,39 +42,43 @@ lazy_static! {
         x
     };
     // pub static ref SEED: u64 = rand::thread_rng().gen();
-    pub static ref RNG: Mutex<StdRng> = Mutex::new(StdRng::seed_from_u64(1));
+    pub static ref RNG: Mutex<StdRng> = Mutex::new(StdRng::seed_from_u64(0));
 }
 
-pub const STEP: u64 = 37;
+pub const STEP: u64 = 51; // 51 - 37
+pub const DAY: usize = 45; // 45 - 31
 
 fn main() {
-
     if !IS_GA {
-        let mut avg_results: Vec<f32> = vec![0.0; 31];
-        let parameters = "0.04323612;0.13140434;0.3213813;20";
+        let mut avg_results: Vec<f32> = vec![0.0; DAY];
+        let parameters = "";
 
         for i in 0..REPETITIONS as usize {
             println!("Running simulation {}...", i);
             let mut state = EpidemicNetworkState::new_with_parameters(i, parameters);
             simulate!(STEP, &mut state, 1, Info::Verbose);
-            for j in 0..31 {
+            for j in 0..DAY {
                 avg_results[j] += state.weekly_infected[j] / NUM_NODES as f32;
             }
         }
 
-        for j in 0..31 {
-            avg_results[j] /= REPETITION as f32;
+        for j in 0..DAY {
+            avg_results[j] /= REPETITIONS as f32;
         }
 
         let mut ind_error = 0.;
-        let mut sum = 0.;
-        let alpha: f32 = 0.15;
-        for k in 0..31 {
-            let weight = 1. / (alpha * (1. - alpha).powf(k as f32));
-            ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
-            sum += weight as f32;
+        
+        // let mut sum = 0.;
+        // for k in 0..DAY {
+        //     let weight = 1. / (ALPHA * (1. - ALPHA).powf(k as f32));
+        //     ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
+        //     sum += weight as f32;
+        // }
+        // ind_error = (ind_error / (sum * DAY as f32)).sqrt();
+
+        for k in 0..DAY {
+            ind_error += ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
         }
-        ind_error = (ind_error / (sum * 31.)).sqrt();
 
         let file_name = format!("sim_data_avg.csv");
         let mut file = OpenOptions::new()
@@ -81,14 +89,13 @@ fn main() {
             .open(file_name.to_string())
             .unwrap();
 
-            writeln!(file, "{:#?}", parameters).expect("Unable to write file.");
-            writeln!(file, "Error {:#?}", ind_error).expect("Unable to write file.");
+        writeln!(file, "{:#?}", parameters).expect("Unable to write file.");
+        writeln!(file, "Error {:#?}", ind_error).expect("Unable to write file.");
 
         for i in 0..avg_results.len() {
             writeln!(file, "{:#?}", avg_results[i]).expect("Unable to write file.");
         }
         println!("Avg_error: {} ", ind_error);
-
     } else {
         let result = explore_ga_parallel!(
             init_population,
@@ -101,7 +108,7 @@ fn main() {
             DESIRED_FITNESS,
             MAX_GENERATION,
             STEP,
-            REPETITION,
+            REPETITIONS,
         );
         if !result.is_empty() {
             // I'm the master
@@ -127,21 +134,21 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     //     // and observed[i] is the weekly average of new infected of the day i within the official data
     //     let mut ind_error = 0.;
     //     // let alpha = 0.1;
-    //     for k in 0..31 {
+    //     for k in 0..DAY {
     //         ind_error +=
     //             //((k+1) as f32).ln() *
     //             // (alpha * (1 - alpha).powf(k-1)) *
     //                 // ((DATA[k] - computed_ind[i].0.weekly_infected[k]).powf(2.));
     //                 ((DATA[k] - computed_ind[i].0.weekly_infected[k]) / DATA[k]).powf(2.);
     //     }
-    //     // ind_error = (ind_error/31.).sqrt();
+    //     // ind_error = (ind_error/DAY as f32).sqrt();
     //     error += ind_error;
     // }
     // error / computed_ind.len() as f32
 
-    let mut avg_results: Vec<f32> = vec![0.0; 31];
+    let mut avg_results: Vec<f32> = vec![0.0; DAY];
 
-    for j in 0..31 {
+    for j in 0..DAY {
         for i in 0..computed_ind.len() {
             avg_results[j] += computed_ind[i].0.weekly_infected[j] / NUM_NODES as f32;
         }
@@ -150,13 +157,12 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
 
     let mut ind_error = 0.;
     let mut sum = 0.;
-    let alpha: f32 = 0.15;
-    for k in 0..31 {
-        let weight = 1. / (alpha * (1. - alpha).powf(k as f32));
+    for k in 0..DAY {
+        let weight = 1. / (ALPHA * (1. - ALPHA).powf(k as f32));
         ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
         sum += weight as f32;
     }
-    ind_error = (ind_error / (sum * 31.)).sqrt();
+    ind_error = (ind_error / (sum * DAY as f32)).sqrt();
     ind_error
 }
 
@@ -178,7 +184,7 @@ fn init_population() -> Vec<String> {
         let x = rng.gen_range(0.0..=1.0_f32).to_string(); // spread chance
         let y = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
         let x2 = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
-        let day = rng.gen_range(0..=31_u64).to_string(); // recovery chance
+        let day = rng.gen_range(0..=DAY).to_string(); // recovery chance
         population.push(format!("{};{};{};{}", x, y, x2, day));
     }
 
@@ -243,6 +249,16 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
     // }
     // *population_fitness = new_population;
 
+    let mut mutation_r = *MUTATION_RATE.lock().unwrap();
+    for individual_fitness in population_fitness.iter_mut() {
+        if individual_fitness.1 < 0.01 {
+            mutation_r = 0.2
+        } else if individual_fitness.1 < 0.025 {
+            mutation_r = 0.4
+        } else if individual_fitness.1 < 0.05 {
+            mutation_r = 0.6
+        }
+    }
     // sort the population based on the fitness
     population_fitness.sort_by(|s1, s2| s1.1.partial_cmp(&s2.1).unwrap_or(Equal));
 }
@@ -250,12 +266,12 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
 fn crossover(population: &mut Vec<String>) {
     let mut children: Vec<String> = Vec::new();
 
-    let twenty_perc = INDIVIDUALS as f32 * 0.2;
-    for i in 0..(twenty_perc as usize) {
+    let perc = INDIVIDUALS as f32 * 0.2;
+    for i in 0..(perc as usize) {
         children.push(population[i].clone());
     }
 
-    let children_num = INDIVIDUALS as f32 - twenty_perc;
+    let children_num = INDIVIDUALS as f32 - perc;
 
     if population.len() == 0 {
         panic!("Population len can't be 0");
@@ -387,16 +403,16 @@ fn crossover(population: &mut Vec<String>) {
         }
         let range_day: f32 = (max_day - min_day) as f32;
         p_min = 0.;
-        p_max = 31.;
+        p_max = DAY as f32;
         if min_day as f32 - (range_day * alpha).ceil() > 0. {
             p_min = min_day as f32 - (range_day * alpha);
         }
-        if max_day as f32 + (range_day * alpha).ceil() < 31. {
+        if max_day as f32 + (range_day * alpha).ceil() < DAY as f32 {
             p_max = max_day as f32 + (range_day * alpha);
         }
         if p_min >= p_max {
             p_min = 0.;
-            p_max = 31.;
+            p_max = DAY as f32;
         }
         let new_day = RNG.lock().unwrap().gen_range(p_min..=p_max).ceil();
 
@@ -473,7 +489,7 @@ fn mutation(individual: &mut String) {
 
     // mutate one random parameter
     // randomly increase or decrease spread orrecovery
-    if RNG.lock().unwrap().gen_bool(MUTATION_RATE) {
+    if RNG.lock().unwrap().gen_bool(*MUTATION_RATE.lock().unwrap()) {
         // mutate spread
         let mut new_spread = one_spread
             .parse::<f32>()
@@ -540,14 +556,14 @@ fn mutation(individual: &mut String) {
         } else {
             new_day - alpha
         };
-        let mut max: u64 = if new_day + alpha > 31 {
-            31
+        let mut max: u64 = if new_day + alpha > DAY as u64 {
+            DAY as u64 
         } else {
             new_day + alpha
         };
         if min >= max {
             min = 0;
-            max = 31;
+            max = DAY as u64;
         }
         new_day = RNG.lock().unwrap().gen_range(min..=max);
 
