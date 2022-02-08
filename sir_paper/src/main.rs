@@ -23,8 +23,8 @@ lazy_static! {
 // pub static mut MUTATION_RATE: f64 = 0.7;
 pub const DESIRED_FITNESS: f32 = 0.;
 pub const MAX_GENERATION: u32 = 2_000;
-pub const INDIVIDUALS: u32 = 100;
-pub const REPETITIONS: u32 = 10;
+pub const INDIVIDUALS: u32 = 10;
+pub const REPETITIONS: u32 = 100;
 pub const ALPHA: f32 = 0.275;
 pub const IS_GA: bool = true;
 
@@ -249,16 +249,21 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
     // }
     // *population_fitness = new_population;
 
-    let mut mutation_r = *MUTATION_RATE.lock().unwrap();
+    let mut min_fitness = 1.;
     for individual_fitness in population_fitness.iter_mut() {
-        if individual_fitness.1 < 0.01 {
-            mutation_r = 0.2
-        } else if individual_fitness.1 < 0.025 {
-            mutation_r = 0.4
-        } else if individual_fitness.1 < 0.05 {
-            mutation_r = 0.6
+        if individual_fitness.1 < min_fitness {
+            min_fitness = individual_fitness.1;
         }
     }
+
+    if min_fitness < 0.01 {
+        *MUTATION_RATE.lock().unwrap() = 0.2;
+    } else if min_fitness < 0.025 {
+        *MUTATION_RATE.lock().unwrap() = 0.4;
+    } else if min_fitness < 0.05 {
+        *MUTATION_RATE.lock().unwrap() = 0.6;
+    }
+
     // sort the population based on the fitness
     population_fitness.sort_by(|s1, s2| s1.1.partial_cmp(&s2.1).unwrap_or(Equal));
 }
