@@ -24,3 +24,4 @@ rust-ab = { path="/home/isis/rab_me/rust-ab" }
 [features]
 distributed_mpi = ["rust-ab/distributed_mpi"]
 aws = ["rust-ab/parallel"]
+bayesian = ["rust-ab/bayesian"]

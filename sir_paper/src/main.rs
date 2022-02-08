@@ -14,18 +14,19 @@ mod model;
 // pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 pub static INIT_EDGES: usize = 1;
-pub const NUM_NODES: u32 = 100_000;
+pub const NUM_NODES: u32 = 5_000;
 
 // GA specific parameters
-pub const MUTATION_RATE: f64 = 0.2;
+pub const MUTATION_RATE: f64 = 0.3;
 pub const DESIRED_FITNESS: f32 = 0.;
-pub const MAX_GENERATION: u32 = 150;
-pub const INDIVIDUALS: u32 = 60;
+pub const MAX_GENERATION: u32 = 2_000;
+pub const INDIVIDUALS: u32 = 500;
 pub const REPETITION: u32 = 20;
+pub const IS_GA:bool = true;
 
 lazy_static! {
     pub static ref DATA: Vec<f32> = {
-        let mut rdr = Reader::from_path("data/data_perc_mid.csv").unwrap();
+        let mut rdr = Reader::from_path("data/data_perc.csv").unwrap();
 
         let mut x: Vec<f32> = Vec::new();
 
@@ -43,67 +44,71 @@ lazy_static! {
 pub const STEP: u64 = 37;
 
 fn main() {
-    // let mut avg_results: Vec<f32> = vec![0.0; 31];
-    // let parameters = "0.0694758;0.10743098;0.34872502;20";
 
-    // for i in 0..REPETITION as usize {
-    //     println!("Running simulation {}...", i);
-    //     let mut state = EpidemicNetworkState::new_with_parameters(i, parameters);
-    //     simulate!(STEP, &mut state, 1, Info::Verbose);
-    //     for j in 0..31 {
-    //         avg_results[j] += state.weekly_infected[j] / NUM_NODES as f32;
-    //     }
-    // }
+    if !IS_GA {
+        let mut avg_results: Vec<f32> = vec![0.0; 31];
+        let parameters = "0.04323612;0.13140434;0.3213813;20";
 
-    // for j in 0..31 {
-    //     avg_results[j] /= REPETITION as f32;
-    // }
+        for i in 0..REPETITIONS as usize {
+            println!("Running simulation {}...", i);
+            let mut state = EpidemicNetworkState::new_with_parameters(i, parameters);
+            simulate!(STEP, &mut state, 1, Info::Verbose);
+            for j in 0..31 {
+                avg_results[j] += state.weekly_infected[j] / NUM_NODES as f32;
+            }
+        }
 
-    // let mut ind_error = 0.;
-    // let mut sum = 0.;
-    // let alpha: f32 = 0.1;
-    // for k in 0..31 {
-    //     let weight = 1. / (alpha * (1. - alpha).powf(k as f32));
-    //     ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
-    //     sum += weight as f32;
-    // }
-    // ind_error = (ind_error / (sum * 31.)).sqrt();
+        for j in 0..31 {
+            avg_results[j] /= REPETITION as f32;
+        }
 
-    // let file_name = format!("sim_data_avg.csv");
-    // let mut file = OpenOptions::new()
-    //     .read(true)
-    //     .append(true)
-    //     .write(true)
-    //     .create(true)
-    //     .open(file_name.to_string())
-    //     .unwrap();
+        let mut ind_error = 0.;
+        let mut sum = 0.;
+        let alpha: f32 = 0.15;
+        for k in 0..31 {
+            let weight = 1. / (alpha * (1. - alpha).powf(k as f32));
+            ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
+            sum += weight as f32;
+        }
+        ind_error = (ind_error / (sum * 31.)).sqrt();
 
-    //     writeln!(file, "{:#?}", parameters).expect("Unable to write file.");
-    //     writeln!(file, "Error {:#?}", ind_error).expect("Unable to write file.");
+        let file_name = format!("sim_data_avg.csv");
+        let mut file = OpenOptions::new()
+            .read(true)
+            .append(true)
+            .write(true)
+            .create(true)
+            .open(file_name.to_string())
+            .unwrap();
 
-    // for i in 0..avg_results.len() {
-    //     writeln!(file, "{:#?}", avg_results[i]).expect("Unable to write file.");
-    // }
-    // println!("Avg_error: {} ", ind_error);
+            writeln!(file, "{:#?}", parameters).expect("Unable to write file.");
+            writeln!(file, "Error {:#?}", ind_error).expect("Unable to write file.");
 
-    let result = explore_ga_parallel!(
-        init_population,
-        fitness,
-        selection,
-        mutation,
-        crossover,
-        cmp,
-        EpidemicNetworkState,
-        DESIRED_FITNESS,
-        MAX_GENERATION,
-        STEP,
-        REPETITION,
-    );
-    if !result.is_empty() {
-        // I'm the master
-        // build csv from all procexplore_result
-        let name = "explore_result".to_string();
-        let _res = write_csv(&name, &result);
+        for i in 0..avg_results.len() {
+            writeln!(file, "{:#?}", avg_results[i]).expect("Unable to write file.");
+        }
+        println!("Avg_error: {} ", ind_error);
+
+    } else {
+        let result = explore_ga_parallel!(
+            init_population,
+            fitness,
+            selection,
+            mutation,
+            crossover,
+            cmp,
+            EpidemicNetworkState,
+            DESIRED_FITNESS,
+            MAX_GENERATION,
+            STEP,
+            REPETITION,
+        );
+        if !result.is_empty() {
+            // I'm the master
+            // build csv from all procexplore_result
+            let name = "explore_result".to_string();
+            let _res = write_csv(&name, &result);
+        }
     }
 }
 
@@ -145,7 +150,7 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
 
     let mut ind_error = 0.;
     let mut sum = 0.;
-    let alpha: f32 = 0.1;
+    let alpha: f32 = 0.15;
     for k in 0..31 {
         let weight = 1. / (alpha * (1. - alpha).powf(k as f32));
         ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);

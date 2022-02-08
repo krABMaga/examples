@@ -2,7 +2,9 @@ use rand::distributions::weighted::WeightedIndex;
 
 use rust_ab::{
     argmin::prelude::*,
-    argmin::solver::neldermead::NelderMead,
+    argmin::solver::linesearch::MoreThuenteLineSearch,
+    argmin::solver::quasinewton::LBFGS,
+    finitediff::FiniteDiff,
     explore::bayesian_opt::*,
     friedrich::gaussian_process::GaussianProcess,
     friedrich::kernel::Gaussian,
@@ -29,7 +31,7 @@ mod model;
 
 // generic model parameters
 pub static INIT_EDGES: usize = 1;
-pub const NUM_NODES: u32 = 10_000;
+pub const NUM_NODES: u32 = 5_000;
 pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 
@@ -37,8 +39,8 @@ pub static DESIRED_RT: f32 = 2.;
 pub const STEP: u64 = 37;
 pub const REPETITION: usize = 20;
 
-pub const ITERATIONS: usize = 10;
-pub const INIT_ELEMENTS: usize = 5;
+pub const ITERATIONS: usize = 100;
+pub const INIT_ELEMENTS: usize = 10;
 pub const VAR_NUMS: usize = 4;
 pub const BATCH_SIZE: usize = 200;
 
@@ -82,17 +84,12 @@ fn init_population() -> (Vec<Vec<f64>>, Vec<f64>) {
         let spread = rng.gen_range(0.0..=1.0_f64); // spread chance
         let r1 = rng.gen_range(0.0..=1.0_f64); // recovery chance
         let r2 = rng.gen_range(0.0..=1.0_f64); // recovery chance
-        let day = rng.gen_range(17..=31) as f64; // day
+        let day = rng.gen_range(0..=31) as f64; // day
 
         let x = vec![spread, r1, r2, day];
         x_init.push(x);
         y_init.push(costly_function(&x_init[i]));
     }
-
-    x_init.push(vec![0.04323612, 0.13140434, 0.3213813, 20.]);
-    y_init.push(costly_function(&x_init[INIT_ELEMENTS]));
-    x_init.push(vec![0.04323612, 0.13140434, 0.3213813, 20.]);
-    y_init.push(costly_function(&x_init[INIT_ELEMENTS+1]));
 
     (x_init, y_init)
 }
