@@ -14,14 +14,18 @@ mod model;
 // pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 pub static INIT_EDGES: usize = 1;
-pub const NUM_NODES: u32 = 5_000;
+pub const NUM_NODES: u32 = 10_000;
 
 // GA specific parameters
-pub const MUTATION_RATE: f64 = 0.2;
+lazy_static! {
+    static ref MUTATION_RATE: Mutex<f64> = Mutex::new(0.8);
+}
+// pub static mut MUTATION_RATE: f64 = 0.7;
 pub const DESIRED_FITNESS: f32 = 0.;
-pub const MAX_GENERATION: u32 = 1000;
-pub const INDIVIDUALS: u32 = 120;
-pub const REPETITION: u32 = 20;
+pub const MAX_GENERATION: u32 = 2_000;
+pub const INDIVIDUALS: u32 = 100;
+pub const REPETITIONS: u32 = 10;
+pub const ALPHA: f32 = 0.275;
 pub const IS_GA: bool = false;
 
 lazy_static! {
@@ -38,41 +42,41 @@ lazy_static! {
         x
     };
     // pub static ref SEED: u64 = rand::thread_rng().gen();
-    pub static ref RNG: Mutex<StdRng> = Mutex::new(StdRng::seed_from_u64(1));
+    pub static ref RNG: Mutex<StdRng> = Mutex::new(StdRng::seed_from_u64(0));
 }
 
-pub const STEP: u64 = 51;
+pub const STEP: u64 = 37; // 51 - 37
+pub const DAY: usize = 31; // 45 - 31
 
 fn main() {
     if !IS_GA {
-        let mut avg_results: Vec<f32> = vec![0.0; 45];
-        let parameters = "0.0633509;0.22434065";
+        let mut avg_results: Vec<f32> = vec![0.0; DAY];
+        let parameters = "0.03150135;0.02345901";
 
-        for i in 0..REPETITION as usize {
+        for i in 0..REPETITIONS as usize {
             println!("Running simulation {}...", i);
             let mut state = EpidemicNetworkState::new_with_parameters(i, parameters);
             simulate!(STEP, &mut state, 1, Info::Verbose);
-            for j in 0..45 {
+            for j in 0..DAY {
                 avg_results[j] += state.weekly_infected[j] / NUM_NODES as f32;
             }
         }
 
-        for j in 0..45 {
-            avg_results[j] /= REPETITION as f32;
+        for j in 0..DAY {
+            avg_results[j] /= REPETITIONS as f32;
         }
 
         let mut ind_error = 0.;
-        
+
         // let mut sum = 0.;
-        // let alpha: f32 = 0.1;
-        // for k in 0..45 {
-        //     let weight = 1. / (alpha * (1. - alpha).powf(k as f32));
+        // for k in 0..DAY {
+        //     let weight = 1. / (ALPHA * (1. - ALPHA).powf(k as f32));
         //     ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
         //     sum += weight as f32;
         // }
-        // ind_error = (ind_error / (sum * 45.)).sqrt();
+        // ind_error = (ind_error / (sum * DAY as f32)).sqrt();
 
-        for k in 0..45 {
+        for k in 0..DAY {
             ind_error += ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
         }
 
@@ -85,8 +89,8 @@ fn main() {
             .open(file_name.to_string())
             .unwrap();
 
-            writeln!(file, "{:#?}", parameters).expect("Unable to write file.");
-            writeln!(file, "Error {:#?}", ind_error).expect("Unable to write file.");
+        writeln!(file, "{:#?}", parameters).expect("Unable to write file.");
+        writeln!(file, "Error {:#?} - a {}", ind_error, ALPHA).expect("Unable to write file.");
 
         for i in 0..avg_results.len() {
             writeln!(file, "{:#?}", avg_results[i]).expect("Unable to write file.");
@@ -104,7 +108,7 @@ fn main() {
             DESIRED_FITNESS,
             MAX_GENERATION,
             STEP,
-            REPETITION,
+            REPETITIONS,
         );
         if !result.is_empty() {
             // I'm the master
@@ -113,7 +117,6 @@ fn main() {
             let _res = write_csv(&name, &result);
         }
     }
-
 }
 
 fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
@@ -131,21 +134,21 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     //     // and observed[i] is the weekly average of new infected of the day i within the official data
     //     let mut ind_error = 0.;
     //     // let alpha = 0.1;
-    //     for k in 0..45 {
+    //     for k in 0..DAY {
     //         ind_error +=
     //             //((k+1) as f32).ln() *
     //             // (alpha * (1 - alpha).powf(k-1)) *
     //                 // ((DATA[k] - computed_ind[i].0.weekly_infected[k]).powf(2.));
     //                 ((DATA[k] - computed_ind[i].0.weekly_infected[k]) / DATA[k]).powf(2.);
     //     }
-    //     // ind_error = (ind_error/45.).sqrt();
+    //     // ind_error = (ind_error/DAY as f32).sqrt();
     //     error += ind_error;
     // }
     // error / computed_ind.len() as f32
 
-    let mut avg_results: Vec<f32> = vec![0.0; 45];
+    let mut avg_results: Vec<f32> = vec![0.0; DAY];
 
-    for j in 0..45 {
+    for j in 0..DAY {
         for i in 0..computed_ind.len() {
             avg_results[j] += computed_ind[i].0.weekly_infected[j] / NUM_NODES as f32;
         }
@@ -153,20 +156,13 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     }
 
     let mut ind_error = 0.;
-
-    // let mut sum = 0.;
-    // let alpha: f32 = 0.1;
-    // for k in 0..45 {
-    //     let weight = 1. / (alpha * (1. - alpha).powf(k as f32));
-    //     ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
-    //     sum += weight as f32;
-    // }
-    // ind_error = (ind_error / (sum * 45.)).sqrt();
-
-    for k in 0..45 {
-        ind_error += ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
+    let mut sum = 0.;
+    for k in 0..DAY {
+        let weight = 1. / (ALPHA * (1. - ALPHA).powf(k as f32));
+        ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
+        sum += weight as f32;
     }
-
+    ind_error = (ind_error / (sum * DAY as f32)).sqrt();
     ind_error
 }
 
@@ -251,6 +247,21 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
     // }
     // *population_fitness = new_population;
 
+    let mut min_fitness = 1.;
+    for individual_fitness in population_fitness.iter_mut() {
+        if individual_fitness.1 < min_fitness {
+            min_fitness = individual_fitness.1;
+        }
+    }
+
+    if min_fitness < 0.01 {
+        *MUTATION_RATE.lock().unwrap() = 0.2;
+    } else if min_fitness < 0.02 {
+        *MUTATION_RATE.lock().unwrap() = 0.4;
+    } else if min_fitness < 0.04 {
+        *MUTATION_RATE.lock().unwrap() = 0.6;
+    }
+
     // sort the population based on the fitness
     population_fitness.sort_by(|s1, s2| s1.1.partial_cmp(&s2.1).unwrap_or(Equal));
 }
@@ -258,12 +269,12 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
 fn crossover(population: &mut Vec<String>) {
     let mut children: Vec<String> = Vec::new();
 
-    let twenty_perc = INDIVIDUALS as f32 * 0.2;
-    for i in 0..(twenty_perc as usize) {
+    let perc = INDIVIDUALS as f32 * 0.2;
+    for i in 0..(perc as usize) {
         children.push(population[i].clone());
     }
 
-    let children_num = INDIVIDUALS as f32 - twenty_perc;
+    let children_num = INDIVIDUALS as f32 - perc;
 
     if population.len() == 0 {
         panic!("Population len can't be 0");
@@ -348,10 +359,7 @@ fn crossover(population: &mut Vec<String>) {
         }
         let new_recovery = RNG.lock().unwrap().gen_range(p_min..=p_max);
 
-        let new_individual = format!(
-            "{};{}",
-            new_spread, new_recovery
-        );
+        let new_individual = format!("{};{}", new_spread, new_recovery);
         children.push(new_individual);
     }
 
@@ -419,7 +427,7 @@ fn mutation(individual: &mut String) {
 
     // mutate one random parameter
     // randomly increase or decrease spread orrecovery
-    if RNG.lock().unwrap().gen_bool(MUTATION_RATE) {
+    if RNG.lock().unwrap().gen_bool(*MUTATION_RATE.lock().unwrap()) {
         // mutate spread
         let mut new_spread = one_spread
             .parse::<f32>()
@@ -460,10 +468,7 @@ fn mutation(individual: &mut String) {
         }
         new_recovery = RNG.lock().unwrap().gen_range(min..=max);
 
-        new_ind = format!(
-            "{};{}",
-            new_spread, new_recovery
-        );
+        new_ind = format!("{};{}", new_spread, new_recovery);
         *individual = new_ind;
     }
 }

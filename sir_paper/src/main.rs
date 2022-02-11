@@ -23,10 +23,10 @@ lazy_static! {
 // pub static mut MUTATION_RATE: f64 = 0.7;
 pub const DESIRED_FITNESS: f32 = 0.;
 pub const MAX_GENERATION: u32 = 2_000;
-pub const INDIVIDUALS: u32 = 10;
-pub const REPETITIONS: u32 = 100;
-pub const ALPHA: f32 = 0.275;
-pub const IS_GA: bool = true;
+pub const INDIVIDUALS: u32 = 100;
+pub const REPETITIONS: u32 = 10;
+// pub const ALPHA: f32 = 0.275;
+pub const IS_GA: bool = false;
 
 lazy_static! {
     pub static ref DATA: Vec<f32> = {
@@ -51,7 +51,7 @@ pub const DAY: usize = 45; // 45 - 31
 fn main() {
     if !IS_GA {
         let mut avg_results: Vec<f32> = vec![0.0; DAY];
-        let parameters = "";
+        let parameters = "0.025577066;0.058015354;0.110796094;27";
 
         for i in 0..REPETITIONS as usize {
             println!("Running simulation {}...", i);
@@ -155,14 +155,24 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
         avg_results[j] /= computed_ind.len() as f32;
     }
 
+    // let mut ind_error = 0.;
+    // let mut sum = 0.;
+    // for k in 0..DAY {
+    //     let weight = ((k + 1) as f32).ln();//1. / (ALPHA * (1. - ALPHA).powf(k as f32));
+    //     ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
+    //     sum += ((k + 1) as f32).ln();//weight as f32;
+    // }
+    // ind_error = (ind_error / (sum * DAY as f32)).sqrt();
+    // ind_error
+
     let mut ind_error = 0.;
     let mut sum = 0.;
     for k in 0..DAY {
-        let weight = 1. / (ALPHA * (1. - ALPHA).powf(k as f32));
-        ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
-        sum += weight as f32;
+        let weight = ((k + 1) as f32).ln(); //1. / (ALPHA * (1. - ALPHA).powf(k as f32));
+        ind_error += weight * ((DATA[k] - avg_results[k])).abs();
+        sum += weight * DATA[k]; //weight as f32;
     }
-    ind_error = (ind_error / (sum * DAY as f32)).sqrt();
+    ind_error = ind_error / sum;
     ind_error
 }
 
@@ -256,11 +266,11 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
         }
     }
 
-    if min_fitness < 0.01 {
+    if min_fitness < 0.25 {
         *MUTATION_RATE.lock().unwrap() = 0.2;
-    } else if min_fitness < 0.025 {
+    } else if min_fitness < 0.5 {
         *MUTATION_RATE.lock().unwrap() = 0.4;
-    } else if min_fitness < 0.05 {
+    } else if min_fitness < 0.75 {
         *MUTATION_RATE.lock().unwrap() = 0.6;
     }
 

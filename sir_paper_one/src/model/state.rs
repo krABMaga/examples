@@ -27,11 +27,7 @@ pub struct EpidemicNetworkState {
 }
 
 impl EpidemicNetworkState {
-    pub fn new(
-        spread: f32,
-        recovery: f32,
-        initial_infected: usize,
-    ) -> EpidemicNetworkState {
+    pub fn new(spread: f32, recovery: f32, initial_infected: usize) -> EpidemicNetworkState {
         EpidemicNetworkState {
             step: 0,
             network: Network::new(false),
