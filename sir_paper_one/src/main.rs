@@ -21,10 +21,10 @@ lazy_static! {
     static ref MUTATION_RATE: Mutex<f64> = Mutex::new(0.8);
 }
 pub const DESIRED_FITNESS: f32 = 0.;
-pub const MAX_GENERATION: u32 = 5_000;
+pub const MAX_GENERATION: u32 = 2_000;
 pub const INDIVIDUALS: u32 = 100;
-pub const REPETITIONS: u32 = 10;
-pub const IS_GA: bool = true;
+pub const REPETITIONS: u32 = 20;
+pub const IS_GA: bool = false;
 
 lazy_static! {
     pub static ref DATA: Vec<f32> = {
@@ -49,7 +49,7 @@ pub const DAY: usize = 45; // 45 - 31
 fn main() {
     if !IS_GA {
         let mut avg_results: Vec<f32> = vec![0.0; DAY];
-        let parameters = "0.03150135;0.02345901";
+        let parameters = "";
 
         for i in 0..REPETITIONS as usize {
             println!("Running simulation {}...", i);
@@ -79,7 +79,7 @@ fn main() {
             .unwrap();
 
         writeln!(file, "{:#?}", parameters).expect("Unable to write file.");
-        writeln!(file, "Error {:#?} - a {}", ind_error, ALPHA).expect("Unable to write file.");
+        writeln!(file, "Error {:#?}", ind_error).expect("Unable to write file.");
 
         for i in 0..avg_results.len() {
             writeln!(file, "{:#?}", avg_results[i]).expect("Unable to write file.");
@@ -121,9 +121,9 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     let mut ind_error = 0.;
     let mut sum = 0.;
     for k in 0..DAY {
-        let weight = ((k + 1) as f32).ln(); 
-        ind_error += weight * ((DATA[k] - avg_results[k])).abs();
-        sum += weight * DATA[k]; 
+        let weight = (k + 1) as f32;
+        ind_error += weight * (DATA[k] - avg_results[k]).abs();
+        sum += weight * DATA[k];
     }
     ind_error = ind_error / sum;
     ind_error

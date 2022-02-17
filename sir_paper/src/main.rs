@@ -24,8 +24,8 @@ lazy_static! {
 pub const DESIRED_FITNESS: f32 = 0.;
 pub const MAX_GENERATION: u32 = 2_000;
 pub const INDIVIDUALS: u32 = 100;
-pub const REPETITIONS: u32 = 10;
-pub const IS_GA: bool = false;
+pub const REPETITIONS: u32 = 20;
+pub const IS_GA: bool = true;
 
 lazy_static! {
     pub static ref DATA: Vec<f32> = {
@@ -50,8 +50,8 @@ pub const DAY: usize = 45; // 45 - 31
 fn main() {
     if !IS_GA {
         let mut avg_results: Vec<f32> = vec![0.0; DAY];
-        let parameters = "0.017551364;0.03082049;0.06697537;26";
-        for i in 0..REPETITIONS as usize {
+        let parameters = "";
+        for i in 0..REPETITIONS {
             println!("Running simulation {}...", i);
             let mut state = EpidemicNetworkState::new_with_parameters(i, parameters);
             simulate!(STEP, &mut state, 1, Info::Verbose);
@@ -65,7 +65,7 @@ fn main() {
         }
 
         let mut ind_error = 0.;
-        
+
         for k in 0..DAY {
             ind_error += ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
         }
@@ -87,7 +87,7 @@ fn main() {
         }
         println!("Avg_error: {} ", ind_error);
     } else {
-        let result = explore_ga_parallel!(
+        let result = explore_ga_sequential!(
             init_population,
             fitness,
             selection,
@@ -122,8 +122,8 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     let mut ind_error = 0.;
     let mut sum = 0.;
     for k in 0..DAY {
-        let weight = ((k + 1) as f32).ln();
-        ind_error += weight * ((DATA[k] - avg_results[k])).abs();
+        let weight = (k + 1) as f32;
+        ind_error += weight * (DATA[k] - avg_results[k]).abs();
         sum += weight * DATA[k];
     }
     ind_error = ind_error / sum;
@@ -417,7 +417,7 @@ fn mutation(individual: &mut String) {
             new_day - alpha
         };
         let mut max: u64 = if new_day + alpha > DAY as u64 {
-            DAY as u64 
+            DAY as u64
         } else {
             new_day + alpha
         };
