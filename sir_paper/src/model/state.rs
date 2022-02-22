@@ -85,7 +85,12 @@ impl State for EpidemicNetworkState {
         self.rt = 0.;
         // build a support array having the NodeStatus configuration
         let mut positions = vec![0; NUM_NODES as usize];
-        positions[self.initial_infected] = 1;
+
+        let infected =
+            StdRng::seed_from_u64(self.initial_infected as u64).gen_range(0..NUM_NODES) as usize;
+        positions[infected] = 1;
+
+        // positions[self.initial_infected] = 1;
 
         // generates nodes
         for node_id in 0..NUM_NODES {

@@ -14,7 +14,7 @@ mod model;
 // pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 pub static INIT_EDGES: usize = 1;
-pub const NUM_NODES: u32 = 10_000;
+pub const NUM_NODES: u32 = 1_000;
 
 // GA specific parameters
 lazy_static! {
@@ -23,9 +23,8 @@ lazy_static! {
 // pub static mut MUTATION_RATE: f64 = 0.7;
 pub const DESIRED_FITNESS: f32 = 0.;
 pub const MAX_GENERATION: u32 = 2_000;
-pub const INDIVIDUALS: u32 = 10;
-pub const REPETITIONS: u32 = 100;
-pub const ALPHA: f32 = 0.275;
+pub const INDIVIDUALS: u32 = 100;
+pub const REPETITIONS: u32 = 20;
 pub const IS_GA: bool = true;
 
 lazy_static! {
@@ -52,8 +51,7 @@ fn main() {
     if !IS_GA {
         let mut avg_results: Vec<f32> = vec![0.0; DAY];
         let parameters = "";
-
-        for i in 0..REPETITIONS as usize {
+        for i in 0..REPETITIONS {
             println!("Running simulation {}...", i);
             let mut state = EpidemicNetworkState::new_with_parameters(i, parameters);
             simulate!(STEP, &mut state, 1, Info::Verbose);
@@ -67,14 +65,6 @@ fn main() {
         }
 
         let mut ind_error = 0.;
-        
-        // let mut sum = 0.;
-        // for k in 0..DAY {
-        //     let weight = 1. / (ALPHA * (1. - ALPHA).powf(k as f32));
-        //     ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
-        //     sum += weight as f32;
-        // }
-        // ind_error = (ind_error / (sum * DAY as f32)).sqrt();
 
         for k in 0..DAY {
             ind_error += ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
@@ -97,7 +87,7 @@ fn main() {
         }
         println!("Avg_error: {} ", ind_error);
     } else {
-        let result = explore_ga_parallel!(
+        let result = explore_ga_sequential!(
             init_population,
             fitness,
             selection,
@@ -120,32 +110,6 @@ fn main() {
 }
 
 fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
-    // let mut error = 0.;
-    // for i in 0..computed_ind.len() {
-    //     // iterates through the weekly infected array to normalize it
-    //     for j in 0..computed_ind[i].0.weekly_infected.len() {
-    //         computed_ind[i].0.weekly_infected[j] /= NUM_NODES as f32;
-    //     }
-
-    //     // compute the error of the simulated results compared to the observed data
-    //     // using the summation of each value of 61 days
-    //     // (simulated[i] - observed[i])^2
-    //     // where simulated[i] is the weekly average of new infected of the day i of the simulation
-    //     // and observed[i] is the weekly average of new infected of the day i within the official data
-    //     let mut ind_error = 0.;
-    //     // let alpha = 0.1;
-    //     for k in 0..DAY {
-    //         ind_error +=
-    //             //((k+1) as f32).ln() *
-    //             // (alpha * (1 - alpha).powf(k-1)) *
-    //                 // ((DATA[k] - computed_ind[i].0.weekly_infected[k]).powf(2.));
-    //                 ((DATA[k] - computed_ind[i].0.weekly_infected[k]) / DATA[k]).powf(2.);
-    //     }
-    //     // ind_error = (ind_error/DAY as f32).sqrt();
-    //     error += ind_error;
-    // }
-    // error / computed_ind.len() as f32
-
     let mut avg_results: Vec<f32> = vec![0.0; DAY];
 
     for j in 0..DAY {
@@ -158,11 +122,11 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     let mut ind_error = 0.;
     let mut sum = 0.;
     for k in 0..DAY {
-        let weight = 1. / (ALPHA * (1. - ALPHA).powf(k as f32));
-        ind_error += weight as f32 * ((DATA[k] - avg_results[k]) / DATA[k]).powf(2.);
-        sum += weight as f32;
+        let weight = (k + 1) as f32;
+        ind_error += weight * (DATA[k] - avg_results[k]).abs();
+        sum += weight * DATA[k];
     }
-    ind_error = (ind_error / (sum * DAY as f32)).sqrt();
+    ind_error = ind_error / sum;
     ind_error
 }
 
@@ -193,62 +157,6 @@ fn init_population() -> Vec<String> {
 }
 
 fn selection(population_fitness: &mut Vec<(String, f32)>) {
-    // weighted tournament selection
-    // let mut rng = rand::thread_rng();
-    // let mut len = population_fitness.len();
-
-    // // build an array containing the fitness values in order to be used for the
-    // // weighted selection
-    // let mut weight = Vec::new();
-    // for individual_fitness in population_fitness.iter_mut() {
-    //     let mut single_weight: f32;
-    //     if individual_fitness.1 != 0. {
-    //         single_weight = 0.1 / individual_fitness.1; // 1 / 0,001 = 1000
-    //     } else {
-    //         println!("----------------------- test max");
-    //         single_weight = f32::MAX;
-    //     }
-
-    //     if single_weight == 0. {
-    //         single_weight += 1.;
-    //     }
-    //     weight.push(single_weight);
-    // }
-
-    // let mut new_population: Vec<(String, f32)> = Vec::new();
-
-    // if len % 2 == 1 {
-    //     len = (len / 2) + 1;
-    // } else {
-    //     len /= 2;
-    // }
-
-    // for i in 0..len {
-    //     let dist = WeightedIndex::new(&weight).unwrap();
-
-    //     let idx_one = dist.sample(&mut rng);
-    //     weight[idx_one] = 0.;
-
-    //     if i == len - 1 && population_fitness.len() % 2 == 1 {
-    //         new_population.push(population_fitness[idx_one].clone());
-    //         continue;
-    //     }
-
-    //     let mut idx_two = idx_one;
-    //     while idx_one == idx_two {
-    //         idx_two = dist.sample(&mut rng);
-    //     }
-    //     weight[idx_two] = 0.;
-
-    //     // choose the individual with the highest fitness
-    //     if population_fitness[idx_one].1 < population_fitness[idx_two].1 {
-    //         new_population.push(population_fitness[idx_two].clone());
-    //     } else {
-    //         new_population.push(population_fitness[idx_one].clone());
-    //     }
-    // }
-    // *population_fitness = new_population;
-
     let mut min_fitness = 1.;
     for individual_fitness in population_fitness.iter_mut() {
         if individual_fitness.1 < min_fitness {
@@ -256,11 +164,11 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
         }
     }
 
-    if min_fitness < 0.01 {
+    if min_fitness < 0.25 {
         *MUTATION_RATE.lock().unwrap() = 0.2;
-    } else if min_fitness < 0.025 {
+    } else if min_fitness < 0.5 {
         *MUTATION_RATE.lock().unwrap() = 0.4;
-    } else if min_fitness < 0.05 {
+    } else if min_fitness < 0.75 {
         *MUTATION_RATE.lock().unwrap() = 0.6;
     }
 
@@ -429,59 +337,6 @@ fn crossover(population: &mut Vec<String>) {
     }
 
     *population = children;
-
-    // let len = population.len();
-    // while additional_individuals > 0 {
-    //     // select two random individuals
-    //     let idx_one = RNG.lock().unwrap().gen_range(0..len);
-    //     //let parent_one = parents[idx_one].clone();
-    //     let parent_one = population[idx_one].clone();
-    //     //parents.remove(idx_one);
-
-    //     // if additional_individuals == 1 {
-    //     //     population.push(parent_one);
-    //     //     additional_individuals -= 1;
-    //     //     continue;
-    //     // }
-
-    //     let mut idx_two = rng.gen_range(0..len);
-
-    //     while idx_one == idx_two {
-    //         idx_two = rng.gen_range(0..len);
-    //     }
-
-    //     let parent_two = population[idx_two].clone();
-
-    //     let parent_one: Vec<&str> = parent_one.split(';').collect();
-    //     let one_spread = parent_one[0]
-    //         .parse::<f32>()
-    //         .expect("Unable to parse str to f32!");
-    //     let one_recovery = parent_one[1]
-    //         .parse::<f32>()
-    //         .expect("Unable to parse str to f32!");
-
-    //     let parent_two: Vec<&str> = parent_two.split(';').collect();
-    //     let two_spread = parent_two[0]
-    //         .parse::<f32>()
-    //         .expect("Unable to parse str to f32!");
-    //     let two_recovery = parent_two[1]
-    //         .parse::<f32>()
-    //         .expect("Unable to parse str to f32!");
-
-    //     if one_spread == two_spread || one_recovery == two_recovery {
-    //         continue;
-    //     }
-
-    //     let new_individual = format!(
-    //         "{};{}",
-    //         (one_spread + two_spread) / 2.,
-    //         (one_recovery + two_recovery) / 2.
-    //     );
-
-    //     population.push(new_individual);
-
-    //     additional_individuals -= 1;
-    // }
 }
 
 fn mutation(individual: &mut String) {
@@ -562,7 +417,7 @@ fn mutation(individual: &mut String) {
             new_day - alpha
         };
         let mut max: u64 = if new_day + alpha > DAY as u64 {
-            DAY as u64 
+            DAY as u64
         } else {
             new_day + alpha
         };
