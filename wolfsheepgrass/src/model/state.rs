@@ -44,7 +44,7 @@ pub struct WsgState {
     pub new_sheeps: Arc<Mutex<Vec<Sheep>>>,
     pub new_wolves: Arc<Mutex<Vec<Wolf>>>,
     pub killed_sheeps: Arc<Mutex<HashSet<Sheep>>>,
-
+    pub killed_wolves: Arc<Mutex<HashSet<Wolf>>>,
     pub initial_animals: (u32, u32),
     pub survived_wolves: u32,
     pub survived_sheeps: u32,
@@ -61,7 +61,7 @@ impl State for WsgState {
         self.new_sheeps = Arc::new(Mutex::new(Vec::new()));
         self.new_wolves = Arc::new(Mutex::new(Vec::new()));
         self.killed_sheeps = Arc::new(Mutex::new(HashSet::new()));
-
+        self.killed_wolves = Arc::new(Mutex::new(HashSet::new()));
         self.initial_animals = (self.initial_animals.0, self.initial_animals.1);
         self.survived_wolves = self.initial_animals.1;
         self.survived_sheeps = self.initial_animals.0;
@@ -111,15 +111,19 @@ impl State for WsgState {
         self
     }
 
-    fn before_step(&mut self, _schedule: &mut Schedule) {
+    fn before_step(&mut self, schedule: &mut Schedule) {
         self.new_sheeps.lock().unwrap().clear();
         self.new_wolves.lock().unwrap().clear();
+        
+        println!("before Step {} survived sheep {}", self.step, self.survived_sheeps);
+        println!("before schedule len {}", schedule.events.len());
     }
 
     fn after_step(&mut self, schedule: &mut Schedule) {
         self.eaten_grass.lock().unwrap().clear();
 
         for sheep in self.new_sheeps.lock().unwrap().iter() {
+            // println!("after step {}: {} is born", self.step, sheep);
             schedule.schedule_repeating(Box::new(*sheep), schedule.time + 1.0, 0);
         }
 
@@ -127,11 +131,47 @@ impl State for WsgState {
             schedule.schedule_repeating(Box::new(*wolf), schedule.time + 1.0, 1);
         }
 
+        for wolf in self.killed_wolves.lock().unwrap().iter() {
+            if wolf.animal_state == LifeState::Dead {
+                //println!("wolf dead {} {}",  wolf.id,  wolf.id);
+                schedule.dequeue(Box::new(*wolf), wolf.id);
+            }
+        }
+
+        for sheep in self.killed_sheeps.lock().unwrap().iter() {
+            //if sheep.animal_state == LifeState::Dead {
+            //println!("sheep dead {} {}", sheep.id, sheep.id);
+            // println!("after step {}: sheep {} is dead", self.step, sheep);
+            println!("tryng kill -- {}", sheep.id);
+            let x = schedule.dequeue(Box::new(*sheep), sheep.id);
+            if x {
+                println!("removed sheep {}", sheep.id);
+            } else {
+                println!("sheep {} not removed", sheep.id);
+            }
+            // }
+        }
+
+        let k_sheeps = self.killed_sheeps.lock().unwrap().len() as u32;
+        let k_wolves = self.killed_wolves.lock().unwrap().len();
+
+        println!(
+            "after step {}: {} new sheeps, {} new wolves, {} killed sheeps, {} killed wolves",
+            self.step,
+            self.new_sheeps.lock().unwrap().len(),
+            self.new_wolves.lock().unwrap().len(),
+            k_sheeps,
+            k_wolves
+        );
+
         let agents = schedule.get_all_events();
         let mut sheeps = 0;
         let mut wolves = 0;
         for n in agents {
-            if let Some(_p) = n.downcast_ref::<Sheep>() {
+            if let Some(p) = n.downcast_ref::<Sheep>() {
+                if self.killed_sheeps.lock().unwrap().contains(p) {
+                    println!("ZOMBIE POG");
+                }
                 sheeps += 1;
             }
             if let Some(_p) = n.downcast_ref::<Wolf>() {
@@ -139,30 +179,89 @@ impl State for WsgState {
             }
         }
 
+        let b_sheeps = self.new_sheeps.lock().unwrap().len() as u32;
+        if sheeps != self.survived_sheeps - k_sheeps + b_sheeps {
+            println!("---\nERRORE");
+        //     println!(
+        //     "step {}: {} new sheeps, {} new wolves, {} killed sheeps, {} killed wolves",
+        //     self.step,
+        //     self.new_sheeps.lock().unwrap().len(),
+        //     self.new_wolves.lock().unwrap().len(),
+        //     k_sheeps,
+        //     k_wolves
+        // );
+        // println!(
+        //     "step {}: {} previous, {} survived sheeps, {} survived wolves",
+        //     self.step, self.survived_sheeps, sheeps, self.survived_wolves,
+        // );
+        //     let agents = schedule.get_all_events();
+        //     let mut sheeps = 0;
+        //     let mut wolves = 0;
+
+        //     {
+        //         //  println!("DEAD: {}", self.killed_sheeps.lock().unwrap());
+        //         for dead in self.killed_sheeps.lock().unwrap().iter() {
+        //             // println!(" dead sheep {}", dead);
+        //         }
+        //         for born in self.new_sheeps.lock().unwrap().iter() 
+        //         {
+        //             // println!(" born sheep {}", born)
+        //         }
+        //     }
+        //     for n in agents {
+        //         if let Some(p) = n.downcast_ref::<Sheep>() {
+        //             if self.killed_sheeps.lock().unwrap().contains(p) {
+        //                 println!("ZOMBIE POG");
+        //             }
+        //             // println!("alive sheep {}", p);
+
+        //             sheeps += 1;
+        //         }
+        //         if let Some(_p) = n.downcast_ref::<Wolf>() {
+        //             wolves += 1;
+        //         }
+        //     }
+
+            
+        //     println!("\n\n-----");
+        }
+
+        self.killed_sheeps.lock().unwrap().clear();
+        self.killed_wolves.lock().unwrap().clear();
+
         self.survived_sheeps = sheeps;
         self.survived_wolves = wolves;
 
-//         let mut grasses = 0;
-//         for i in 0..self.dim.0 {
-//             for j in 0..self.dim.1 {
-//                 match self.grass_field.get_value(&Int2D { x: i, y: j }) {
-//                     Some(v) => {
-//                         // println!("Grass {:?} has value {:?}", Int2D { x: i, y: j }, v);
-//                         if v == FULL_GROWN {
-//                             grasses += 1;
-//                         }
-//                     }
-//                     None => {
-//                         //  println!("Grass {:?} not found", Int2D { x: i, y: j });
-//                     }
-//                 }
-//             }
-//         }
+        println!(
+            "after step {}: {} survived sheeps, {} survived wolves",
+            self.step, self.survived_sheeps, self.survived_wolves,
+        );
 
-//         println!(
-//             "Number of sheeps: {:?} - wolves: {:?} - full growth grasses: {:?} at step {:?}\n",
-//             sheeps, wolves, grasses, schedule.step
-//         );
+        // println!("\n\n-------");
+
+        //         let mut grasses = 0;
+        //         for i in 0..self.dim.0 {
+        //             for j in 0..self.dim.1 {
+        //                 match self.grass_field.get_value(&Int2D { x: i, y: j }) {
+        //                     Some(v) => {
+        //                         // println!("Grass {:?} has value {:?}", Int2D { x: i, y: j }, v);
+        //                         if v == FULL_GROWN {
+        //                             grasses += 1;
+        //                         }
+        //                     }
+        //                     None => {
+        //                         //  println!("Grass {:?} not found", Int2D { x: i, y: j });
+        //                     }
+        //                 }
+        //             }
+        //         }
+
+        //         println!(
+        //             "Number of sheeps: {:?} - wolves: {:?} - full growth grasses: {:?} at step {:?}\n",
+        //             sheeps, wolves, grasses, schedule.step
+        //         );
+        println!("after schedule len {}\n\n\n", schedule.events.len());
+
     }
 }
 
@@ -241,7 +340,7 @@ impl WsgState {
             survived_wolves: initial_animals.1,
             survived_sheeps: initial_animals.0,
             killed_sheeps: Arc::new(Mutex::new(HashSet::new())),
-
+            killed_wolves: Arc::new(Mutex::new(HashSet::new())),
         }
     }
 }
