@@ -21,10 +21,10 @@ lazy_static! {
     static ref MUTATION_RATE: Mutex<f64> = Mutex::new(0.8);
 }
 pub const DESIRED_FITNESS: f32 = 0.;
-pub const MAX_GENERATION: u32 = 2_000;
-pub const INDIVIDUALS: u32 = 100;
-pub const REPETITIONS: u32 = 20;
-pub const IS_GA: bool = false;
+pub const MAX_GENERATION: u32 = 30;
+pub const INDIVIDUALS: u32 = 30;
+pub const REPETITIONS: u32 = 2;
+pub const IS_GA: bool = true;
 
 lazy_static! {
     pub static ref DATA: Vec<f32> = {
@@ -148,7 +148,6 @@ fn init_population() -> Vec<String> {
         let y = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
         population.push(format!("{};{}", x, y));
     }
-
     // return the array of individuals, i.e. the population (only the parameters)
     population
 }
@@ -174,6 +173,7 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
 }
 
 fn crossover(population: &mut Vec<String>) {
+
     let mut children: Vec<String> = Vec::new();
 
     let perc = INDIVIDUALS as f32 * 0.2;
@@ -181,13 +181,14 @@ fn crossover(population: &mut Vec<String>) {
         children.push(population[i].clone());
     }
 
-    let children_num = INDIVIDUALS as f32 - perc;
+    //let children_num = INDIVIDUALS as f32 - perc;
 
     if population.len() == 0 {
         panic!("Population len can't be 0");
     }
 
-    for _ in 0..(children_num as usize) {
+    // add children until pop is full again
+    while children.len() != population.len() {
         // select two random individuals
 
         let idx_one = RNG.lock().unwrap().gen_range(0..population.len());
