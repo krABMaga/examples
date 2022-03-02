@@ -18,8 +18,8 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rust-ab = { path="/Users/ddevin/Documents/VSCode/rab/rust-ab" }
-# rust-ab = { git="https://github.com/rust-ab/rust-ab", branch="me_string" }
+#rust-ab = { path="/home/giuseppe/Git/exp_rab/rust-ab" }
+rust-ab = { git="https://github.com/rust-ab/rust-ab", branch="me_string" }
 
 [features]
 distributed_mpi = ["rust-ab/distributed_mpi"]

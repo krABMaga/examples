@@ -14,16 +14,16 @@ mod model;
 // pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 pub static INIT_EDGES: usize = 1;
-pub const NUM_NODES: u32 = 1_000;
+pub const NUM_NODES: u32 = 10_;
 
 // GA specific parameters
 lazy_static! {
     static ref MUTATION_RATE: Mutex<f64> = Mutex::new(0.8);
 }
 pub const DESIRED_FITNESS: f32 = 0.;
-pub const MAX_GENERATION: u32 = 30;
-pub const INDIVIDUALS: u32 = 30;
-pub const REPETITIONS: u32 = 2;
+pub const MAX_GENERATION: u32 = 2_000;
+pub const INDIVIDUALS: u32 = 100;
+pub const REPETITIONS: u32 = 20;
 pub const IS_GA: bool = true;
 
 lazy_static! {
@@ -86,7 +86,9 @@ fn main() {
         }
         println!("Avg_error: {} ", ind_error);
     } else {
-        let result = explore_ga_parallel!(
+        let result = explore_ga_sequential!(
+        // let result = explore_ga_parallel!(
+        // let result = explore_ga_distributed_mpi!(
             init_population,
             fitness,
             selection,
