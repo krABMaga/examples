@@ -14,7 +14,7 @@ mod model;
 // pub static DESIRED_RT: f32 = 2.;
 // pub static INITIAL_INFECTED: f32 = 0.01;
 pub static INIT_EDGES: usize = 1;
-pub const NUM_NODES: u32 = 10_;
+pub const NUM_NODES: u32 = 10_000;
 
 // GA specific parameters
 lazy_static! {
