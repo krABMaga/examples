@@ -47,13 +47,12 @@ impl Sheep {
 
 impl Agent for Sheep {
     fn step(&mut self, state: &mut dyn State) {
-        let mut state = state.as_any_mut().downcast_ref::<WsgState>().unwrap();
+        let state = state.as_any_mut().downcast_mut::<WsgState>().unwrap();
         // CHECK IF I AM DEAD
         if self.animal_state == LifeState::Dead {
             
             return;
         }
-
         //MOVE
         let x = self.loc.x;
         let y = self.loc.y;
@@ -105,26 +104,23 @@ impl Agent for Sheep {
         self.energy -= ENERGY_CONSUME;
         if self.energy <= 0.0 {
             self.animal_state = LifeState::Dead;
-            state.killed_sheeps.lock().unwrap().insert(*self);
-            // println!("step {}: sheep {} mort e fam", state.step, self);
         } else {
             //REPRODUCE
             if rng.gen_bool(self.prob_reproduction) {
                 self.energy /= 2.0;
-                let mut new_id = state.next_id.lock().unwrap();
+                //let mut new_id = state.next_id;
 
                 let new_sheep = Sheep::new(
-                    *new_id,
+                    state.next_id,
                     self.loc,
                     self.energy,
                     GAIN_ENERGY_SHEEP,
                     SHEEP_REPR,
                 );
 
-                // println!("step {}: sheep{} ha partorito sheep{}", state.step, self, new_sheep);
-                //schedule.schedule_repeating(Box::new(new_sheep), schedule.time + 1.0, 0);
-                *new_id += 1;
-                state.new_sheeps.lock().unwrap().push(new_sheep);
+                state.next_id += 1;                
+                state.new_sheeps.push(new_sheep);
+                
             }
         }
     }
