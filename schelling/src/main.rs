@@ -29,6 +29,7 @@ pub const NUM_AGENTS: u32 = 320; */
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
+    //testing deploy
     let step = 10;
     let dim: (i32, i32) = (20, 20);
     let num_agents = 320;
