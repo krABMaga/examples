@@ -18,7 +18,7 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rust-ab = { git="https://github.com/rust-ab/rust-ab", branch="visualization-bevy-0.6" }
+rust-ab = { git="https://github.com/rust-ab/rust-ab"}
 
 [features]
 parallel = ["rust-ab/parallel"]
