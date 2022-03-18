@@ -132,8 +132,9 @@ impl Agent for Bird {
         }
 
         self.last_d = Real2D { x: dx, y: dy };
-        let loc_x = toroidal_transform(self.loc.x + dx, width);
-        let loc_y = toroidal_transform(self.loc.y + dy, width);
+
+        let loc_x = toroidal_transform(self.pos.x + dx, width);
+        let loc_y = toroidal_transform(self.pos.y + dy, height);
 
         self.loc = Real2D { x: loc_x, y: loc_y };
         drop(vec);
