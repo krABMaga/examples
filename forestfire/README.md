@@ -13,7 +13,7 @@ The project hierarchy is modeled as follows:
 
 ---
 
-![](1lKcUeVi66.png)
+![](ff.gif)
 
 ---
 
