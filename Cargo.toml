@@ -1,0 +1,17 @@
+[workspace]
+resolver = "2"
+
+members = [
+    "antsforaging",
+    "flockers",
+    "flockers_exploration",
+    "forestfire",
+    "schelling",
+    "sir_ga_exploration",
+    "sir_model_exploration",
+    "template",
+    "virusnetwork",
+    "wolfsheepgrass",
+    "wsg_ga_exploration",
+    "wsg_model_exploration",
+]
