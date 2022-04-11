@@ -45,11 +45,15 @@ impl Wolf {
 
 impl Agent for Wolf {
     fn step(&mut self, state: &mut dyn State) {
-        let state = state.as_any().downcast_ref::<WsgState>().unwrap();
-
+        let state = state.as_any_mut().downcast_mut::<WsgState>().unwrap();
         let x = self.loc.x;
         let y = self.loc.y;
         let mut rng = rand::thread_rng();
+
+        // CHECK IF I AM DEAD
+        if self.animal_state == LifeState::Dead {
+            return;
+        }
 
         let mut moved = false;
         if self.last != None && rng.gen_bool(MOMENTUM_PROBABILITY) {
@@ -85,13 +89,14 @@ impl Agent for Wolf {
         //EAT
         if let Some(sheeps) = state.sheeps_grid.get_objects(&self.loc) {
             for mut sheep in sheeps {
-                if state.killed_sheeps.lock().unwrap().get(&sheep).is_none() 
-                    && sheep.animal_state == LifeState::Alive {
-                        sheep.animal_state = LifeState::Dead;
-                        state.sheeps_grid.set_object_location(sheep, &sheep.loc);
-                        self.energy += self.gain_energy;
-                        state.killed_sheeps.lock().unwrap().insert(sheep);
-                        break;
+                if state.killed_sheeps.get(&sheep).is_none()
+                    && sheep.animal_state == LifeState::Alive
+                {
+                    sheep.animal_state = LifeState::Dead;
+                    state.sheeps_grid.remove_object_location(sheep, &sheep.loc);
+                    self.energy += self.gain_energy;
+                    state.killed_sheeps.insert(sheep);
+                    break;
                 }
             }
         }
@@ -104,15 +109,12 @@ impl Agent for Wolf {
             //REPRODUCE
             if rng.gen_bool(self.prob_reproduction) {
                 self.energy /= 2.0;
-                let mut new_id = state.next_id.lock().unwrap();
 
-                //let init_energy = rng.gen_range(0..(2 * GAIN_ENERGY_WOLF as usize));
                 let new_wolf =
-                    Wolf::new(*new_id, self.loc, self.energy, GAIN_ENERGY_WOLF, WOLF_REPR);
+                    Wolf::new(state.next_id, self.loc, self.energy, GAIN_ENERGY_WOLF, WOLF_REPR);
 
-                //schedule.schedule_repeating(Box::new(new_wolf), schedule.time + 1.0, 1);
-                *new_id += 1;
-                state.new_wolves.lock().unwrap().push(new_wolf);
+                state.next_id += 1;
+                state.new_wolves.push(new_wolf);
             }
         }
     }

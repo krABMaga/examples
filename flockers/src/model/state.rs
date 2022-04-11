@@ -59,6 +59,10 @@ impl State for Flocker {
         self
     }
 
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }   
+
     fn as_state_mut(&mut self) -> &mut dyn State {
         self
     }

@@ -5,8 +5,8 @@ pub const ENERGY_CONSUME: f64 = 1.0;
 
 pub const FULL_GROWN: u16 = 20;
 
-pub const GAIN_ENERGY_SHEEP: f64 = 5.0;
-pub const GAIN_ENERGY_WOLF: f64 = 13.0;
+pub const GAIN_ENERGY_SHEEP: f64 = 4.0;
+pub const GAIN_ENERGY_WOLF: f64 = 20.0;
 
 pub const SHEEP_REPR: f64 = 0.2;
 pub const WOLF_REPR: f64 = 0.1;
@@ -23,10 +23,10 @@ use {
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
 
-    let step = 10;
+    let step = 100;
 
     let dim: (i32, i32) = (25, 25);
-    let initial_animals: (u32, u32) = ((60. * 0.6) as u32, (60. * 0.4) as u32);
+    let initial_animals: (u32, u32) = ((100. * 0.6) as u32, (100. * 0.4) as u32);
 
     let state = WsgState::new(dim, initial_animals);
     simulate!(step, state, 1, Info::Normal);
