@@ -2,11 +2,11 @@ use crate::model::state::WsgState;
 use crate::FULL_GROWN;
 use rust_ab::engine::fields::dense_number_grid_2d::DenseNumberGrid2D;
 use rust_ab::engine::location::Int2D;
-use rust_ab::{bevy::prelude::Texture, visualization::fields::number_grid_2d::BatchRender};
+use rust_ab::{bevy::prelude::Image, visualization::fields::number_grid_2d::BatchRender};
 
 impl BatchRender<WsgState> for DenseNumberGrid2D<u16> {
-    fn get_pixel(&self, pos: &Int2D) -> [u8; 4] {
-        match self.get_value(pos) {
+    fn get_pixel(&self, loc: &Int2D) -> [u8; 4] {
+        match self.get_value(loc) {
             Some(val) => {
                 let growth = val;
                 if (growth as f32 / FULL_GROWN as f32) < 0.5 {
@@ -31,7 +31,7 @@ impl BatchRender<WsgState> for DenseNumberGrid2D<u16> {
         0.
     }
 
-    fn get_texture_from_state(state: &WsgState) -> Texture {
+    fn get_texture_from_state(state: &WsgState) -> Image {
         state.grass_field.texture()
     }
 }

@@ -11,7 +11,7 @@ authors = [
     "Luca Postiglione <lucapostiglione10@gmail.com>", 
     "Giuseppe D'Ambrosio <giuseppe.dambrosio14@gmail.com>"
 ]
-edition = "2018"
+edition = "2021"
 license = "MIT"
 readme = "README.md"
 

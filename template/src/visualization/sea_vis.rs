@@ -45,7 +45,7 @@ impl VisualizationState<Sea> for SeaVis {
         let state = state.as_any().downcast_ref::<Sea>().unwrap();
         match state.field.get(&Crab {
             id: agent_render.get_id(),
-            pos: Real2D { x: 0., y: 0. },
+            loc: Real2D { x: 0., y: 0. },
             last_d: Real2D { x: 0., y: 0. },
             dir_x: 0.,
             dir_y: 0.,

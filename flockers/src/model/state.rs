@@ -41,12 +41,12 @@ impl State for Flocker {
             let r1: f32 = rng.gen();
             let r2: f32 = rng.gen();
             let last_d = Real2D { x: 0., y: 0. };
-            let pos = Real2D {
+            let loc = Real2D {
                 x: self.dim.0 * r1,
                 y: self.dim.1 * r2,
             };
-            let bird = Bird::new(bird_id, pos, last_d);
-            self.field1.set_object_location(bird, pos);
+            let bird = Bird::new(bird_id, loc, last_d);
+            self.field1.set_object_location(bird, loc);
             schedule.schedule_repeating(Box::new(bird), 0., 0);
         }
     }

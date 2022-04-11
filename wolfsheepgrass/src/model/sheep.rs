@@ -60,9 +60,9 @@ impl Agent for Sheep {
 
         let mut moved = false;
         if self.last != None && rng.gen_bool(MOMENTUM_PROBABILITY) {
-            if let Some(last_pos) = self.last {
-                let xm = x + (x - last_pos.x);
-                let ym = y + (y - last_pos.y);
+            if let Some(last_loc) = self.last {
+                let xm = x + (x - last_loc.x);
+                let ym = y + (y - last_loc.y);
                 let new_loc = Int2D { x: xm, y: ym };
                 // TRY TO MOVE WITH MOMENTUM_PROBABILITY
                 if xm >= 0 && xm < state.dim.0 && ym >= 0 && ym < state.dim.1 {
@@ -79,8 +79,10 @@ impl Agent for Sheep {
             let ymin = if y > 0 { -1 } else { 0 };
             let ymax = if y < state.dim.1 - 1 { 1 } else { 0 };
 
-            let nx = if rng.gen_bool(0.5) { xmin } else { xmax };
-            let ny = if rng.gen_bool(0.5) { ymin } else { ymax };
+            // let nx = if rng.gen_bool(0.5) { xmin } else { xmax };
+            // let ny = if rng.gen_bool(0.5) { ymin } else { ymax };
+            let nx = rng.gen_range(xmin..=xmax);
+            let ny = rng.gen_range(ymin..=ymax);
 
             self.loc = Int2D {
                 x: x + nx,

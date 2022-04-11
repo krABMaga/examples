@@ -19,10 +19,10 @@ impl Agent for Spread {
         let real_state = state.as_any().downcast_ref::<Forest>().unwrap();
 
         let updates = RefCell::new(Vec::<(Tree, Int2D)>::new());
-        real_state.field.iter_objects(|pos, &(mut value)| {
-            if pos.x <= real_state.step as i32 + 1 {
-                let x = pos.x;
-                let y = pos.y;
+        real_state.field.iter_objects(|loc, &(mut value)| {
+            if loc.x <= real_state.step as i32 + 1 {
+                let x = loc.x;
+                let y = loc.y;
                 if value.status == Status::Green {
                     // get the neighbors around me
                     let mut update = false;
@@ -69,7 +69,7 @@ impl Agent for Spread {
                     //println!("I am {:?} passing on {:?} step {}", value.id, value.status, schedule.step);
                 }
             }
-            updates.borrow_mut().push((value, *pos));
+            updates.borrow_mut().push((value, *loc));
         });
 
         let updates = updates.borrow_mut();
@@ -86,7 +86,7 @@ impl Agent for Spread {
 impl Spread {
     #[allow(dead_code)]
     fn update(
-        _pos: &Int2D,
+        _loc: &Int2D,
         _value: &Tree,
         _state: &mut dyn State,
         _schedule: &mut Schedule,

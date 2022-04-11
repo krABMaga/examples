@@ -7,7 +7,7 @@ use rust_ab::{
 };
 
 /// Expand the state definition according to your model, for example by having a grid struct field to
-/// store the agents' positions.
+/// store the agents' locations.
 pub struct Sea {
     pub step: u64,
     pub field: Field2D<Crab>,
@@ -50,13 +50,13 @@ impl State for Sea {
             let r1: f32 = rng.gen();
             let r2: f32 = rng.gen();
             let last_d = Real2D { x: 0., y: 0. };
-            let pos = Real2D {
+            let loc = Real2D {
                 x: self.dim.0 * r1,
                 y: self.dim.1 * r2,
             };
             let agent = Crab {
                 id: i,
-                pos,
+                loc,
                 last_d,
                 dir_x: 1.0,
                 dir_y: 1.0,

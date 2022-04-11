@@ -10,7 +10,7 @@ use {
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
     crate::visualization::vis_state::VisState, rust_ab::bevy::prelude::Color,
-    rust_ab::bevy::prelude::IntoSystem, rust_ab::visualization::fields::network::NetworkRender,
+    rust_ab::visualization::fields::network::NetworkRender,
     rust_ab::visualization::visualization::Visualization,
 };
 
@@ -54,6 +54,6 @@ fn main() {
         .with_background_color(Color::rgb(255., 255., 255.))
         .setup::<VisState, EpidemicNetworkState>(VisState, epidemic_network);
 
-    app.add_system(EpidemicNetworkState::render.system());
+    app.add_system(EpidemicNetworkState::render);
     app.run();
 }
