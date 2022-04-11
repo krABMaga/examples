@@ -1,5 +1,6 @@
 use crate::model::updater::Updater;
 use core::fmt;
+use std::any::Any;
 use rust_ab::engine::fields::field::Field;
 use rust_ab::engine::fields::sparse_object_grid_2d::SparseGrid2D;
 use rust_ab::engine::location::Int2D;

@@ -1,229 +1,391 @@
-use rand::distributions::weighted::WeightedIndex;
-
 use rust_ab::{
     engine::{schedule::Schedule, state::State},
     rand::Rng,
     *,
 };
 
-use model::node::NetNode;
-use model::node::NodeStatus;
+use rand::prelude::*;
+
 use model::state::EpidemicNetworkState;
+use std::cmp::Ordering::Equal;
 mod model;
 
-static DISCRETIZATION: f32 = 10.0 / 1.5;
-static TOROIDAL: bool = false;
+// generic model parameters
+pub static INIT_EDGES: usize = 1;
+pub const NUM_NODES: u32 = 1_000;
 
-///Initial infected nodes
-pub static INIT_EDGES: usize = 2;
-pub static VIRUS_SPREAD_CHANCE: f64 = 0.3;
-pub static VIRUS_CHECK_FREQUENCY: f64 = 0.2;
-pub static RECOVERY_CHANCE: f64 = 0.3;
-pub static GAIN_RESISTANCE_CHANCE: f64 = 0.2;
+// GA specific parameters
+lazy_static! {
+    static ref MUTATION_RATE: Mutex<f64> = Mutex::new(0.8);
+}
+pub const DESIRED_FITNESS: f32 = 0.;
+pub const MAX_GENERATION: u32 = 2_000;
+pub const INDIVIDUALS: u32 = 100;
+pub const REPETITIONS: u32 = 20;
 
-pub static INITIAL_IMMUNE: f32 = 0.3;
-pub static INITIAL_INFECTED: f32 = 0.1;
-pub const NUM_NODES: u32 = 100;
+lazy_static! {
+    pub static ref DATA: Vec<f32> = {
+        let mut rdr = Reader::from_path("data/data.csv").unwrap();
 
-pub const MUTATION_RATE: f64 = 0.05;
-pub const DESIRED_FITNESS: f32 = 1.;
-pub const MAX_GENERATION: u32 = 10;
-pub const POPULATION: u32 = 10;
+        let mut x: Vec<f32> = Vec::new();
 
-pub const WIDTH: f32 = 150.;
-pub const HEIGHT: f32 = 150.;
+        for result in rdr.records() {
+            let record = result.unwrap();
+            let y: f32 = record[0].parse().unwrap();
+            x.push(y);
+        }
+        x
+    };
+    pub static ref RNG: Mutex<StdRng> = Mutex::new(StdRng::seed_from_u64(0));
+}
 
-pub const STEP: u64 = 100;
+pub const STEP: u64 = 51; // 51 - 37
+pub const DAY: usize = 45; // 45 - 31
 
 fn main() {
-    let result = explore_ga_distributed_mpi!(
-        init_population,
-        fitness,
-        selection,
-        mutation,
-        crossover,
-        EpidemicNetworkState,
-        DESIRED_FITNESS,
-        MAX_GENERATION,
-        STEP,
-        1,
-    );
+        let result = explore_ga_distributed_mpi!(
+            init_population,
+            fitness,
+            selection,
+            mutation,
+            crossover,
+            cmp,
+            EpidemicNetworkState,
+            DESIRED_FITNESS,
+            MAX_GENERATION,
+            STEP,
+            REPETITIONS,
+        );
+        if !result.is_empty() {
+            // I'm the master
+            // build csv from all procexplore_result
+            let name = "explore_result".to_string();
+            let _res = write_csv(&name, &result);
+        }
+}
 
-    if !result.is_empty() {
-        // I'm the master
-        // build csv from all procexplore_result
-        let name = "explore_result".to_string();
-        let _res = write_csv(&name, &result);
+fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
+    let mut avg_results: Vec<f32> = vec![0.0; DAY];
+
+    for j in 0..DAY {
+        for i in 0..computed_ind.len() {
+            avg_results[j] += computed_ind[i].0.weekly_infected[j] / NUM_NODES as f32;
+        }
+        avg_results[j] /= computed_ind.len() as f32;
     }
+
+    let mut ind_error = 0.;
+    let mut sum = 0.;
+    for k in 0..DAY {
+        let weight = (k + 1) as f32;
+        ind_error += weight * (DATA[k] - avg_results[k]).abs();
+        sum += weight * DATA[k];
+    }
+    ind_error = ind_error / sum;
+    ind_error
+}
+
+// we want to minimize the fitness, therefore the comparison
+// return true, meaning that fitness1 is better than fitness2,
+// if fitness1 is lower than fitness 2
+fn cmp(fitness1: &f32, fitness2: &f32) -> bool {
+    *fitness1 < *fitness2
 }
 
 // function that initialize the populatin
 fn init_population() -> Vec<String> {
     // create an array of EpidemicNetworkState
     let mut population = Vec::new();
-
-    // create n=POPULATION individuals
-    for _ in 0..POPULATION {
+    let mut rng = RNG.lock().unwrap();
+    // create n=INDIVIDUALS individuals
+    for _ in 0..INDIVIDUALS {
         // create the individual
-        let mut rng = rand::thread_rng();
-
-        // let mut positions = vec![0 as u8; NUM_NODES as usize];
-
-        let mut positions = String::with_capacity(NUM_NODES as usize);
-        for _ in 0..NUM_NODES{
-            positions.push('0');
-        }
-    
-        let mut immune_counter = 0;
-        while immune_counter != (INITIAL_IMMUNE * NUM_NODES as f32) as u32 {
-            
-            let node_id = rng.gen_range(0..NUM_NODES) as usize;
-            
-            if positions.chars().nth(node_id).unwrap() == '0' {
-                positions.replace_range(node_id..node_id+1,"1");
-                immune_counter += 1;
-            }
-        }
-        
-        let mut infected_counter = 0;
-        while infected_counter != (INITIAL_INFECTED * NUM_NODES as f32) as u32 {
-            
-            let node_id = rng.gen_range(0..NUM_NODES) as usize;
-
-            if positions.chars().nth(node_id).unwrap() == '0' {
-                positions.replace_range(node_id..node_id+1,"2");
-                infected_counter += 1;
-            }
-        }
-
-        population.push(positions.clone());
+        let x = rng.gen_range(0.0..=1.0_f32).to_string(); // spread chance
+        let y = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
+        let x2 = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
+        let day = rng.gen_range(0..=DAY).to_string(); // recovery chance
+        population.push(format!("{};{};{};{}", x, y, x2, day));
     }
-        
+
     // return the array of individuals, i.e. the population (only the parameters)
     population
 }
 
 fn selection(population_fitness: &mut Vec<(String, f32)>) {
-    // weighted tournament selection
-    let mut rng = rand::thread_rng();
-    let mut len = population_fitness.len();
-
-    // build an array containing the fintess values in order to be used for the
-    // weighted selection
-
-    let mut weight = Vec::new();
+    let mut min_fitness = 1.;
     for individual_fitness in population_fitness.iter_mut() {
-        weight.push((individual_fitness.1 * 100.).floor() as u32);
-    }
-
-    len /= 2;
-    // iterate through the population
-    for _ in 0..len {
-        let dist = WeightedIndex::new(&weight).unwrap();
-        let parent_idx_one = dist.sample(&mut rng);
-        let parent_idx_two;
-
-        if parent_idx_one == 0 {
-            parent_idx_two = parent_idx_one + 1;
-        } else {
-            parent_idx_two = parent_idx_one - 1;
-        }
-
-        // choose the individual with the highest fitness
-        // removing the one with the lowest fitness from the population
-        if population_fitness[parent_idx_one].1 < population_fitness[parent_idx_two].1 {
-            population_fitness.remove(parent_idx_one);
-            weight.remove(parent_idx_one);
-        } else {
-            population_fitness.remove(parent_idx_one);
-            weight.remove(parent_idx_two);
+        if individual_fitness.1 < min_fitness {
+            min_fitness = individual_fitness.1;
         }
     }
+
+    if min_fitness < 0.25 {
+        *MUTATION_RATE.lock().unwrap() = 0.2;
+    } else if min_fitness < 0.5 {
+        *MUTATION_RATE.lock().unwrap() = 0.4;
+    } else if min_fitness < 0.75 {
+        *MUTATION_RATE.lock().unwrap() = 0.6;
+    }
+
+    // sort the population based on the fitness
+    population_fitness.sort_by(|s1, s2| s1.1.partial_cmp(&s2.1).unwrap_or(Equal));
 }
 
 fn crossover(population: &mut Vec<String>) {
-    let mut rng = rand::thread_rng();
+    let mut children: Vec<String> = Vec::new();
 
-    let additional_individuals = POPULATION as usize - population.len();
-
-    // iterate through the population
-    for _ in 0..additional_individuals {
-        // select two random individuals
-        let mut idx_one = rng.gen_range(0..population.len());
-        let idx_two = rng.gen_range(0..population.len());
-        while idx_one == idx_two {
-            idx_one = rng.gen_range(0..population.len());
-        }
-
-        // combines random parameters of the parents
-        let mut parent_one = population[idx_one].clone();
-        let mut parent_two = population[idx_two].clone();
-
-        let len = parent_one.len() / 2;
-
-        parent_one.truncate(len);
-
-        let positions_one = parent_one;
-        let positions_two = parent_two.split_off(len);
-
-        let new_individual = format!("{}{}", positions_one, positions_two);
-
-        // create a new individual
-        
-        population.push(new_individual);
+    let perc = INDIVIDUALS as f32 * 0.2;
+    for i in 0..(perc as usize) {
+        children.push(population[i].clone());
     }
+
+    let children_num = INDIVIDUALS as f32 - perc;
+
+    if population.len() == 0 {
+        panic!("Population len can't be 0");
+    }
+
+    for _ in 0..(children_num as usize) {
+        // select two random individuals
+
+        let idx_one = RNG.lock().unwrap().gen_range(0..population.len());
+        let parent_one = population[idx_one].clone();
+        let mut idx_two = RNG.lock().unwrap().gen_range(0..population.len());
+        while idx_one == idx_two {
+            idx_two = RNG.lock().unwrap().gen_range(0..population.len());
+        }
+        let parent_two = population[idx_two].clone();
+
+        // take the parameters of parent_one
+        let parent_one: Vec<&str> = parent_one.split(';').collect();
+        let one_spread = parent_one[0]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let one_recovery = parent_one[1]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let one_spread2 = parent_one[2]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let one_day = parent_one[3]
+            .parse::<u64>()
+            .expect("Unable to parse str to f32!");
+
+        // take the parameters of parent_two
+        let parent_two: Vec<&str> = parent_two.split(';').collect();
+        let two_spread = parent_two[0]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let two_recovery = parent_two[1]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let two_spread2 = parent_two[2]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let two_day = parent_two[3]
+            .parse::<u64>()
+            .expect("Unable to parse str to f32!");
+
+        let mut min;
+        let mut max;
+        let alpha = 0.1;
+
+        // new spread
+        if one_spread <= two_spread {
+            min = one_spread;
+            max = two_spread;
+        } else {
+            min = two_spread;
+            max = one_spread;
+        }
+        let mut range = max - min;
+        let mut p_min = 0.;
+        let mut p_max = 1.;
+        if min - (range * alpha) > 0. {
+            p_min = min - (range * alpha);
+        }
+        if max + (range * alpha) < 1.0 {
+            p_max = max + (range * alpha);
+        }
+        if p_min >= p_max {
+            p_min = 0.;
+            p_max = 1.;
+        }
+        let new_spread = RNG.lock().unwrap().gen_range(p_min..=p_max);
+
+        // new_recovery
+        if one_recovery <= two_recovery {
+            min = one_recovery;
+            max = two_recovery;
+        } else {
+            min = two_recovery;
+            max = one_recovery;
+        }
+        range = max - min;
+        p_min = 0.;
+        p_max = 1.0;
+        if min - (range * alpha) > 0. {
+            p_min = min - (range * alpha);
+        }
+        if max + (range * alpha) < 1.0 {
+            p_max = max + (range * alpha);
+        }
+        if p_min >= p_max {
+            p_min = 0.;
+            p_max = 1.;
+        }
+        let new_recovery = RNG.lock().unwrap().gen_range(p_min..=p_max);
+
+        // new_spread2
+        if one_spread2 <= two_spread2 {
+            min = one_spread2;
+            max = two_spread2;
+        } else {
+            min = two_spread2;
+            max = one_spread2;
+        }
+        range = max - min;
+        p_min = 0.;
+        p_max = 1.0;
+        if min - (range * alpha) > 0. {
+            p_min = min - (range * alpha);
+        }
+        if max + (range * alpha) < 1.0 {
+            p_max = max + (range * alpha);
+        }
+        if p_min >= p_max {
+            p_min = 0.;
+            p_max = 1.;
+        }
+        let new_spread2 = RNG.lock().unwrap().gen_range(p_min..=p_max);
+
+        // new_day
+        let min_day;
+        let max_day;
+        if one_day <= two_day {
+            min_day = one_day;
+            max_day = two_day;
+        } else {
+            min_day = two_day;
+            max_day = one_day;
+        }
+        let range_day: f32 = (max_day - min_day) as f32;
+        p_min = 0.;
+        p_max = DAY as f32;
+        if min_day as f32 - (range_day * alpha).ceil() > 0. {
+            p_min = min_day as f32 - (range_day * alpha);
+        }
+        if max_day as f32 + (range_day * alpha).ceil() < DAY as f32 {
+            p_max = max_day as f32 + (range_day * alpha);
+        }
+        if p_min >= p_max {
+            p_min = 0.;
+            p_max = DAY as f32;
+        }
+        let new_day = RNG.lock().unwrap().gen_range(p_min..=p_max).ceil();
+
+        let new_individual = format!(
+            "{};{};{};{}",
+            new_spread, new_recovery, new_spread2, new_day
+        );
+        children.push(new_individual);
+    }
+
+    *population = children;
 }
 
 fn mutation(individual: &mut String) {
-    let mut rng = rand::thread_rng();
+    let new_ind: String;
+    let new_individual: Vec<&str> = individual.split(';').collect();
+    let one_spread = new_individual[0];
+    let one_recovery = new_individual[1];
+    let one_spread2 = new_individual[2];
+    let one_day = new_individual[3];
 
-    // mutate one random parameter with assigning random value
-    if rng.gen_bool(MUTATION_RATE) {
-        let to_change = rng.gen_range(0..NUM_NODES as usize) as usize;
-        if individual.chars().nth(to_change).unwrap() == '0' {
-            individual.replace_range(to_change..to_change+1,"1");
+    // mutate one random parameter
+    // randomly increase or decrease spread orrecovery
+    if RNG.lock().unwrap().gen_bool(*MUTATION_RATE.lock().unwrap()) {
+        // mutate spread
+        let mut new_spread = one_spread
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let alpha = 0.1;
+        let mut min = if new_spread - alpha < 0. {
+            0.
         } else {
-            individual.replace_range(to_change..to_change+1,"0");
+            new_spread - alpha
+        };
+        let mut max = if new_spread + alpha > 1. {
+            1.
+        } else {
+            new_spread + alpha
+        };
+        if min >= max {
+            min = 0.;
+            max = 1.;
         }
-    }
-}
+        new_spread = RNG.lock().unwrap().gen_range(min..=max);
 
-fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
-    let schedule = &computed_ind[0].1;
-
-    let mut _susceptible: usize = 0;
-    let mut _infected: usize = 0;
-    let mut resistant: usize = 0;
-    let mut _immune: usize = 0;
-
-    let agents = schedule.get_all_events();
-
-    for n in agents {
-        let agent = n.downcast_ref::<NetNode>().unwrap();
-        match agent.status {
-            NodeStatus::Susceptible => {
-                _susceptible += 1;
-            }
-            NodeStatus::Infected => {
-                _infected += 1;
-            }
-            NodeStatus::Resistant => {
-                resistant += 1;
-            }
-            NodeStatus::Immune => {
-                _immune += 1;
-            }
+        let mut new_spread2 = one_spread2
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        min = if new_spread2 - alpha < 0. {
+            0.
+        } else {
+            new_spread2 - alpha
+        };
+        max = if new_spread2 + alpha > 1. {
+            1.
+        } else {
+            new_spread2 + alpha
+        };
+        if min >= max {
+            min = 0.;
+            max = 1.;
         }
-    }
+        new_spread2 = RNG.lock().unwrap().gen_range(min..=max);
 
-    // println!(
-    //     "Susceptible: {:?} Infected: {:?} Resistant: {:?} Immune: {:?} Tot: {:?}",
-    //     susceptible,
-    //     infected,
-    //     resistant,
-    //     immune,
-    //     susceptible + infected + resistant + immune
-    // );
-    
-    1. - (resistant as f32 / NUM_NODES as f32)
+        let mut new_recovery = one_recovery
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        min = if new_recovery - alpha < 0. {
+            0.
+        } else {
+            new_recovery - alpha
+        };
+        max = if new_recovery + alpha > 1. {
+            1.
+        } else {
+            new_recovery + alpha
+        };
+        if min >= max {
+            min = 0.;
+            max = 1.;
+        }
+        new_recovery = RNG.lock().unwrap().gen_range(min..=max);
+
+        let mut new_day = one_day.parse::<u64>().expect("Unable to parse str to u64!");
+        let alpha: u64 = 1;
+        let mut min: u64 = if new_day - alpha < 0 {
+            0
+        } else {
+            new_day - alpha
+        };
+        let mut max: u64 = if new_day + alpha > DAY as u64 {
+            DAY as u64
+        } else {
+            new_day + alpha
+        };
+        if min >= max {
+            min = 0;
+            max = DAY as u64;
+        }
+        new_day = RNG.lock().unwrap().gen_range(min..=max);
+
+        new_ind = format!(
+            "{};{};{};{}",
+            new_spread, new_recovery, new_spread2, new_day
+        );
+        *individual = new_ind;
+    }
 }

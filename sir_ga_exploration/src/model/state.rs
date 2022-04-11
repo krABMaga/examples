@@ -1,93 +1,128 @@
 use crate::model::node::{NetNode, NodeStatus};
-use crate::{DISCRETIZATION, WIDTH, HEIGHT, NUM_NODES, TOROIDAL, INIT_EDGES};
+use crate::{INIT_EDGES, NUM_NODES, STEP};
+use rand::prelude::*;
+use rust_ab::engine::fields::field::Field;
 use rust_ab::engine::fields::network::Network;
-use rust_ab::engine::fields::{field::Field, field_2d::Field2D};
 use rust_ab::engine::schedule::Schedule;
 use rust_ab::engine::state::State;
-use rust_ab::engine::location::Real2D;
-use rust_ab::rand::Rng;
+use rust_ab::fmt;
 use rust_ab::rand;
 use std::any::Any;
+use std::sync::{Arc, Mutex};
 
+pub const MY_SEED: u64 = 0;
 
 pub struct EpidemicNetworkState {
     pub step: u64,
-    pub field1: Field2D<NetNode>,
     pub network: Network<NetNode, String>,
-    pub positions: Vec<u32>
+    pub recovery: f32,
+    pub spread: f32,
+    pub initial_infected: usize,
+    pub rt: f32,
+    pub infected_nodes: Vec<u32>, // each position of the array corresponds to one node
+    pub daily_infected: Vec<u32>, // each position corresponds to the newly infected nodes
+    pub old_infected: u32,
+    pub weekly_infected: Vec<f32>,
+    pub rng: Arc<Mutex<StdRng>>,
+    pub day: u64,
+    pub spread2: f32,
 }
 
 impl EpidemicNetworkState {
-    pub fn new(positions: Vec<u32>) -> EpidemicNetworkState {
+    pub fn new(
+        spread: f32,
+        recovery: f32,
+        spread2: f32,
+        day: u64,
+        initial_infected: usize,
+    ) -> EpidemicNetworkState {
         EpidemicNetworkState {
             step: 0,
-            field1: Field2D::new(WIDTH, HEIGHT, DISCRETIZATION, TOROIDAL),
             network: Network::new(false),
-            positions: positions
+            rng: Arc::new(Mutex::new(StdRng::seed_from_u64(MY_SEED))),
+            spread,           // virus spread chanceMY_SEED
+            recovery,         // node recovery chance
+            spread2,          // virus spread chance second period
+            day,              // day when spread2 is applied
+            initial_infected, // id of the initial infected node
+            rt: 0.,           // transmission rate
+            infected_nodes: vec![0; NUM_NODES as usize],
+            old_infected: 0,
+            daily_infected: vec![0; STEP as usize],
+            weekly_infected: vec![0.; STEP as usize],
         }
     }
 
-    pub fn new_with_parameters(parameters: &String) -> EpidemicNetworkState{
-        let mut positions: Vec<u32> = Vec::new();
-
-        for i in parameters.chars() {
-            positions.push(i.to_digit(10).unwrap());
-        }
-
-        EpidemicNetworkState::new(positions)
+    // GA required new function to convert the string into parameters
+    pub fn new_with_parameters(r: usize, parameters: &str) -> EpidemicNetworkState {
+        let parameters_ind: Vec<&str> = parameters.split(';').collect();
+        let spread = parameters_ind[0]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let recovery = parameters_ind[1]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let spread2 = parameters_ind[2]
+            .parse::<f32>()
+            .expect("Unable to parse str to f32!");
+        let day = parameters_ind[3]
+            .parse::<u64>()
+            .expect("Unable to parse str to usize!");
+        EpidemicNetworkState::new(spread, recovery, spread2, day, r)
     }
 }
 
+impl fmt::Display for EpidemicNetworkState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Rt {:.4} - Step {}", self.rt, self.step)
+    }
+}
 
 impl State for EpidemicNetworkState {
     fn init(&mut self, schedule: &mut Schedule) {
-        let my_seed: u64 = 0;
         let mut node_set = Vec::new();
         self.network = Network::new(false);
+        self.rt = 0.;
+        // build a support array having the NodeStatus configuration
+        let mut positions = vec![0; NUM_NODES as usize];
 
-        let mut rng = rand::thread_rng();
-        let mut init_status: NodeStatus = NodeStatus::Susceptible;
-        
+        let infected =
+            StdRng::seed_from_u64(self.initial_infected as u64).gen_range(0..NUM_NODES) as usize;
+        positions[infected] = 1;
+
+        // positions[self.initial_infected] = 1;
+
+        // generates nodes
         for node_id in 0..NUM_NODES {
-            
-            match self.positions[node_id as usize] {
-                0 => init_status = NodeStatus::Susceptible,
-                1 => init_status = NodeStatus::Immune,
-                2 => init_status = NodeStatus::Infected,
-                _ => (),
-            }
+            let init_status = match positions[node_id as usize] {
+                0 => NodeStatus::Susceptible,
+                1 => NodeStatus::Infected,
+                _ => panic!("Invalid code for NodeStatus!"),
+            };
 
-            let r1: f32 = rng.gen();
-            let r2: f32 = rng.gen();
-
-            let node = NetNode::new(
-                node_id,
-                Real2D {
-                    x: WIDTH * r1,
-                    y: HEIGHT * r2,
-                },
-                init_status,
-            );
-
-            self.field1.set_object_location(node, node.loc);
+            let node = NetNode::new(node_id, init_status);
             self.network.add_node(node);
-            schedule.schedule_repeating(Box::new(node), 0.0, 0);
+
+            let _ = schedule.schedule_repeating(Box::new(node), 0.0, node_id as i32);
+
             node_set.push(node);
         }
-        self.network.preferential_attachment_BA_with_seed(&node_set, INIT_EDGES, my_seed);
+
+        self.network.update();
+        self.network
+            .preferential_attachment_BA_with_seed(&node_set, INIT_EDGES, MY_SEED);
     }
 
     fn update(&mut self, step: u64) {
-        self.field1.lazy_update();
         self.network.update();
         self.step = step;
     }
 
-    fn as_any(&self) -> &dyn Any {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 
-    fn as_any_mut(&mut self) -> &mut dyn Any {
+    fn as_any(&self) -> &dyn Any {
         self
     }
 
@@ -100,49 +135,83 @@ impl State for EpidemicNetworkState {
     }
 
     // fn before_step(&mut self, schedule: &mut Schedule) {
+    // if self.network.nodes2id.borrow().len() != 40 {
+    //     println!("Init Len {} {}", self.network.nodes2id.borrow().len(), self.network.id2nodes.borrow().len());
+    // }
+    // if self.step == 0 {
+    //     println!("Spread {} - Recovery {}", self.spread, self.recovery);
+    // }
+    // // if self.step == 0 {
     //     let mut susceptible: usize = 0;
     //     let mut infected: usize = 0;
     //     let mut resistant: usize = 0;
-    //     let agents = schedule.get_all_events();
+    // let agents = schedule.get_all_events();
 
-    //     for n in agents {
-    //         let agent = n.downcast_ref::<NetNode>().unwrap();
-    //         match agent.status {
-    //             NodeStatus::Susceptible => {
-    //                 susceptible += 1;
-    //             }
-    //             NodeStatus::Infected => {
-    //                 infected += 1;
-    //             }
-    //             NodeStatus::Resistant => {
-    //                 resistant += 1;
-    //             }
-    //         }
-    //     }
+    // for n in agents {
+    //     let agent = n.downcast_ref::<NetNode>().unwrap();
+    //     self.scheduled.push(format!(" {} {} ", self.step.to_string(), agent.id.to_string()));
+    // }
     //     println!(
-    //         "Susceptible: {:?} Infected: {:?} Resistant: {:?} Tot: {:?}",
+    //         "BEFORE Day {} Susceptible: {:?} Infected: {:?} Resistant: {:?} Tot: {:?}",
+    //         self.step,
     //         susceptible,
     //         infected,
     //         resistant,
     //         susceptible + infected + resistant
     //     );
+    //     // println!("RT is {}", self.rt);
+    // // }
     // }
 
     fn end_condition(&mut self, schedule: &mut Schedule) -> bool {
+        // check if there are no more infected node
         let mut infected: usize = 0;
         let agents = schedule.get_all_events();
-
         for n in agents {
             let agent = n.downcast_ref::<NetNode>().unwrap();
             if agent.status == NodeStatus::Infected {
                 infected += 1;
             }
         }
-
         if infected == 0 {
-            // println!("No more infected nodes at step {}, exiting.", schedule.step);
             return true;
         }
+
+        // compute the rt
+        let infected_nodes = &self.infected_nodes;
+        let mut counter = 0;
+        let mut value = 0;
+        for i in 3..infected_nodes.len() {
+            if infected_nodes[i] != 0 {
+                counter += 1;
+                value += infected_nodes[i];
+            }
+        }
+        if value == 0 {
+            self.rt = 0.;
+        } else {
+            self.rt = (value as f32 / counter as f32) as f32;
+        }
+
+        // count the daily infection
+        let mut newly_infected = 0;
+        for i in 0..infected_nodes.len() {
+            newly_infected += infected_nodes[i];
+        }
+
+        // compute the daily weekly average of infection
+        let output = newly_infected - self.old_infected;
+        self.daily_infected[self.step as usize - 1] = output;
+        self.old_infected = newly_infected;
+
+        for i in 3..(self.daily_infected.len() - 3) {
+            let mut media_mobile = 0.;
+            for j in -3..=3 {
+                media_mobile += self.daily_infected[((i as i32) - (j as i32)) as usize] as f32;
+            }
+            self.weekly_infected[i - 3] = media_mobile / 7.0;
+        }
+
         false
     }
 }

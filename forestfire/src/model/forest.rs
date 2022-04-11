@@ -1,5 +1,6 @@
 use crate::model::spread::Spread;
 use core::fmt;
+use std::any::Any;
 use rust_ab::engine::fields::dense_object_grid_2d::DenseGrid2D;
 use rust_ab::engine::fields::field::Field;
 use rust_ab::engine::location::Int2D;
