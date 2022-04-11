@@ -80,8 +80,10 @@ impl Agent for Sheep {
             let ymin = if y > 0 { -1 } else { 0 };
             let ymax = if y < state.dim.1 - 1 { 1 } else { 0 };
 
-            let nx = if rng.gen_bool(0.5) { xmin } else { xmax };
-            let ny = if rng.gen_bool(0.5) { ymin } else { ymax };
+            // let nx = if rng.gen_bool(0.5) { xmin } else { xmax };
+            // let ny = if rng.gen_bool(0.5) { ymin } else { ymax };
+            let nx = rng.gen_range(xmin..=xmax);
+            let ny = rng.gen_range(ymin..=ymax);
 
             self.loc = Int2D {
                 x: x + nx,

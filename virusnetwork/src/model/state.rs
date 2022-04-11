@@ -43,11 +43,13 @@ impl State for EpidemicNetworkState {
     fn init(&mut self, schedule: &mut Schedule) {
         let mut node_set = Vec::new();
         let mut rng = rand::thread_rng();
+        
         for node_id in 0..self.num_nodes {
             let r1: f32 = rng.gen();
             let r2: f32 = rng.gen();
 
-            let init_status: NodeStatus = if rng.gen_bool(INITIAL_INFECTED_PROB) {
+
+            let init_status: NodeStatus = if rng.gen_bool(INITIAL_INFECTED_PROB) || node_id == 0 {
                 NodeStatus::Infected
             } else {
                 NodeStatus::Susceptible
