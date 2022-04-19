@@ -5,6 +5,7 @@ use rust_ab::engine::location::{Location2D, Real2D};
 use rust_ab::engine::state::State;
 use rust_ab::rand;
 use rust_ab::rand::Rng;
+use rust_ab::*;
 use std::hash::{Hash, Hasher};
 
 use crate::model::state::Flocker;
@@ -141,6 +142,9 @@ impl Agent for Bird {
         state
             .field1
             .set_object_location(*self, Real2D { x: loc_x, y: loc_y });
+        
+        let log = format!("{} - {} - {}", self.id, loc_x, loc_y);
+        log!(LogType::Critical, log);
     }
 
     fn get_id(&self) -> u32 {

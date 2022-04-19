@@ -9,6 +9,8 @@ use {
     rust_ab::Info, rust_ab::ProgressBar, std::time::Duration,
 };
 
+use rust_ab::*;
+
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {

@@ -8,6 +8,7 @@ use rust_ab::engine::state::State;
 use rust_ab::rand;
 use rust_ab::rand::Rng;
 use std::any::Any;
+use rust_ab::*;
 
 pub struct Flocker {
     pub step: u64,
@@ -49,6 +50,22 @@ impl State for Flocker {
             self.field1.set_object_location(bird, loc);
             schedule.schedule_repeating(Box::new(bird), 0., 0);
         }
+    }
+
+    fn after_step(&mut self, schedule: &mut Schedule) {
+        if schedule.step == 1 {
+            plot!(String::from("chart1"), PlotDataType::ScatterChart, String::from("s1"), 0.0, 10.0);
+            plot!(String::from("chart1"), PlotDataType::ScatterChart, String::from("s1"), 10.0, 20.0);
+            plot!(String::from("chart1"), PlotDataType::ScatterChart, String::from("s1"), 20.0, 30.0);
+    
+            plot!(String::from("chart1"), PlotDataType::ScatterChart, String::from("s2"), 30.0, 40.0);
+            plot!(String::from("chart1"), PlotDataType::ScatterChart, String::from("s2"), 40.0, 50.0);
+            plot!(String::from("chart1"), PlotDataType::ScatterChart, String::from("s2"), 50.0, 60.0);
+    
+            plot!(String::from("chart2"), PlotDataType::ScatterChart,String::from("s3"), 1.0, 1.0);
+            plot!(String::from("chart3"), PlotDataType::ScatterChart, String::from("ss"), 1.0, 1.0);
+        }
+    
     }
 
     fn update(&mut self, _step: u64) {
