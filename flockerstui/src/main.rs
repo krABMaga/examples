@@ -7,7 +7,7 @@ use rust_ab::*;
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::simulate_with_ui,
+    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State,
     rust_ab::Info, rust_ab::ProgressBar, std::time::Duration,
 };
 
@@ -33,13 +33,13 @@ pub static TOROIDAL: bool = true;
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    let step = 100;
+    let step = 2;
 
     let dim = (200., 200.);
     let num_agents = 10;
   
     let state = Flocker::new(dim, num_agents);
-    simulate_with_ui!(step, state, 1, Info::Normal);
+    simulate!(state, step, 30);
 }
 
 // Main used when a visualization feature is applied.

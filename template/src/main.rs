@@ -31,7 +31,7 @@ fn main() {
 
     let state = Sea::new(dim, num_agents);
 
-    simulate!(step, state, 1, Info::Normal);
+    simulate_old!(step, state, 1, Info::Normal);
 }
 
 // Main used when a visualization feature is applied.

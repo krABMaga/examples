@@ -31,7 +31,7 @@ fn main() {
     let dim: (i32, i32) = (200, 200);
     let density: f64 = 0.7;
     let forest = Forest::new(dim, density);
-    simulate!(step, forest, 1, Info::Normal);
+    simulate_old!(step, forest, 1, Info::Normal);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

@@ -54,19 +54,24 @@ impl State for Flocker {
 
     fn after_step(&mut self, schedule: &mut Schedule) {
         if schedule.step == 1 {
-            plot!(String::from("chart1"), PlotDataType::ScatterChart, String::from("s1"), 0.0, 10.0);
-            plot!(String::from("chart1"), PlotDataType::ScatterChart, String::from("s1"), 10.0, 20.0);
-            plot!(String::from("chart1"), PlotDataType::ScatterChart, String::from("s1"), 20.0, 30.0);
-    
-            plot!(String::from("chart1"), PlotDataType::ScatterChart, String::from("s2"), 30.0, 40.0);
-            plot!(String::from("chart1"), PlotDataType::ScatterChart, String::from("s2"), 40.0, 50.0);
-            plot!(String::from("chart1"), PlotDataType::ScatterChart, String::from("s2"), 50.0, 60.0);
-    
-            plot!(String::from("chart2"), PlotDataType::ScatterChart,String::from("s3"), 1.0, 1.0);
-            plot!(String::from("chart3"), PlotDataType::ScatterChart, String::from("ss"), 1.0, 1.0);
+
+            addplot!(String::from("chart1"), String::from("xxxx"), String::from("yyyyy"));
+            addplot!(String::from("chart2"), String::from("xxxx"), String::from("yyyyy"));
+            addplot!(String::from("chart3"), String::from("xxxx"), String::from("yyyyy"));
+
+            plot!(String::from("chart1"), String::from("s1"), 0.0, 10.0);
+            plot!(String::from("chart1"), String::from("s1"), 10.0, 20.0);
+            plot!(String::from("chart1"), String::from("s1"), 20.0, 30.0);
+
+            plot!(String::from("chart1"), String::from("s2"), 30.0, 40.0);
+            plot!(String::from("chart1"), String::from("s2"), 40.0, 50.0);
+            plot!(String::from("chart1"), String::from("s2"), 50.0, 60.0);
+
+            plot!(String::from("chart2"), String::from("s3"), 1.0, 1.0);
+            plot!(String::from("chart3"), String::from("ss"), 1.0, 1.0);
         }
     
-    }
+    } 
 
     fn update(&mut self, _step: u64) {
         self.field1.lazy_update();

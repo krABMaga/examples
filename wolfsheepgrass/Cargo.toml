@@ -18,9 +18,9 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rust-ab = { git="https://github.com/rust-ab/rust-ab"}
+#rust-ab = { git="https://github.com/rust-ab/rust-ab"}
+rust-ab = { path="/home/isis/rab_clean/rust-ab"}
 hashbrown = "0.*"
-
 
 [features]
 visualization = ["rust-ab/visualization"]

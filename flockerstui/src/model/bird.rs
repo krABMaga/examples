@@ -143,8 +143,7 @@ impl Agent for Bird {
             .field1
             .set_object_location(*self, Real2D { x: loc_x, y: loc_y });
         
-        // let log = format!("{} - {} - {}", self.id, loc_x, loc_y);
-        // log!(LogType::Critical, log);
+        log!(LogType::Info, format!("{} - {} - {}", self.id, loc_x, loc_y));
     }
 
     fn get_id(&self) -> u32 {

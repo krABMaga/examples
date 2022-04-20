@@ -34,7 +34,7 @@ fn main() {
     let num_nodes = 100;
     let epidemic_network = EpidemicNetworkState::new(dim, num_nodes, DISCRETIZATION, TOROIDAL);
 
-    simulate!(step, epidemic_network, 1, Info::Normal);
+    simulate_old!(step, epidemic_network, 1, Info::Normal);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

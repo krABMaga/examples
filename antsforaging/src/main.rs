@@ -68,5 +68,5 @@ fn main() {
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    simulate!(STEP, ModelState::new(), 1, Info::Normal);
+    simulate_old!(STEP, ModelState::new(), 1, Info::Normal);
 }

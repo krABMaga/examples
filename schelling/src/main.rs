@@ -36,7 +36,7 @@ fn main() {
 
     let world = World::new(dim, num_agents);
 
-    simulate!(step, world, 1, Info::Normal);
+    simulate_old!(step, world, 1, Info::Normal);
 
 }
 

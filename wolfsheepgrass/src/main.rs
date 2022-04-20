@@ -12,6 +12,7 @@ pub const SHEEP_REPR: f64 = 0.2;
 pub const WOLF_REPR: f64 = 0.1;
 
 pub const MOMENTUM_PROBABILITY: f64 = 0.8;
+use rust_ab::*;
 
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
@@ -23,13 +24,13 @@ use {
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
 
-    let step = 100;
+    let step = 10;
 
     let dim: (i32, i32) = (25, 25);
     let initial_animals: (u32, u32) = ((100. * 0.6) as u32, (100. * 0.4) as u32);
 
     let state = WsgState::new(dim, initial_animals);
-    simulate!(step, state, 1, Info::Normal);
+    simulate!(state, step, 5);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

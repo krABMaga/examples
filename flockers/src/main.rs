@@ -39,7 +39,7 @@ fn main() {
     let num_agents = 100;
   
     let state = Flocker::new(dim, num_agents);
-    simulate!(step, state, 1, Info::Normal);
+    simulate_old!(step, state, 1, Info::Normal);
 }
 
 // Main used when a visualization feature is applied.
