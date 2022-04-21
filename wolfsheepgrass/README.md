@@ -6,7 +6,7 @@ There are currently two versions of this model:
   At each output, its step number is associated;
 - The simulation with the visualization framework enabled (either natively or compiled to WebAssembly). Allows the viewer to see wolves and sheeps moving around the map. Wolves try to follow sheeps. Grass growth is represented by different colors. Only when grass is dark green, it can be eaten by sheeps; 
 
-![](tui-wsg.gif)
+![](wsg.gif)
 
 # How to run
 - To run only the simulation, run `cargo run --release`.
