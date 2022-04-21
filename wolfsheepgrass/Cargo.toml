@@ -19,7 +19,6 @@ readme = "README.md"
 
 [dependencies]
 rust-ab = { git="https://github.com/rust-ab/rust-ab"}
-hashbrown = "0.*"
 
 [features]
 visualization = ["rust-ab/visualization"]

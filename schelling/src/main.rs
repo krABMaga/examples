@@ -6,7 +6,7 @@ mod model;
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
     rust_ab::engine::schedule::*, rust_ab::simulate_old, rust_ab::Info, rust_ab::ProgressBar,
-    std::time::Duration,
+    std::time::Duration, rust_ab::*
 };
 
 // Visualization specific imports
@@ -36,7 +36,7 @@ fn main() {
 
     let world = World::new(dim, num_agents);
 
-    simulate_old!(step, world, 1, Info::Normal);
+    simulate!(world, step, 10);
 
 }
 

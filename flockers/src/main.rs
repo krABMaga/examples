@@ -5,8 +5,8 @@ mod model;
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::simulate_old,
-    rust_ab::Info, rust_ab::ProgressBar, std::time::Duration,
+    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::simulate, 
+    rust_ab::Info, rust_ab::ProgressBar, std::time::Duration, rust_ab::*,
 };
 
 use rust_ab::*;
@@ -39,7 +39,8 @@ fn main() {
     let num_agents = 100;
   
     let state = Flocker::new(dim, num_agents);
-    simulate_old!(step, state, 1, Info::Normal);
+    let _ = simulate!(state, step, 10);
+
 }
 
 // Main used when a visualization feature is applied.

@@ -23,13 +23,13 @@ use {
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    let step = 10;
+    let step = 50;
 
     let dim: (i32, i32) = (25, 25);
     let initial_animals: (u32, u32) = ((100. * 0.6) as u32, (100. * 0.4) as u32);
 
     let state = WsgState::new(dim, initial_animals);
-    let _ = simulate!(state, step, 5);
+    let _ = simulate!(state, step, 10);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

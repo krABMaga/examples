@@ -5,7 +5,7 @@ mod model;
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
     rust_ab::engine::schedule::*, rust_ab::engine::state::State, rust_ab::simulate_old, rust_ab::Info,
-    rust_ab::ProgressBar, std::time::Duration,
+    rust_ab::ProgressBar, std::time::Duration, rust_ab::*
 };
 
 // Visualization specific imports
@@ -31,7 +31,7 @@ fn main() {
 
     let state = Sea::new(dim, num_agents);
 
-    simulate_old!(step, state, 1, Info::Normal);
+    simulate!(state, step, 10);
 }
 
 // Main used when a visualization feature is applied.
