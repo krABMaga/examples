@@ -4,16 +4,15 @@ This repository hosts working examples of agent-based simulations, based on the 
 
 #  Table of contents
 
-| Model                                       | Simulation         |
-| --------------------------------------------| ------------------ |
-| [Ants Foraging](antsforaging)               | :heavy_check_mark: |
-| [Flockers](flockers)                        | :heavy_check_mark: |
-| [Flockers_tui](flockers_tui)                | :heavy_check_mark: |
-| [ForestFire](forestfire)                    | :heavy_check_mark: |
+| Model                                       | Simulation         | Visualization                    |
+| --------------------------------------------| ------------------ | -------------------------------- |
+| [Ants Foraging](antsforaging)               | :heavy_check_mark: | ![](antsforaging/ant1.gif)       | 
+| [Flockers](flockers)                        | :heavy_check_mark: | ![](flockers/flock.gif)          |
+| [ForestFire](forestfire)                    | :heavy_check_mark: | ![](forestfire/ff.gif)           |
 | [ForestFire_bayesian](forestfire_bayesian)  | :heavy_check_mark: |
-| [Schelling](schelling)                      | :heavy_check_mark: |
+| [Schelling](schelling)                      | :heavy_check_mark: | ![](schelling/schelling.gif)     |
 | [Sir_bayesian](forestfire)                  | :heavy_check_mark: |
 | [Sir_ga_bayesian](forestfire)               | :heavy_check_mark: |
-| [Template](template)                        | :heavy_check_mark: |
-| [Virus on a Network](virusnetwork)          | :heavy_check_mark: |
-| [Wolf Sheep Grass](wolfsheepgrass)          | :heavy_check_mark: |
+| [Template](template)                        | :heavy_check_mark: | ![](template/template.gif)       |
+| [Virus on a Network](virusnetwork)          | :heavy_check_mark: | ![](virusnetwork/virus.gif)      |
+| [Wolf Sheep Grass](wolfsheepgrass)          | :heavy_check_mark: | ![](wolfsheepgrass/tui-wsg.gif)  |
