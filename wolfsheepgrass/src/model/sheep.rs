@@ -50,7 +50,6 @@ impl Agent for Sheep {
         let state = state.as_any_mut().downcast_mut::<WsgState>().unwrap();
         // CHECK IF I AM DEAD
         if self.animal_state == LifeState::Dead {
-            
             return;
         }
         //MOVE
@@ -120,9 +119,8 @@ impl Agent for Sheep {
                     SHEEP_REPR,
                 );
 
-                state.next_id += 1;                
+                state.next_id += 1;
                 state.new_sheeps.push(new_sheep);
-                
             }
         }
     }

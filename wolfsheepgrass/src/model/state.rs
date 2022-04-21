@@ -75,16 +75,24 @@ impl State for WsgState {
     }
 
     fn init(&mut self, schedule: &mut Schedule) {
-        let start = Instant::now();
-        let s = format!("rap e patan");
+        let s = format!("Also known as Wolf Sheep predation, it is the simulation implemented to introduce \"dynamic scheduling\"
+                        feature into the Rust-AB framework, because it was the first model with the concepts of \"death\" and \"birth\":
+                        there is an ecosystem that involves animals into their life-cycle.");
         description!(s);
         generate_grass(self);
         generate_wolves(self, schedule);
         generate_sheeps(self, schedule);
 
-        addplot!(String::from("Agents"), String::from("Steps"), String::from("Number of agents"));
-        addplot!(String::from("Dead/Born"), String::from("Steps"), String::from("Number of agents"));
-    
+        addplot!(
+            String::from("Agents"),
+            String::from("Steps"),
+            String::from("Number of agents")
+        );
+        addplot!(
+            String::from("Dead/Born"),
+            String::from("Steps"),
+            String::from("Number of agents")
+        );
     }
 
     fn update(&mut self, step: u64) {
@@ -131,7 +139,6 @@ impl State for WsgState {
     }
 
     fn after_step(&mut self, schedule: &mut Schedule) {
-
         for sheep in self.new_sheeps.iter() {
             schedule.schedule_repeating(Box::new(*sheep), schedule.time + 1.0, 0);
         }
@@ -143,7 +150,6 @@ impl State for WsgState {
         for sheep in self.killed_sheeps.iter() {
             schedule.dequeue(Box::new(*sheep), sheep.id);
         }
-
 
         let agents = schedule.get_all_events();
         let mut num_sheeps: f32 = 0.;
@@ -158,16 +164,37 @@ impl State for WsgState {
             }
         }
 
+        plot!(
+            String::from("Agents"),
+            String::from("Wolfs"),
+            schedule.step as f64,
+            num_wolves as f64
+        );
+        plot!(
+            String::from("Agents"),
+            String::from("Sheeps"),
+            schedule.step as f64,
+            num_sheeps as f64
+        );
 
-       
-
-        plot!(String::from("Agents"), String::from("Wolfs"), schedule.step as f64, num_wolves as f64);
-        plot!(String::from("Agents"), String::from("Sheeps"), schedule.step as f64, num_sheeps as f64);
-
-        plot!(String::from("Dead/Born"), String::from("Dead Sheeps"), schedule.step as f64, self.killed_sheeps.len() as f64);
-        plot!(String::from("Dead/Born"), String::from("Born Wolfs"), schedule.step as f64, self.new_wolves.len() as f64);
-        plot!(String::from("Dead/Born"), String::from("Bord Sheeps"), schedule.step as f64, self.new_sheeps.len() as f64);
-
+        plot!(
+            String::from("Dead/Born"),
+            String::from("Dead Sheeps"),
+            schedule.step as f64,
+            self.killed_sheeps.len() as f64
+        );
+        plot!(
+            String::from("Dead/Born"),
+            String::from("Born Wolfs"),
+            schedule.step as f64,
+            self.new_wolves.len() as f64
+        );
+        plot!(
+            String::from("Dead/Born"),
+            String::from("Bord Sheeps"),
+            schedule.step as f64,
+            self.new_sheeps.len() as f64
+        );
 
         self.killed_sheeps.clear();
     }
@@ -231,5 +258,3 @@ fn generate_wolves(state: &mut WsgState, schedule: &mut Schedule) {
         schedule.schedule_repeating(Box::new(wolf), 0., 1);
     }
 }
-
-

@@ -40,7 +40,7 @@ use {
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::simulate,
+    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::simulate_old,
     rust_ab::Info, rust_ab::ProgressBar, std::time::Duration,
 };
 

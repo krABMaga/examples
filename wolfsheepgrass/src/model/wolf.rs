@@ -110,8 +110,13 @@ impl Agent for Wolf {
             if rng.gen_bool(self.prob_reproduction) {
                 self.energy /= 2.0;
 
-                let new_wolf =
-                    Wolf::new(state.next_id, self.loc, self.energy, GAIN_ENERGY_WOLF, WOLF_REPR);
+                let new_wolf = Wolf::new(
+                    state.next_id,
+                    self.loc,
+                    self.energy,
+                    GAIN_ENERGY_WOLF,
+                    WOLF_REPR,
+                );
 
                 state.next_id += 1;
                 state.new_wolves.push(new_wolf);
