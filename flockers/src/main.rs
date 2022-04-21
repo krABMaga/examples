@@ -39,7 +39,7 @@ fn main() {
     let num_agents = 100;
   
     let state = Flocker::new(dim, num_agents);
-    let _ = simulate!(state, step, 10);
+    let _ = simulate!(state, step, 10, false);
 
 }
 

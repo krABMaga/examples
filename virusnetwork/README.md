@@ -15,7 +15,7 @@ The network is created using `preferential attachment` algorithm; it's provided 
 
 ---
 
-![](template.gif)
+![](virus.gif)
 
 ---
 
