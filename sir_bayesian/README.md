@@ -13,10 +13,10 @@ With this model we want to simulate how a virus (or a warm) can be spread throug
 
 The network is created using `preferential attachment` algorithm; it's provided by a rust-ab macro: given a list of nodes, it adds nodes one by one, and it creates ages based on node degree.
 
+In this example, bayesian optimization is used to find a configuration able to fit with data provided. In other words, we want to reproduce a specific Epidemic curve.
+
 # How to run
-- To run only the simulation, run `cargo run --release`.
-- To run the native visualization, run `cargo make run --profile release`.
-- To serve the web visualization locally, run `cargo make serve --profile release`.
+- To run only the simulation, run `cargo run --release --features bayesian`.
   
 # References:
 - https://ccl.northwestern.edu/netlogo/models/VirusonaNetwork
