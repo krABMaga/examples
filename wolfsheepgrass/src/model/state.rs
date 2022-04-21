@@ -3,6 +3,8 @@ use rust_ab::engine::{
     fields::field::Field, location::Int2D, schedule::Schedule, state::State,
 };
 
+use rust_ab::*;
+
 use super::sheep::Sheep;
 use super::wolf::Wolf;
 use crate::{FULL_GROWN, GAIN_ENERGY_SHEEP, GAIN_ENERGY_WOLF, SHEEP_REPR, WOLF_REPR};
@@ -73,18 +75,25 @@ impl State for WsgState {
     }
 
     fn init(&mut self, schedule: &mut Schedule) {
-        let start = Instant::now();
-
+        let s = format!("Also known as Wolf Sheep predation, it is the simulation implemented to introduce \"dynamic scheduling\"
+                        feature into the Rust-AB framework, because it was the first model with the concepts of \"death\" and \"birth\":
+                        there is an ecosystem that involves animals into their life-cycle.");
+        description!(s);
         generate_grass(self);
         generate_wolves(self, schedule);
         generate_sheeps(self, schedule);
-        let elapsed = start.elapsed();
-        println!("Elapsed {}", elapsed.as_secs_f32());
 
-    
+        addplot!(
+            String::from("Agents"),
+            String::from("Steps"),
+            String::from("Number of agents")
+        );
+        addplot!(
+            String::from("Dead/Born"),
+            String::from("Steps"),
+            String::from("Number of agents")
+        );
     }
-   
-    
 
     fn update(&mut self, step: u64) {
         if step != 0 {
@@ -130,7 +139,6 @@ impl State for WsgState {
     }
 
     fn after_step(&mut self, schedule: &mut Schedule) {
-
         for sheep in self.new_sheeps.iter() {
             schedule.schedule_repeating(Box::new(*sheep), schedule.time + 1.0, 0);
         }
@@ -142,6 +150,51 @@ impl State for WsgState {
         for sheep in self.killed_sheeps.iter() {
             schedule.dequeue(Box::new(*sheep), sheep.id);
         }
+
+        let agents = schedule.get_all_events();
+        let mut num_sheeps: f32 = 0.;
+        let mut num_wolves: f32 = 0.;
+
+        for n in agents {
+            if let Some(_s) = n.downcast_ref::<Sheep>() {
+                num_sheeps += 1.;
+            }
+            if let Some(_w) = n.downcast_ref::<Wolf>() {
+                num_wolves += 1.;
+            }
+        }
+
+        plot!(
+            String::from("Agents"),
+            String::from("Wolfs"),
+            schedule.step as f64,
+            num_wolves as f64
+        );
+        plot!(
+            String::from("Agents"),
+            String::from("Sheeps"),
+            schedule.step as f64,
+            num_sheeps as f64
+        );
+
+        plot!(
+            String::from("Dead/Born"),
+            String::from("Dead Sheeps"),
+            schedule.step as f64,
+            self.killed_sheeps.len() as f64
+        );
+        plot!(
+            String::from("Dead/Born"),
+            String::from("Born Wolfs"),
+            schedule.step as f64,
+            self.new_wolves.len() as f64
+        );
+        plot!(
+            String::from("Dead/Born"),
+            String::from("Bord Sheeps"),
+            schedule.step as f64,
+            self.new_sheeps.len() as f64
+        );
 
         self.killed_sheeps.clear();
     }
@@ -205,5 +258,3 @@ fn generate_wolves(state: &mut WsgState, schedule: &mut Schedule) {
         schedule.schedule_repeating(Box::new(wolf), 0., 1);
     }
 }
-
-

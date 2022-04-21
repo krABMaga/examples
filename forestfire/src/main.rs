@@ -6,7 +6,7 @@ mod model;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    rust_ab::engine::schedule::*, rust_ab::simulate, rust_ab::Info, rust_ab::ProgressBar,
+    rust_ab::engine::schedule::*, rust_ab::simulate_old, rust_ab::Info, rust_ab::ProgressBar,
     std::time::Duration,
 };
 
@@ -31,7 +31,7 @@ fn main() {
     let dim: (i32, i32) = (200, 200);
     let density: f64 = 0.7;
     let forest = Forest::new(dim, density);
-    simulate!(step, forest, 1, Info::Normal);
+    simulate_old!(step, forest, 1, Info::Normal);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

@@ -21,7 +21,6 @@ readme = "README.md"
 rust-ab = { git="https://github.com/rust-ab/rust-ab"}
 hashbrown = "0.*"
 
-
 [features]
 visualization = ["rust-ab/visualization"]
 visualization_wasm = ["rust-ab/visualization_wasm"]

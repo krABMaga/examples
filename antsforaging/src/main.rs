@@ -40,7 +40,7 @@ use {
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::simulate,
+    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::simulate_old,
     rust_ab::Info, rust_ab::ProgressBar, std::time::Duration,
 };
 
@@ -68,5 +68,5 @@ fn main() {
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    simulate!(STEP, ModelState::new(), 1, Info::Normal);
+    simulate_old!(STEP, ModelState::new(), 1, Info::Normal);
 }

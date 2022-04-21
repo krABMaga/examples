@@ -2,7 +2,7 @@ extern crate rust_ab;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    rust_ab::engine::schedule::*, rust_ab::engine::state::State, rust_ab::simulate, rust_ab::Info,
+    rust_ab::engine::schedule::*, rust_ab::engine::state::State, rust_ab::simulate_old, rust_ab::Info,
     rust_ab::ProgressBar, std::time::Duration,
 };
 
@@ -34,7 +34,7 @@ fn main() {
     let num_nodes = 100;
     let epidemic_network = EpidemicNetworkState::new(dim, num_nodes, DISCRETIZATION, TOROIDAL);
 
-    simulate!(step, epidemic_network, 1, Info::Normal);
+    simulate_old!(step, epidemic_network, 1, Info::Normal);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
