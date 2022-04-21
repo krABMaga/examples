@@ -7,14 +7,14 @@ required for the ants to find the food and return to their nest for the first ti
 paths taken by the ants while they look for food and avoid obstacles, and the pheromone distribution around the grid hotspots
   (nest and food sites).
 
-![](hED1k8qOij.gif)
+![](ant1.gif)
 
-![](RdBHf4jHoC.gif)
+![](ant2.gif)
 
 # How to run
 - To run only the simulation, run `cargo run --release`.
-- To run the native visualization, run `cargo make run --profile release`.
-- To serve the web visualization locally, run `cargo make serve --profile release`.
+- To run the native visualization, run `cargo make run --release`.
+- To serve the web visualization locally, run `cargo make serve --release`.
   
 # References:
 - https://github.com/eclab/mason/tree/master/mason/src/main/java/sim/app/antsforage

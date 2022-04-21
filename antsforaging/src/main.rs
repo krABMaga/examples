@@ -6,7 +6,7 @@ pub mod model;
 // Constants
 pub const WIDTH: i32 = 200;
 pub const HEIGHT: i32 = 200;
-pub const NUM_AGENT: u32 = 1000;
+pub const NUM_AGENT: u32 = 100;
 pub const EVAPORATION: f32 = 0.999;
 pub const STEP: u64 = 100;
 // Nest coordinate range

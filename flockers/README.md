@@ -13,7 +13,7 @@ are currently two versions:
 
 ---
 
-![](GoaM2T97l6.gif)
+![](flock.gif)
 
 ---
 

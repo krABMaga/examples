@@ -13,6 +13,12 @@ With this model we want to simulate how a virus (or a warm) can be spread throug
 
 The network is created using `preferential attachment` algorithm; it's provided by a rust-ab macro: given a list of nodes, it adds nodes one by one, and it creates ages based on node degree.
 
+---
+
+![](template.gif)
+
+---
+
 # How to run
 - To run only the simulation, run `cargo run --release`.
 - To run the native visualization, run `cargo make run --profile release`.
