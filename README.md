@@ -6,7 +6,7 @@ This repository hosts working examples of agent-based simulations, based on the 
 
 | Model                                       | Simulation         | Visualization                             |
 | --------------------------------------------| ------------------ | ----------------------------------------- |
-| [Ants Foraging](antsforaging)               | :heavy_check_mark: | ![](antsforaging/ant1.gif =300x300)       | 
+| [Ants Foraging](antsforaging)               | :heavy_check_mark: | ![](antsforaging/ant1.gif){height=300px width=300px}       | 
 | [Flockers](flockers)                        | :heavy_check_mark: | ![](flockers/flock.gif =300x300)          |
 | [ForestFire](forestfire)                    | :heavy_check_mark: | ![](forestfire/ff.gif =300x300)           |
 | [ForestFire_bayesian](forestfire_bayesian)  | :heavy_check_mark: |
