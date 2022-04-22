@@ -4,7 +4,6 @@ resolver = "2"
 members = [
     "antsforaging",
     "flockers",
-    "flockers_tui",
     "forestfire",
     "forestfire_bayesian",
     "schelling",
