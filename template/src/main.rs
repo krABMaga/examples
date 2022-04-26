@@ -26,7 +26,7 @@ pub static TOROIDAL: bool = true;
 fn main() {
     let step = 100;
 
-    let num_agents = 10;
+    let num_agents = 20;
     let dim: (f32, f32) = (400., 400.);
 
     let state = Sea::new(dim, num_agents);
