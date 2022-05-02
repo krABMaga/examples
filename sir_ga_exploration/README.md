@@ -13,10 +13,12 @@ With this model we want to simulate how a virus (or a warm) can be spread throug
 
 The network is created using `preferential attachment` algorithm; it's provided by a rust-ab macro: given a list of nodes, it adds nodes one by one, and it creates ages based on node degree.
 
+
+
 # How to run
-- To run only the simulation, run `cargo run --release`.
-- To run the native visualization, run `cargo make run --profile release`.
-- To serve the web visualization locally, run `cargo make serve --profile release`.
-  
+- To run sequential/parallel genetic algorithm `cargo run --release`.
+- To run distributed-mpi genetic algorithm `cargo run --release --features distributed-mpi`.
+- 
+
 # References:
 - https://ccl.northwestern.edu/netlogo/models/VirusonaNetwork
