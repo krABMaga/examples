@@ -1,5 +1,5 @@
 [package]
-name = "rust-ab-template"
+name = "template"
 version = "0.2.0"
 authors = [
     "Carmine Spagnuolo <spagnuolocarmine@gmail.com>", 
