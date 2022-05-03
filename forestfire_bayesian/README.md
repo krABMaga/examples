@@ -1,4 +1,4 @@
-# Rust-AB template
+# ForestFire: Bayesian Optimization
 
 It is a stochastic model to simulate the spread of a fire through a forest. Apart the dimensions of the field, the model has only one parameter: forest density.
 

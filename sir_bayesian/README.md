@@ -1,4 +1,4 @@
-# Rust: Virus on a Network (a SIR model for epidemics)
+# SIR model for epidemics: Bayesian Optimization
 
 With this model we want to simulate how a virus (or a warm) can be spread through a network. It's an abstraction of several dynamics:
 - Network is based on a graph, where:

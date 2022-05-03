@@ -1,4 +1,4 @@
-# Rust-AB template
+# Schelling model
 
 Created by the economist Thomas Schelling, this model shows how individual tendencies regarding neighbors can lead to segregation. That's the reason why is also called `Segregation Model`.
 
