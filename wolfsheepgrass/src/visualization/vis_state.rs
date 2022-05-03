@@ -80,9 +80,11 @@ impl VisualizationState<WsgState> for VisState {
         commands: &mut Commands,
         asset_factory: &mut AssetHandleFactoryResource,
     ) {
-        let new_sheeps = state.new_sheeps.lock().unwrap();
-        for sheep in &*new_sheeps {
-            let boxed_agent = &(*sheep).as_agent();
+        // let new_sheeps = state.new_sheeps.lock().unwrap();
+        // for sheep in &*new_sheeps {
+        for sheep in &state.new_sheeps {
+            //let boxed_agent = &(*sheep).as_agent();
+            let boxed_agent = &sheep.as_agent();
             let boxed_state = Box::new(state.as_state());
             let sheep_vis = self.get_agent_render(boxed_agent, state);
             let SpriteType::Emoji(emoji_code) =
@@ -97,9 +99,10 @@ impl VisualizationState<WsgState> for VisState {
             );
         }
 
-        let new_wolves = state.new_wolves.lock().unwrap();
-        for wolf in &*new_wolves {
-            let boxed_wolf = &(*wolf).as_agent();
+        // let new_wolves = state.new_wolves.lock().unwrap();
+        // for wolf in &*new_wolves {
+        for wolf in &state.new_wolves{
+            let boxed_wolf = &wolf.as_agent();
             let boxed_state = Box::new(state.as_state());
             let wolf_vis = self.get_agent_render(boxed_wolf, state);
             let SpriteType::Emoji(emoji_code) = wolf_vis.unwrap().sprite(boxed_wolf, &boxed_state);
