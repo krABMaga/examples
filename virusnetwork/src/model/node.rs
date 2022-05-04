@@ -3,9 +3,9 @@ use std::{
     hash::{Hash, Hasher},
 };
 
-use rust_ab::engine::state::State;
-use rust_ab::rand;
-use rust_ab::{
+use krABMaga::engine::state::State;
+use krABMaga::rand;
+use krABMaga::{
     engine::{
         agent::Agent,
         location::{Location2D, Real2D},

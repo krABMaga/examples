@@ -2,10 +2,10 @@ use crate::model::world::World;
 use crate::Patch;
 use crate::SIMILAR_WANTED;
 use core::fmt;
-use rust_ab::engine::agent::Agent;
-use rust_ab::engine::location::Int2D;
-use rust_ab::engine::schedule::{Schedule, ScheduleOptions};
-use rust_ab::engine::state::State;
+use krABMaga::engine::agent::Agent;
+use krABMaga::engine::location::Int2D;
+use krABMaga::engine::schedule::{Schedule, ScheduleOptions};
+use krABMaga::engine::state::State;
 use std::cell::RefCell;
 use std::hash::{Hash, Hasher};
 

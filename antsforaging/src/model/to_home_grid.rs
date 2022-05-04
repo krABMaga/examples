@@ -1,7 +1,7 @@
 use crate::{EVAPORATION, HOME_LOW_PHEROMONE};
-use rust_ab::engine::fields::field::Field;
-use rust_ab::engine::fields::grid_option::GridOption;
-use rust_ab::engine::fields::sparse_number_grid_2d::SparseNumberGrid2D;
+use krABMaga::engine::fields::field::Field;
+use krABMaga::engine::fields::grid_option::GridOption;
+use krABMaga::engine::fields::sparse_number_grid_2d::SparseNumberGrid2D;
 
 // Represents home pheromones. Higher f32 means more concentrated pheromone.
 pub struct ToHomeGrid {

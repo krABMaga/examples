@@ -5,17 +5,17 @@ mod model;
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::simulate, 
-    rust_ab::Info, rust_ab::ProgressBar, std::time::Duration, rust_ab::*,
+    krABMaga::engine::schedule::Schedule, krABMaga::engine::state::State, krABMaga::simulate, 
+    krABMaga::Info, krABMaga::ProgressBar, std::time::Duration, krABMaga::*,
 };
 
-use rust_ab::*;
+use krABMaga::*;
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    crate::visualization::vis_state::VisState, rust_ab::bevy::prelude::Color,
-    rust_ab::visualization::visualization::Visualization,
+    crate::visualization::vis_state::VisState, krABMaga::bevy::prelude::Color,
+    krABMaga::visualization::visualization::Visualization,
 };
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
@@ -33,13 +33,13 @@ pub static TOROIDAL: bool = true;
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    let step = 10;
+    let step = 500;
 
     let dim = (200., 200.);
     let num_agents = 100;
   
     let state = Flocker::new(dim, num_agents);
-    let _ = simulate!(state, step, 10, false);
+    let _ = simulate!(state, step, 10);
 
 }
 

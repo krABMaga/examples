@@ -1,17 +1,17 @@
-extern crate rust_ab;
+extern crate krABMaga;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    rust_ab::engine::schedule::*, rust_ab::engine::state::State, rust_ab::simulate_old, rust_ab::Info,
-    rust_ab::ProgressBar, std::time::Duration, rust_ab::*
+    krABMaga::engine::schedule::*, krABMaga::engine::state::State, krABMaga::simulate_old, krABMaga::Info,
+    krABMaga::ProgressBar, std::time::Duration, krABMaga::*
 };
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    crate::visualization::vis_state::VisState, rust_ab::bevy::prelude::Color,
-    rust_ab::visualization::fields::network::NetworkRender,
-    rust_ab::visualization::visualization::Visualization,
+    crate::visualization::vis_state::VisState, krABMaga::bevy::prelude::Color,
+    krABMaga::visualization::fields::network::NetworkRender,
+    krABMaga::visualization::visualization::Visualization,
 };
 
 use model::state::EpidemicNetworkState;

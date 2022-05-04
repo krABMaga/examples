@@ -1,7 +1,8 @@
 use rand::distributions::weighted::WeightedIndex;
 
-use rust_ab::{
+use krABMaga::{
     argmin::prelude::*,
+    argmin::prelude::Error,
     argmin::solver::linesearch::MoreThuenteLineSearch,
     argmin::solver::quasinewton::LBFGS,
     finitediff::FiniteDiff,
@@ -13,7 +14,7 @@ use rust_ab::{
     statrs::statistics::Distribution,
 };
 
-use rust_ab::{
+use krABMaga::{
     engine::{schedule::Schedule, state::State},
     rand,
     rand::Rng,

@@ -32,16 +32,16 @@ pub const UPDATE_CUTDOWN: f32 = 0.9;
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
     crate::model::to_food_grid::ToFoodGrid, crate::model::to_home_grid::ToHomeGrid,
-    crate::visualization::vis_state::VisState, rust_ab::bevy::prelude::Color,
-    rust_ab::bevy::prelude::IntoSystem,
-    rust_ab::visualization::fields::number_grid_2d::BatchRender,
-    rust_ab::visualization::visualization::Visualization,
+    crate::visualization::vis_state::VisState, krABMaga::bevy::prelude::Color,
+    krABMaga::bevy::prelude::IntoSystem,
+    krABMaga::visualization::fields::number_grid_2d::BatchRender,
+    krABMaga::visualization::visualization::Visualization,
 };
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    rust_ab::engine::schedule::Schedule, rust_ab::engine::state::State, rust_ab::simulate,
-    rust_ab::Info, rust_ab::ProgressBar, std::time::Duration, rust_ab::*,
+    krABMaga::engine::schedule::Schedule, krABMaga::engine::state::State, krABMaga::simulate,
+    krABMaga::Info, krABMaga::ProgressBar, std::time::Duration, krABMaga::*,
 };
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
@@ -63,7 +63,7 @@ fn main() {
 }
 
 // #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-// use {rust_ab::rand, rust_ab::rand::Rng};
+// use {krABMaga::rand, krABMaga::rand::Rng};
 
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]

@@ -1,5 +1,5 @@
-use rust_ab::engine::state::State;
-use rust_ab::{engine::agent::Agent, rand::Rng};
+use krABMaga::engine::state::State;
+use krABMaga::{engine::agent::Agent, rand::Rng};
 use std::{
     fmt,
     hash::{Hash, Hasher},

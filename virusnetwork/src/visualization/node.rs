@@ -1,11 +1,11 @@
-use rust_ab::bevy::prelude::{Transform, Visibility, Component};
+use krABMaga::bevy::prelude::{Transform, Visibility, Component};
 
 use crate::model::node::*;
 use crate::model::state::EpidemicNetworkState;
-use rust_ab::engine::agent::Agent;
-use rust_ab::engine::state::State;
-use rust_ab::visualization::agent_render::{AgentRender, SpriteType};
-use rust_ab::bevy::ecs as bevy_ecs;
+use krABMaga::engine::agent::Agent;
+use krABMaga::engine::state::State;
+use krABMaga::visualization::agent_render::{AgentRender, SpriteType};
+use krABMaga::bevy::ecs as bevy_ecs;
 
 #[derive(Component)]
 pub struct NetNodeVis {

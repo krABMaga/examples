@@ -1,4 +1,4 @@
-use rust_ab::{
+use krABMaga::{
     engine::{schedule::Schedule, state::State},
     rand::Rng,
     *,

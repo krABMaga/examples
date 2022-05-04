@@ -1,5 +1,5 @@
-use rust_ab::bevy::ecs::component::TableStorage;
-use rust_ab::bevy::prelude::Component;
+use krABMaga::bevy::ecs::component::TableStorage;
+use krABMaga::bevy::prelude::Component;
 
 use crate::model::state::Item;
 

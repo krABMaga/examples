@@ -5,18 +5,18 @@ mod model;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    rust_ab::engine::schedule::*, rust_ab::simulate_old, rust_ab::Info, rust_ab::ProgressBar,
-    std::time::Duration, rust_ab::*
+    krABMaga::engine::schedule::*, krABMaga::simulate_old, krABMaga::Info, krABMaga::ProgressBar,
+    std::time::Duration, krABMaga::*
 };
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    crate::visualization::world_vis::WorldVis, rust_ab::bevy::prelude::Color,
-    rust_ab::bevy::prelude::IntoSystem,
-    rust_ab::engine::fields::sparse_object_grid_2d::SparseGrid2D,
-    rust_ab::visualization::fields::object_grid_2d::RenderObjectGrid2D,
-    rust_ab::visualization::visualization::Visualization,
+    crate::visualization::world_vis::WorldVis, krABMaga::bevy::prelude::Color,
+    krABMaga::bevy::prelude::IntoSystem,
+    krABMaga::engine::fields::sparse_object_grid_2d::SparseGrid2D,
+    krABMaga::visualization::fields::object_grid_2d::RenderObjectGrid2D,
+    krABMaga::visualization::visualization::Visualization,
 };
 
 pub const PERC: f32 = 0.5;

@@ -11,7 +11,7 @@ With this model we want to simulate how a virus (or a warm) can be spread throug
 - At each step, communication between all nodes is performed, and infected nodes spread virus to their neighbours (for examples, as attachment of an email);
 - Periodically nodes start a scan with their antivirus to detect virus; if they detect something, a recovery will be done. If the recovery is performed, there is a possibility for that node to became `Resistant`;
 
-The network is created using `preferential attachment` algorithm; it's provided by a rust-ab macro: given a list of nodes, it adds nodes one by one, and it creates ages based on node degree.
+The network is created using `preferential attachment` algorithm; it's provided by a krABMaga macro: given a list of nodes, it adds nodes one by one, and it creates ages based on node degree.
 
 
 

@@ -1,6 +1,6 @@
-# Rust-AB examples
+# krABMaga examples
 
-This repository hosts working examples of agent-based simulations, based on the Rust-AB framework for the simulation engine and the visualization framework.
+This repository hosts working examples of agent-based simulations, based on the krABMaga framework for the simulation engine and the visualization framework.
 
 #  Table of contents
 

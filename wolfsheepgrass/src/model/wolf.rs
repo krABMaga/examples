@@ -1,5 +1,5 @@
 use core::fmt;
-use rust_ab::{
+use krABMaga::{
     engine::{
         agent::Agent,
         location::{Int2D, Location2D},

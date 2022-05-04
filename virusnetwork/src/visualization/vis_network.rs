@@ -1,9 +1,9 @@
 use crate::model::node::NetNode;
 use crate::model::state::EpidemicNetworkState;
-use rust_ab::bevy::prelude::*;
-use rust_ab::engine::fields::network::{Edge, Network};
-use rust_ab::engine::location::Real2D;
-use rust_ab::visualization::fields::network::{EdgeRenderInfo, NetworkRender};
+use krABMaga::bevy::prelude::*;
+use krABMaga::engine::fields::network::{Edge, Network};
+use krABMaga::engine::location::Real2D;
+use krABMaga::visualization::fields::network::{EdgeRenderInfo, NetworkRender};
 
 impl NetworkRender<NetNode, String, EpidemicNetworkState> for EpidemicNetworkState {
     fn get_network(state: &EpidemicNetworkState) -> &Network<NetNode, String> {

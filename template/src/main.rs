@@ -4,15 +4,15 @@ mod model;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    rust_ab::engine::schedule::*, rust_ab::engine::state::State, rust_ab::simulate_old, rust_ab::Info,
-    rust_ab::ProgressBar, std::time::Duration, rust_ab::*
+    krABMaga::engine::schedule::*, krABMaga::engine::state::State, krABMaga::simulate_old, krABMaga::Info,
+    krABMaga::ProgressBar, std::time::Duration, krABMaga::*
 };
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    crate::visualization::sea_vis::SeaVis, rust_ab::bevy::prelude::Color,
-    rust_ab::visualization::visualization::Visualization,
+    crate::visualization::sea_vis::SeaVis, krABMaga::bevy::prelude::Color,
+    krABMaga::visualization::visualization::Visualization,
 };
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

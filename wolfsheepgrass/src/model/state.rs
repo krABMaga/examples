@@ -1,18 +1,18 @@
-use rust_ab::engine::{
+use krABMaga::engine::{
     fields::dense_number_grid_2d::DenseNumberGrid2D, fields::dense_object_grid_2d::DenseGrid2D,
     fields::field::Field, location::Int2D, schedule::Schedule, state::State,
 };
 
-use rust_ab::*;
+use krABMaga::*;
 
 use super::sheep::Sheep;
 use super::wolf::Wolf;
 use crate::{FULL_GROWN, GAIN_ENERGY_SHEEP, GAIN_ENERGY_WOLF, SHEEP_REPR, WOLF_REPR};
 use core::fmt;
 use hashbrown::HashSet;
-use rust_ab::engine::fields::grid_option::GridOption;
-use rust_ab::rand;
-use rust_ab::rand::Rng;
+use krABMaga::engine::fields::grid_option::GridOption;
+use krABMaga::rand;
+use krABMaga::rand::Rng;
 use std::any::Any;
 pub use std::time::Duration;
 pub use std::time::Instant;
@@ -76,7 +76,7 @@ impl State for WsgState {
 
     fn init(&mut self, schedule: &mut Schedule) {
         let s = format!("Also known as Wolf Sheep predation, it is the simulation implemented to introduce \"dynamic scheduling\"
-                        feature into the Rust-AB framework, because it was the first model with the concepts of \"death\" and \"birth\":
+                        feature into the krABMaga framework, because it was the first model with the concepts of \"death\" and \"birth\":
                         there is an ecosystem that involves animals into their life-cycle.");
         description!(s);
         generate_grass(self);

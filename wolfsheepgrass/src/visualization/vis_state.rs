@@ -3,16 +3,16 @@ use crate::model::state::WsgState;
 use crate::model::wolf::Wolf;
 use crate::visualization::sheep_vis::SheepVis;
 use crate::visualization::wolf_vis::WolfVis;
-use rust_ab::bevy::prelude::Commands;
-use rust_ab::engine::agent::Agent;
-use rust_ab::engine::location::Int2D;
-use rust_ab::engine::schedule::Schedule;
-use rust_ab::engine::state::State;
-use rust_ab::visualization::agent_render::{AgentRender, SpriteType};
-use rust_ab::visualization::asset_handle_factory::AssetHandleFactoryResource;
-use rust_ab::visualization::fields::number_grid_2d::BatchRender;
-use rust_ab::visualization::simulation_descriptor::SimulationDescriptor;
-use rust_ab::visualization::visualization_state::VisualizationState;
+use krABMaga::bevy::prelude::Commands;
+use krABMaga::engine::agent::Agent;
+use krABMaga::engine::location::Int2D;
+use krABMaga::engine::schedule::Schedule;
+use krABMaga::engine::state::State;
+use krABMaga::visualization::agent_render::{AgentRender, SpriteType};
+use krABMaga::visualization::asset_handle_factory::AssetHandleFactoryResource;
+use krABMaga::visualization::fields::number_grid_2d::BatchRender;
+use krABMaga::visualization::simulation_descriptor::SimulationDescriptor;
+use krABMaga::visualization::visualization_state::VisualizationState;
 
 #[derive(Clone)]
 pub struct VisState;

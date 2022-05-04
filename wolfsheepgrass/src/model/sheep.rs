@@ -2,11 +2,11 @@ use crate::model::state::{LifeState, WsgState};
 use crate::{ENERGY_CONSUME, FULL_GROWN, GAIN_ENERGY_SHEEP, MOMENTUM_PROBABILITY, SHEEP_REPR};
 
 use core::fmt;
-use rust_ab::engine::agent::Agent;
-use rust_ab::engine::location::{Int2D, Location2D};
-use rust_ab::engine::state::State;
-use rust_ab::rand;
-use rust_ab::rand::Rng;
+use krABMaga::engine::agent::Agent;
+use krABMaga::engine::location::{Int2D, Location2D};
+use krABMaga::engine::state::State;
+use krABMaga::rand;
+use krABMaga::rand::Rng;
 use std::hash::{Hash, Hasher};
 
 #[derive(Copy, Clone)]

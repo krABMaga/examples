@@ -1,12 +1,12 @@
 use crate::model::node::{NetNode, NodeStatus};
 use crate::{INITIAL_INFECTED_PROB, INIT_EDGES};
-use rust_ab::engine::fields::network::Network;
-use rust_ab::engine::fields::{field::Field, field_2d::Field2D};
-use rust_ab::engine::location::Real2D;
-use rust_ab::engine::schedule::Schedule;
-use rust_ab::engine::state::State;
-use rust_ab::rand;
-use rust_ab::rand::Rng;
+use krABMaga::engine::fields::network::Network;
+use krABMaga::engine::fields::{field::Field, field_2d::Field2D};
+use krABMaga::engine::location::Real2D;
+use krABMaga::engine::schedule::Schedule;
+use krABMaga::engine::state::State;
+use krABMaga::rand;
+use krABMaga::rand::Rng;
 use std::any::Any;
 
 pub struct EpidemicNetworkState {

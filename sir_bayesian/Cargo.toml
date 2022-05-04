@@ -18,10 +18,10 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# rust-ab = { path="/home/isis/rab_me/rust-ab" }
-rust-ab = { git="https://github.com/rust-ab/rust-ab"}
+krABMaga = { git="https://github.com/krABMaga/krABMaga"}
+
 
 [features]
-distributed_mpi = ["rust-ab/distributed_mpi"]
-aws = ["rust-ab/parallel"]
-bayesian = ["rust-ab/bayesian"]
+distributed_mpi = ["krABMaga/distributed_mpi"]
+aws = ["krABMaga/parallel"]
+bayesian = ["krABMaga/bayesian"]

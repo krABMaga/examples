@@ -1,15 +1,15 @@
 use crate::model::crab::Crab;
 use crate::model::sea::Sea;
 use crate::visualization::crab_vis::CrabVis;
-use rust_ab::bevy::prelude::Commands;
-use rust_ab::engine::agent::Agent;
-use rust_ab::engine::location::Real2D;
-use rust_ab::engine::schedule::Schedule;
-use rust_ab::engine::state::State;
-use rust_ab::visualization::agent_render::AgentRender;
-use rust_ab::visualization::asset_handle_factory::AssetHandleFactoryResource;
-use rust_ab::visualization::simulation_descriptor::SimulationDescriptor;
-use rust_ab::visualization::visualization_state::VisualizationState;
+use krABMaga::bevy::prelude::Commands;
+use krABMaga::engine::agent::Agent;
+use krABMaga::engine::location::Real2D;
+use krABMaga::engine::schedule::Schedule;
+use krABMaga::engine::state::State;
+use krABMaga::visualization::agent_render::AgentRender;
+use krABMaga::visualization::asset_handle_factory::AssetHandleFactoryResource;
+use krABMaga::visualization::simulation_descriptor::SimulationDescriptor;
+use krABMaga::visualization::visualization_state::VisualizationState;
 
 #[derive(Clone)]
 pub struct SeaVis;

@@ -1,10 +1,10 @@
 use crate::model::bird::Bird;
 use crate::model::state::Flocker;
-use rust_ab::bevy::prelude::{Component, Quat, Transform, Visibility};
-use rust_ab::engine::agent::Agent;
-use rust_ab::engine::state::State;
-use rust_ab::visualization::agent_render::{AgentRender, SpriteType};
-use rust_ab::bevy::ecs as bevy_ecs;
+use krABMaga::bevy::prelude::{Component, Quat, Transform, Visibility};
+use krABMaga::engine::agent::Agent;
+use krABMaga::engine::state::State;
+use krABMaga::visualization::agent_render::{AgentRender, SpriteType};
+use krABMaga::bevy::ecs as bevy_ecs;
 use std::f32::consts::PI;
 
 #[derive(Component)]

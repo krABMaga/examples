@@ -4,8 +4,9 @@ use crate::model::forest::Tree;
 
 mod model;
 
-use rust_ab::{
+use krABMaga::{
     argmin::prelude::*,
+    argmin::prelude::Error,
     argmin::solver::linesearch::MoreThuenteLineSearch,
     argmin::solver::quasinewton::LBFGS,
     finitediff::FiniteDiff,
@@ -18,11 +19,11 @@ use rust_ab::{
 };
 
 use {
-    rust_ab::engine::schedule::*, rust_ab::*, rust_ab::Info, rust_ab::ProgressBar,
+    krABMaga::engine::schedule::*, krABMaga::*, krABMaga::Info, krABMaga::ProgressBar,
     std::time::Duration,
 };
 
-use rust_ab::{
+use krABMaga::{
     engine::{schedule::Schedule, state::State},
     rand,
     rand::Rng,

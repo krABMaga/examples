@@ -1,10 +1,10 @@
-use rust_ab::bevy::ecs::component::TableStorage;
-use rust_ab::bevy::prelude::Component;
+use krABMaga::bevy::ecs::component::TableStorage;
+use krABMaga::bevy::prelude::Component;
 use crate::model::forest::*;
-use rust_ab::engine::fields::dense_object_grid_2d::DenseGrid2D;
-use rust_ab::engine::fields::sparse_object_grid_2d::SparseGrid2D;
-use rust_ab::engine::location::Int2D;
-use rust_ab::visualization::fields::object_grid_2d::RenderObjectGrid2D;
+use krABMaga::engine::fields::dense_object_grid_2d::DenseGrid2D;
+use krABMaga::engine::fields::sparse_object_grid_2d::SparseGrid2D;
+use krABMaga::engine::location::Int2D;
+use krABMaga::visualization::fields::object_grid_2d::RenderObjectGrid2D;
 
 impl Component for Tree { type Storage = TableStorage; }
 
