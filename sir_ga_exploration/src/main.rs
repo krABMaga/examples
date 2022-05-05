@@ -1,4 +1,4 @@
-use krABMaga::{
+use krabmaga::{
     engine::{schedule::Schedule, state::State},
     rand::Rng,
     *,

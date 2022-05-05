@@ -1,7 +1,7 @@
 use crate::{EVAPORATION, FOOD_LOW_PHEROMONE};
-use krABMaga::engine::fields::field::Field;
-use krABMaga::engine::fields::grid_option::GridOption;
-use krABMaga::engine::fields::sparse_number_grid_2d::SparseNumberGrid2D;
+use krabmaga::engine::fields::field::Field;
+use krabmaga::engine::fields::grid_option::GridOption;
+use krabmaga::engine::fields::sparse_number_grid_2d::SparseNumberGrid2D;
 
 // Represents food pheromones. Higher f32 value means more concentrated pheromone.
 pub struct ToFoodGrid {

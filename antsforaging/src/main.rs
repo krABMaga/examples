@@ -32,16 +32,16 @@ pub const UPDATE_CUTDOWN: f32 = 0.9;
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
     crate::model::to_food_grid::ToFoodGrid, crate::model::to_home_grid::ToHomeGrid,
-    crate::visualization::vis_state::VisState, krABMaga::bevy::prelude::Color,
-    krABMaga::bevy::prelude::IntoSystem,
-    krABMaga::visualization::fields::number_grid_2d::BatchRender,
-    krABMaga::visualization::visualization::Visualization,
+    crate::visualization::vis_state::VisState, krabmaga::bevy::prelude::Color,
+    krabmaga::bevy::prelude::IntoSystem,
+    krabmaga::visualization::fields::number_grid_2d::BatchRender,
+    krabmaga::visualization::visualization::Visualization,
 };
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    krABMaga::engine::schedule::Schedule, krABMaga::engine::state::State, krABMaga::simulate,
-    krABMaga::Info, krABMaga::ProgressBar, std::time::Duration, krABMaga::*,
+    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::simulate,
+    krabmaga::Info, krabmaga::ProgressBar, std::time::Duration, krabmaga::*,
 };
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
@@ -63,7 +63,7 @@ fn main() {
 }
 
 // #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-// use {krABMaga::rand, krABMaga::rand::Rng};
+// use {krabmaga::rand, krabmaga::rand::Rng};
 
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]

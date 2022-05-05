@@ -1,14 +1,14 @@
 use crate::model::{node::*, state::EpidemicNetworkState};
 use crate::visualization::node::NetNodeVis;
-use krABMaga::bevy::prelude::Commands;
-use krABMaga::engine::agent::Agent;
-use krABMaga::engine::schedule::*;
-use krABMaga::engine::state::State;
-use krABMaga::visualization::agent_render::AgentRender;
-use krABMaga::visualization::asset_handle_factory::AssetHandleFactoryResource;
-use krABMaga::visualization::fields::network::NetworkRender;
-use krABMaga::visualization::simulation_descriptor::SimulationDescriptor;
-use krABMaga::visualization::visualization_state::VisualizationState;
+use krabmaga::bevy::prelude::Commands;
+use krabmaga::engine::agent::Agent;
+use krabmaga::engine::schedule::*;
+use krabmaga::engine::state::State;
+use krabmaga::visualization::agent_render::AgentRender;
+use krabmaga::visualization::asset_handle_factory::AssetHandleFactoryResource;
+use krabmaga::visualization::fields::network::NetworkRender;
+use krabmaga::visualization::simulation_descriptor::SimulationDescriptor;
+use krabmaga::visualization::visualization_state::VisualizationState;
 
 #[derive(Clone)]
 pub struct VisState;

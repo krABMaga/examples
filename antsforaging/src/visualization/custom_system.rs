@@ -1,14 +1,14 @@
-use krABMaga::bevy::prelude::Image;
+use krabmaga::bevy::prelude::Image;
 use crate::model::state::ModelState;
 use crate::model::state::*;
 use crate::model::to_food_grid::ToFoodGrid;
 use crate::model::to_home_grid::ToHomeGrid;
-use krABMaga::engine::location::Int2D;
-use krABMaga::visualization::fields::number_grid_2d::BatchRender;
+use krabmaga::engine::location::Int2D;
+use krabmaga::visualization::fields::number_grid_2d::BatchRender;
 
-use krABMaga::engine::fields::dense_object_grid_2d::DenseGrid2D;
-use krABMaga::engine::fields::sparse_object_grid_2d::SparseGrid2D;
-use krABMaga::visualization::fields::object_grid_2d::RenderObjectGrid2D;
+use krabmaga::engine::fields::dense_object_grid_2d::DenseGrid2D;
+use krabmaga::engine::fields::sparse_object_grid_2d::SparseGrid2D;
+use krabmaga::visualization::fields::object_grid_2d::RenderObjectGrid2D;
 
 impl BatchRender<ModelState> for ToHomeGrid {
     fn get_pixel(&self, loc: &Int2D) -> [u8; 4] {

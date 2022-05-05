@@ -12,12 +12,12 @@ pub const SHEEP_REPR: f64 = 0.2;
 pub const WOLF_REPR: f64 = 0.1;
 
 pub const MOMENTUM_PROBABILITY: f64 = 0.8;
-use krABMaga::*;
+use krabmaga::*;
 
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    krABMaga::engine::schedule::Schedule, krABMaga::engine::state::State, krABMaga::simulate,
+    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::simulate,
     std::time::Duration,
 };
 
@@ -37,11 +37,11 @@ mod visualization;
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    crate::visualization::vis_state::VisState, krABMaga::bevy::prelude::Color,
-    krABMaga::bevy::prelude::IntoSystem,
-    krABMaga::engine::fields::dense_number_grid_2d::DenseNumberGrid2D,
-    krABMaga::visualization::fields::number_grid_2d::BatchRender,
-    krABMaga::visualization::visualization::Visualization,
+    crate::visualization::vis_state::VisState, krabmaga::bevy::prelude::Color,
+    krabmaga::bevy::prelude::IntoSystem,
+    krabmaga::engine::fields::dense_number_grid_2d::DenseNumberGrid2D,
+    krabmaga::visualization::fields::number_grid_2d::BatchRender,
+    krabmaga::visualization::visualization::Visualization,
 };
 
 // Main used when a visualization feature is applied

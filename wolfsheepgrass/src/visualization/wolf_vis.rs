@@ -1,11 +1,11 @@
 use crate::model::state::WsgState;
 use crate::model::wolf::Wolf;
-use krABMaga::bevy::ecs as bevy_ecs;
-use krABMaga::bevy::prelude::{Component, Quat, Transform, Visibility};
-use krABMaga::engine::agent::Agent;
-use krABMaga::engine::location::Int2D;
-use krABMaga::engine::state::State;
-use krABMaga::visualization::agent_render::{AgentRender, SpriteType};
+use krabmaga::bevy::ecs as bevy_ecs;
+use krabmaga::bevy::prelude::{Component, Quat, Transform, Visibility};
+use krabmaga::engine::agent::Agent;
+use krabmaga::engine::location::Int2D;
+use krabmaga::engine::state::State;
+use krabmaga::visualization::agent_render::{AgentRender, SpriteType};
 
 #[derive(Component)]
 pub struct WolfVis {

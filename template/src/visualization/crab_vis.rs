@@ -1,11 +1,11 @@
 use crate::model::{crab::Crab, sea::Sea};
-use krABMaga::bevy::prelude::{Quat, Transform, Visibility, Component};
-use krABMaga::{
+use krabmaga::bevy::prelude::{Quat, Transform, Visibility, Component};
+use krabmaga::{
     engine::{agent::Agent, state::State},
     visualization::agent_render::{AgentRender, SpriteType},
 };
 use std::f32::consts::PI;
-use krABMaga::bevy::ecs as bevy_ecs;
+use krabmaga::bevy::ecs as bevy_ecs;
 
 #[derive(Component)]
 pub struct CrabVis {

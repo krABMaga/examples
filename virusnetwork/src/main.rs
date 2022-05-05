@@ -1,17 +1,17 @@
-extern crate krABMaga;
+extern crate krabmaga;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    krABMaga::engine::schedule::*, krABMaga::engine::state::State, krABMaga::simulate_old, krABMaga::Info,
-    krABMaga::ProgressBar, std::time::Duration, krABMaga::*
+    krabmaga::engine::schedule::*, krabmaga::engine::state::State, krabmaga::simulate_old, krabmaga::Info,
+    krabmaga::ProgressBar, std::time::Duration, krabmaga::*
 };
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    crate::visualization::vis_state::VisState, krABMaga::bevy::prelude::Color,
-    krABMaga::visualization::fields::network::NetworkRender,
-    krABMaga::visualization::visualization::Visualization,
+    crate::visualization::vis_state::VisState, krabmaga::bevy::prelude::Color,
+    krabmaga::visualization::fields::network::NetworkRender,
+    krabmaga::visualization::visualization::Visualization,
 };
 
 use model::state::EpidemicNetworkState;

@@ -18,10 +18,10 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-krABMaga = { git="https://github.com/krABMaga/krABMaga"}
+krabmaga = { git="https://github.com/krabmaga/krabmaga"}
 
 
 [features]
-distributed_mpi = ["krABMaga/distributed_mpi"]
-aws = ["krABMaga/parallel"]
-bayesian = ["krABMaga/bayesian"]
+distributed_mpi = ["krabmaga/distributed_mpi"]
+aws = ["krabmaga/parallel"]
+bayesian = ["krabmaga/bayesian"]

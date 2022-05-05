@@ -1,10 +1,10 @@
-use krABMaga::bevy::ecs::component::TableStorage;
-use krABMaga::bevy::prelude::Component;
+use krabmaga::bevy::ecs::component::TableStorage;
+use krabmaga::bevy::prelude::Component;
 use crate::model::world::*;
-use krABMaga::engine::fields::dense_object_grid_2d::DenseGrid2D;
-use krABMaga::engine::fields::sparse_object_grid_2d::SparseGrid2D;
-use krABMaga::engine::location::Int2D;
-use krABMaga::visualization::fields::object_grid_2d::RenderObjectGrid2D;
+use krabmaga::engine::fields::dense_object_grid_2d::DenseGrid2D;
+use krabmaga::engine::fields::sparse_object_grid_2d::SparseGrid2D;
+use krabmaga::engine::location::Int2D;
+use krabmaga::visualization::fields::object_grid_2d::RenderObjectGrid2D;
 
 impl Component for Patch{ type Storage = TableStorage; }
 

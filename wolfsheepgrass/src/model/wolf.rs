@@ -1,5 +1,5 @@
 use core::fmt;
-use krABMaga::{
+use krabmaga::{
     engine::{
         agent::Agent,
         location::{Int2D, Location2D},

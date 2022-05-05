@@ -2,10 +2,10 @@ use crate::model::world::World;
 use crate::Patch;
 use crate::SIMILAR_WANTED;
 use core::fmt;
-use krABMaga::engine::agent::Agent;
-use krABMaga::engine::location::Int2D;
-use krABMaga::engine::schedule::{Schedule, ScheduleOptions};
-use krABMaga::engine::state::State;
+use krabmaga::engine::agent::Agent;
+use krabmaga::engine::location::Int2D;
+use krabmaga::engine::schedule::{Schedule, ScheduleOptions};
+use krabmaga::engine::state::State;
 use std::cell::RefCell;
 use std::hash::{Hash, Hasher};
 

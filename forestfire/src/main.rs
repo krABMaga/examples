@@ -6,17 +6,17 @@ mod model;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    krABMaga::engine::schedule::*, krABMaga::simulate_old, krABMaga::Info, krABMaga::ProgressBar,
-    std::time::Duration, krABMaga::*,
+    krabmaga::engine::schedule::*, krabmaga::simulate_old, krabmaga::Info, krabmaga::ProgressBar,
+    std::time::Duration, krabmaga::*,
 };
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    crate::visualization::forest_vis::ForestVis, krABMaga::bevy::prelude::Color,
-    krABMaga::bevy::prelude::IntoSystem, krABMaga::engine::fields::dense_object_grid_2d::DenseGrid2D,
-    krABMaga::visualization::fields::object_grid_2d::RenderObjectGrid2D,
-    krABMaga::visualization::visualization::Visualization,
+    crate::visualization::forest_vis::ForestVis, krabmaga::bevy::prelude::Color,
+    krabmaga::bevy::prelude::IntoSystem, krabmaga::engine::fields::dense_object_grid_2d::DenseGrid2D,
+    krabmaga::visualization::fields::object_grid_2d::RenderObjectGrid2D,
+    krabmaga::visualization::visualization::Visualization,
 };
 
 /* pub static STEP: u64 = 10;

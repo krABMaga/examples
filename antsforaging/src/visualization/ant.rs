@@ -1,11 +1,11 @@
-use krABMaga::bevy::ecs::component::TableStorage;
+use krabmaga::bevy::ecs::component::TableStorage;
 use crate::model::ant::Ant;
 use crate::model::state::ModelState;
-use krABMaga::bevy::prelude::{Component, Quat, Transform, Visibility};
-use krABMaga::engine::agent::Agent;
-use krABMaga::engine::location::Int2D;
-use krABMaga::engine::state::State;
-use krABMaga::visualization::agent_render::{AgentRender, SpriteType};
+use krabmaga::bevy::prelude::{Component, Quat, Transform, Visibility};
+use krabmaga::engine::agent::Agent;
+use krabmaga::engine::location::Int2D;
+use krabmaga::engine::state::State;
+use krabmaga::visualization::agent_render::{AgentRender, SpriteType};
 
 pub struct AntVis {
     pub id: u32,

@@ -1,9 +1,9 @@
 use core::fmt;
-use krABMaga::engine::agent::Agent;
-use krABMaga::engine::location::Int2D;
-use krABMaga::engine::state::State;
-use krABMaga::rand;
-use krABMaga::rand::Rng;
+use krabmaga::engine::agent::Agent;
+use krabmaga::engine::location::Int2D;
+use krabmaga::engine::state::State;
+use krabmaga::rand;
+use krabmaga::rand::Rng;
 use std::hash::{Hash, Hasher};
 
 use crate::model::state::*;

@@ -4,15 +4,15 @@ mod model;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    krABMaga::engine::schedule::*, krABMaga::engine::state::State, krABMaga::simulate_old, krABMaga::Info,
-    krABMaga::ProgressBar, std::time::Duration, krABMaga::*
+    krabmaga::engine::schedule::*, krabmaga::engine::state::State, krabmaga::simulate_old, krabmaga::Info,
+    krabmaga::ProgressBar, std::time::Duration, krabmaga::*
 };
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    crate::visualization::sea_vis::SeaVis, krABMaga::bevy::prelude::Color,
-    krABMaga::visualization::visualization::Visualization,
+    crate::visualization::sea_vis::SeaVis, krabmaga::bevy::prelude::Color,
+    krabmaga::visualization::visualization::Visualization,
 };
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

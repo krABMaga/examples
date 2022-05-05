@@ -1,5 +1,5 @@
-use krABMaga::bevy::ecs::component::TableStorage;
-use krABMaga::bevy::prelude::Component;
+use krabmaga::bevy::ecs::component::TableStorage;
+use krabmaga::bevy::prelude::Component;
 
 use crate::model::state::Item;
 

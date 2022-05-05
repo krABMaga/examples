@@ -7,13 +7,13 @@ use crate::{
 };
 use core::fmt;
 use core::hash::{Hash, Hasher};
-use krABMaga::engine::fields::field::Field;
-use krABMaga::engine::fields::sparse_object_grid_2d::SparseGrid2D;
-use krABMaga::engine::location::Int2D;
-use krABMaga::engine::schedule::Schedule;
-use krABMaga::engine::state::State;
-use krABMaga::rand;
-use krABMaga::rand::Rng;
+use krabmaga::engine::fields::field::Field;
+use krabmaga::engine::fields::sparse_object_grid_2d::SparseGrid2D;
+use krabmaga::engine::location::Int2D;
+use krabmaga::engine::schedule::Schedule;
+use krabmaga::engine::state::State;
+use krabmaga::rand;
+use krabmaga::rand::Rng;
 use std::any::Any;
 use std::sync::RwLock;
 // Objects within the field

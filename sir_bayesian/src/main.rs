@@ -1,6 +1,6 @@
 use rand::distributions::weighted::WeightedIndex;
 
-use krABMaga::{
+use krabmaga::{
     argmin::prelude::*,
     argmin::prelude::Error,
     argmin::solver::linesearch::MoreThuenteLineSearch,
@@ -14,7 +14,7 @@ use krABMaga::{
     statrs::statistics::Distribution,
 };
 
-use krABMaga::{
+use krabmaga::{
     engine::{schedule::Schedule, state::State},
     rand,
     rand::Rng,

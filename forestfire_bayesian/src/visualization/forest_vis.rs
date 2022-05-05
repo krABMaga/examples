@@ -1,16 +1,16 @@
 use crate::model::forest::Forest;
 use crate::Tree;
-use krABMaga::bevy::prelude::Commands;
-use krABMaga::engine::agent::Agent;
-use krABMaga::engine::fields::dense_object_grid_2d::DenseGrid2D;
-use krABMaga::engine::fields::field::Field;
-use krABMaga::engine::schedule::Schedule;
-use krABMaga::engine::state::State;
-use krABMaga::visualization::agent_render::AgentRender;
-use krABMaga::visualization::asset_handle_factory::AssetHandleFactoryResource;
-use krABMaga::visualization::fields::object_grid_2d::RenderObjectGrid2D;
-use krABMaga::visualization::simulation_descriptor::SimulationDescriptor;
-use krABMaga::visualization::visualization_state::VisualizationState;
+use krabmaga::bevy::prelude::Commands;
+use krabmaga::engine::agent::Agent;
+use krabmaga::engine::fields::dense_object_grid_2d::DenseGrid2D;
+use krabmaga::engine::fields::field::Field;
+use krabmaga::engine::schedule::Schedule;
+use krabmaga::engine::state::State;
+use krabmaga::visualization::agent_render::AgentRender;
+use krabmaga::visualization::asset_handle_factory::AssetHandleFactoryResource;
+use krabmaga::visualization::fields::object_grid_2d::RenderObjectGrid2D;
+use krabmaga::visualization::simulation_descriptor::SimulationDescriptor;
+use krabmaga::visualization::visualization_state::VisualizationState;
 
 #[derive(Clone)]
 pub struct ForestVis;

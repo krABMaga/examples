@@ -1,8 +1,8 @@
 use crate::model::state::WsgState;
 use crate::FULL_GROWN;
-use krABMaga::engine::fields::dense_number_grid_2d::DenseNumberGrid2D;
-use krABMaga::engine::location::Int2D;
-use krABMaga::{bevy::prelude::Image, visualization::fields::number_grid_2d::BatchRender};
+use krabmaga::engine::fields::dense_number_grid_2d::DenseNumberGrid2D;
+use krabmaga::engine::location::Int2D;
+use krabmaga::{bevy::prelude::Image, visualization::fields::number_grid_2d::BatchRender};
 
 impl BatchRender<WsgState> for DenseNumberGrid2D<u16> {
     fn get_pixel(&self, loc: &Int2D) -> [u8; 4] {

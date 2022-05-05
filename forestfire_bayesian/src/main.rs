@@ -4,7 +4,7 @@ use crate::model::forest::Tree;
 
 mod model;
 
-use krABMaga::{
+use krabmaga::{
     argmin::prelude::*,
     argmin::prelude::Error,
     argmin::solver::linesearch::MoreThuenteLineSearch,
@@ -19,11 +19,11 @@ use krABMaga::{
 };
 
 use {
-    krABMaga::engine::schedule::*, krABMaga::*, krABMaga::Info, krABMaga::ProgressBar,
+    krabmaga::engine::schedule::*, krabmaga::*, krabmaga::Info, krabmaga::ProgressBar,
     std::time::Duration,
 };
 
-use krABMaga::{
+use krabmaga::{
     engine::{schedule::Schedule, state::State},
     rand,
     rand::Rng,

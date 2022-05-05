@@ -1,12 +1,12 @@
 use crate::model::node::{NetNode, NodeStatus};
 use crate::{INIT_EDGES, NUM_NODES, STEP};
 use rand::prelude::*;
-use krABMaga::engine::fields::field::Field;
-use krABMaga::engine::fields::network::Network;
-use krABMaga::engine::schedule::Schedule;
-use krABMaga::engine::state::State;
-use krABMaga::fmt;
-use krABMaga::rand;
+use krabmaga::engine::fields::field::Field;
+use krabmaga::engine::fields::network::Network;
+use krabmaga::engine::schedule::Schedule;
+use krabmaga::engine::state::State;
+use krabmaga::fmt;
+use krabmaga::rand;
 use std::any::Any;
 use std::sync::{Arc, Mutex};
 

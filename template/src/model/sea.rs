@@ -2,8 +2,8 @@ use std::any::Any;
 
 use super::crab::Crab;
 use crate::{DISCRETIZATION, TOROIDAL};
-use krABMaga::engine::fields::field::Field;
-use krABMaga::{
+use krabmaga::engine::fields::field::Field;
+use krabmaga::{
     engine::{fields::field_2d::Field2D, location::Real2D, schedule::Schedule, state::State},
     rand::{self, Rng},
 };

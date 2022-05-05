@@ -1,15 +1,15 @@
-use krABMaga::bevy::prelude::Commands;
-use krABMaga::engine::agent::Agent;
-use krABMaga::engine::fields::sparse_object_grid_2d::SparseGrid2D;
-use krABMaga::engine::location::Int2D;
-use krABMaga::engine::schedule::Schedule;
-use krABMaga::engine::state::State as StateTrait;
-use krABMaga::visualization::agent_render::AgentRender;
-use krABMaga::visualization::asset_handle_factory::AssetHandleFactoryResource;
-use krABMaga::visualization::fields::number_grid_2d::BatchRender;
-use krABMaga::visualization::fields::object_grid_2d::RenderObjectGrid2D;
-use krABMaga::visualization::simulation_descriptor::SimulationDescriptor;
-use krABMaga::visualization::visualization_state::VisualizationState;
+use krabmaga::bevy::prelude::Commands;
+use krabmaga::engine::agent::Agent;
+use krabmaga::engine::fields::sparse_object_grid_2d::SparseGrid2D;
+use krabmaga::engine::location::Int2D;
+use krabmaga::engine::schedule::Schedule;
+use krabmaga::engine::state::State as StateTrait;
+use krabmaga::visualization::agent_render::AgentRender;
+use krabmaga::visualization::asset_handle_factory::AssetHandleFactoryResource;
+use krabmaga::visualization::fields::number_grid_2d::BatchRender;
+use krabmaga::visualization::fields::object_grid_2d::RenderObjectGrid2D;
+use krabmaga::visualization::simulation_descriptor::SimulationDescriptor;
+use krabmaga::visualization::visualization_state::VisualizationState;
 
 use crate::model::ant::Ant;
 use crate::model::state::*;
