@@ -109,7 +109,7 @@ fn costly_function(x: &Vec<f64>) -> f64 {
         .map(|i| {
             // println!("Running simulation {}...", i);
             let mut state = EpidemicNetworkState::new(spread, recovery, spread2, day, i);
-            simulate!(STEP, &mut state, 1, Info::Verbose);
+            simulate_old!(STEP, &mut state, 1, Info::Verbose);
             state.weekly_infected
         })
         .collect_into_vec(&mut vec_winfected);

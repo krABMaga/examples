@@ -129,6 +129,10 @@ impl State for EpidemicNetworkState {
         self
     }
 
+    fn reset(&mut self) {
+        self.step = 0;
+    }
+
     // fn before_step(&mut self, schedule: &mut Schedule) {
     // if self.network.nodes2id.borrow().len() != 40 {
     //     println!("Init Len {} {}", self.network.nodes2id.borrow().len(), self.network.id2nodes.borrow().len());

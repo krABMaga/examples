@@ -366,11 +366,13 @@ fn mutation(individual: &mut String) {
 
         let mut new_day = one_day.parse::<u64>().expect("Unable to parse str to u64!");
         let alpha: u64 = 1;
-        let mut min: u64 = if new_day - alpha < 0 {
-            0
-        } else {
-            new_day - alpha
-        };
+        // let mut min: u64 = if new_day - alpha < 0 {
+        //     0
+        // } else {
+        //     new_day - alpha
+        // };
+        // this line is suggested by clippy
+        let mut min: u64 = new_day - alpha;
         let mut max: u64 = if new_day + alpha > DAY as u64 {
             DAY as u64
         } else {

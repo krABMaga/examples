@@ -162,6 +162,9 @@ impl State for EpidemicNetworkState {
     //     // println!("RT is {}", self.rt);
     // // }
     // }
+    fn reset(&mut self) {
+        self.step = 0;
+    }
 
     fn end_condition(&mut self, schedule: &mut Schedule) -> bool {
         // check if there are no more infected node
