@@ -4,7 +4,6 @@ use crate::model::forest::Tree;
 
 mod model;
 
-
 use krabmaga::{
     argmin::prelude::Error,
     argmin::prelude::*,
