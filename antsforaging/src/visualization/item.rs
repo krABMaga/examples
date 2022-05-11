@@ -3,4 +3,6 @@ use krabmaga::bevy::prelude::Component;
 
 use crate::model::state::Item;
 
-impl Component for Item { type Storage = TableStorage; }
+impl Component for Item {
+    type Storage = TableStorage;
+}

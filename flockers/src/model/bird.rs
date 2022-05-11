@@ -24,7 +24,6 @@ impl Bird {
 }
 
 impl Agent for Bird {
-
     fn step(&mut self, state: &mut dyn State) {
         let state = state.as_any().downcast_ref::<Flocker>().unwrap();
         let vec = state.field1.get_neighbors_within_distance(self.loc, 10.0);

@@ -1,12 +1,12 @@
 use rand::distributions::weighted::WeightedIndex;
 
 use krabmaga::{
-    argmin::prelude::*,
     argmin::prelude::Error,
+    argmin::prelude::*,
     argmin::solver::linesearch::MoreThuenteLineSearch,
     argmin::solver::quasinewton::LBFGS,
-    finitediff::FiniteDiff,
     explore::bayesian_opt::*,
+    finitediff::FiniteDiff,
     friedrich::gaussian_process::GaussianProcess,
     friedrich::kernel::Gaussian,
     friedrich::prior::ConstantPrior,
@@ -74,7 +74,6 @@ fn main() {
     println!("---\nFinal res: Point {:?}, val {y}", x);
 }
 
-
 fn init_population() -> (Vec<Vec<f64>>, Vec<f64>) {
     let mut x_init: Vec<Vec<f64>> = Vec::with_capacity(INIT_ELEMENTS);
     let mut y_init: Vec<f64> = Vec::with_capacity(INIT_ELEMENTS);
@@ -100,7 +99,7 @@ fn costly_function(x: &Vec<f64>) -> f64 {
     let recovery = x[1] as f32;
     let spread2 = x[2] as f32;
     let day = x[3] as u64;
-    
+
     let mut avg_results: Vec<f32> = vec![0.0; 31];
     println!("Point inserted: {:?}", &x);
 
@@ -148,9 +147,7 @@ fn costly_function(x: &Vec<f64>) -> f64 {
     ind_error as f64
 }
 
-fn get_points(
-    x: &Vec<Vec<f64>>
-) -> Vec<Vec<f64>> {
+fn get_points(x: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
     let mut rng = RNG.lock().unwrap();
 
     let mut trial_x: Vec<Vec<f64>> = (0..BATCH_SIZE)

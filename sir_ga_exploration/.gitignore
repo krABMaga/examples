@@ -4,3 +4,4 @@ Cargo.lock
 #*.csv
 *.txt
 *.out
+/output

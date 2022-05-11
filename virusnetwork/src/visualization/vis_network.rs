@@ -16,7 +16,7 @@ impl NetworkRender<NetNode, String, EpidemicNetworkState> for EpidemicNetworkSta
             line_width: 1.,
             source_loc: network.get_object(edge.u).unwrap().loc,
             target_loc: network.get_object(edge.v).unwrap().loc,
-            is_static: true
+            is_static: true,
         }
     }
 

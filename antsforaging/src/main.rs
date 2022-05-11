@@ -41,7 +41,7 @@ use {
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
     krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::simulate,
-    krabmaga::Info, krabmaga::ProgressBar, std::time::Duration, krabmaga::*,
+    krabmaga::Info, krabmaga::ProgressBar, krabmaga::*, std::time::Duration,
 };
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
@@ -71,5 +71,4 @@ fn main() {
     let state = ModelState::new();
 
     let _ = simulate!(state, STEP, 10);
-
 }

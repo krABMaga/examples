@@ -6,7 +6,7 @@ mod model;
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
     krabmaga::engine::schedule::*, krabmaga::simulate_old, krabmaga::Info, krabmaga::ProgressBar,
-    std::time::Duration, krabmaga::*
+    krabmaga::*, std::time::Duration,
 };
 
 // Visualization specific imports
@@ -37,7 +37,6 @@ fn main() {
     let world = World::new(dim, num_agents);
 
     simulate!(world, step, 10);
-
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

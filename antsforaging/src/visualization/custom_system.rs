@@ -1,8 +1,8 @@
-use krabmaga::bevy::prelude::Image;
 use crate::model::state::ModelState;
 use crate::model::state::*;
 use crate::model::to_food_grid::ToFoodGrid;
 use crate::model::to_home_grid::ToHomeGrid;
+use krabmaga::bevy::prelude::Image;
 use krabmaga::engine::location::Int2D;
 use krabmaga::visualization::fields::number_grid_2d::BatchRender;
 

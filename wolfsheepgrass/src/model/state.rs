@@ -75,13 +75,12 @@ impl State for WsgState {
     }
 
     fn init(&mut self, schedule: &mut Schedule) {
-        
         self.reset();
         let s = format!("Also known as Wolf Sheep predation, it is the simulation implemented to introduce \"dynamic scheduling\"
                         feature into the krabmaga framework, because it was the first model with the concepts of \"death\" and \"birth\":
                         there is an ecosystem that involves animals into their life-cycle.");
         description!(s);
-        
+
         generate_grass(self);
         generate_wolves(self, schedule);
         generate_sheeps(self, schedule);
@@ -89,13 +88,15 @@ impl State for WsgState {
         addplot!(
             String::from("Agents"),
             String::from("Steps"),
-            String::from("Number of agents")
+            String::from("Number of agents"),
+            true
         );
-        
+
         addplot!(
             String::from("Dead/Born"),
             String::from("Steps"),
-            String::from("Number of agents")
+            String::from("Number of agents"),
+            true
         );
     }
 

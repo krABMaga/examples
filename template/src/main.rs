@@ -4,8 +4,8 @@ mod model;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    krabmaga::engine::schedule::*, krabmaga::engine::state::State, krabmaga::simulate_old, krabmaga::Info,
-    krabmaga::ProgressBar, std::time::Duration, krabmaga::*
+    krabmaga::engine::schedule::*, krabmaga::engine::state::State, krabmaga::simulate_old,
+    krabmaga::Info, krabmaga::ProgressBar, krabmaga::*, std::time::Duration,
 };
 
 // Visualization specific imports
@@ -38,7 +38,7 @@ fn main() {
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
     // Initialize the simulation and its visualization here.
-    
+
     let num_agents = 10;
     let dim: (f32, f32) = (400., 400.);
 

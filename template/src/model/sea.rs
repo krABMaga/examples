@@ -14,7 +14,7 @@ pub struct Sea {
     pub step: u64,
     pub field: Field2D<Crab>,
     pub dim: (f32, f32),
-    pub num_agents: u32
+    pub num_agents: u32,
 }
 
 impl Sea {
@@ -23,7 +23,7 @@ impl Sea {
             step: 0,
             field: Field2D::new(dim.0, dim.1, DISCRETIZATION, TOROIDAL),
             dim,
-            num_agents
+            num_agents,
         }
     }
 }

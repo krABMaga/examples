@@ -1,11 +1,11 @@
-use krabmaga::bevy::prelude::{Transform, Visibility, Component};
+use krabmaga::bevy::prelude::{Component, Transform, Visibility};
 
 use crate::model::node::*;
 use crate::model::state::EpidemicNetworkState;
+use krabmaga::bevy::ecs as bevy_ecs;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::state::State;
 use krabmaga::visualization::agent_render::{AgentRender, SpriteType};
-use krabmaga::bevy::ecs as bevy_ecs;
 
 #[derive(Component)]
 pub struct NetNodeVis {

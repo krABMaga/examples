@@ -1,12 +1,12 @@
 use crate::model::node::{NetNode, NodeStatus};
 use crate::{INIT_EDGES, NUM_NODES, STEP};
-use rand::prelude::*;
 use krabmaga::engine::fields::field::Field;
 use krabmaga::engine::fields::network::Network;
 use krabmaga::engine::schedule::Schedule;
 use krabmaga::engine::state::State;
 use krabmaga::fmt;
 use krabmaga::rand;
+use rand::prelude::*;
 use std::any::Any;
 use std::sync::{Arc, Mutex};
 
@@ -97,13 +97,13 @@ impl State for EpidemicNetworkState {
 
             let node = NetNode::new(node_id, init_status);
             self.network.add_node(node);
-            
+
             let _ = schedule.schedule_repeating(Box::new(node), 0.0, node_id as i32);
-            
+
             node_set.push(node);
         }
 
-        self.network.update();        
+        self.network.update();
         self.network
             .preferential_attachment_BA_with_seed(&node_set, INIT_EDGES, MY_SEED);
     }
@@ -130,32 +130,32 @@ impl State for EpidemicNetworkState {
     }
 
     // fn before_step(&mut self, schedule: &mut Schedule) {
-        // if self.network.nodes2id.borrow().len() != 40 {
-        //     println!("Init Len {} {}", self.network.nodes2id.borrow().len(), self.network.id2nodes.borrow().len());
-        // }
-        // if self.step == 0 {
-        //     println!("Spread {} - Recovery {}", self.spread, self.recovery);
-        // }
-        // // if self.step == 0 {
-        //     let mut susceptible: usize = 0;
-        //     let mut infected: usize = 0;
-        //     let mut resistant: usize = 0;
-            // let agents = schedule.get_all_events();
+    // if self.network.nodes2id.borrow().len() != 40 {
+    //     println!("Init Len {} {}", self.network.nodes2id.borrow().len(), self.network.id2nodes.borrow().len());
+    // }
+    // if self.step == 0 {
+    //     println!("Spread {} - Recovery {}", self.spread, self.recovery);
+    // }
+    // // if self.step == 0 {
+    //     let mut susceptible: usize = 0;
+    //     let mut infected: usize = 0;
+    //     let mut resistant: usize = 0;
+    // let agents = schedule.get_all_events();
 
-            // for n in agents {
-            //     let agent = n.downcast_ref::<NetNode>().unwrap();
-            //     self.scheduled.push(format!(" {} {} ", self.step.to_string(), agent.id.to_string()));
-            // }
-        //     println!(
-        //         "BEFORE Day {} Susceptible: {:?} Infected: {:?} Resistant: {:?} Tot: {:?}",
-        //         self.step,
-        //         susceptible,
-        //         infected,
-        //         resistant,
-        //         susceptible + infected + resistant
-        //     );
-        //     // println!("RT is {}", self.rt);
-        // // }
+    // for n in agents {
+    //     let agent = n.downcast_ref::<NetNode>().unwrap();
+    //     self.scheduled.push(format!(" {} {} ", self.step.to_string(), agent.id.to_string()));
+    // }
+    //     println!(
+    //         "BEFORE Day {} Susceptible: {:?} Infected: {:?} Resistant: {:?} Tot: {:?}",
+    //         self.step,
+    //         susceptible,
+    //         infected,
+    //         resistant,
+    //         susceptible + infected + resistant
+    //     );
+    //     // println!("RT is {}", self.rt);
+    // // }
     // }
 
     fn end_condition(&mut self, schedule: &mut Schedule) -> bool {

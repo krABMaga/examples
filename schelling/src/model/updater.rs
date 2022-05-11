@@ -55,9 +55,7 @@ impl Agent for Updater {
             }
             let mut updates = updates.borrow_mut();
 
-
             if similar < SIMILAR_WANTED {
-
                 let nloc = real_state.field.get_random_empty_bag();
                 match nloc {
                     Some(rloc) => {
@@ -67,7 +65,6 @@ impl Agent for Updater {
                         updates.push((*value, *loc));
                     }
                 }
-                
             } else {
                 // agent ok nothing to do
                 updates.push((*value, *loc));

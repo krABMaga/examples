@@ -1,6 +1,5 @@
 use crate::model::updater::Updater;
 use core::fmt;
-use std::any::Any;
 use krabmaga::engine::fields::field::Field;
 use krabmaga::engine::fields::sparse_object_grid_2d::SparseGrid2D;
 use krabmaga::engine::location::Int2D;
@@ -8,6 +7,7 @@ use krabmaga::engine::schedule::Schedule;
 use krabmaga::engine::state::State;
 use krabmaga::rand;
 use krabmaga::rand::Rng;
+use std::any::Any;
 use std::hash::Hash;
 use std::hash::Hasher;
 

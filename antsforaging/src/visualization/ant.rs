@@ -1,6 +1,6 @@
-use krabmaga::bevy::ecs::component::TableStorage;
 use crate::model::ant::Ant;
 use crate::model::state::ModelState;
+use krabmaga::bevy::ecs::component::TableStorage;
 use krabmaga::bevy::prelude::{Component, Quat, Transform, Visibility};
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::location::Int2D;

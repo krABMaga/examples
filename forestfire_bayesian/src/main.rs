@@ -5,12 +5,12 @@ use crate::model::forest::Tree;
 mod model;
 
 use krabmaga::{
-    argmin::prelude::*,
     argmin::prelude::Error,
+    argmin::prelude::*,
     argmin::solver::linesearch::MoreThuenteLineSearch,
     argmin::solver::quasinewton::LBFGS,
-    finitediff::FiniteDiff,
     explore::bayesian_opt::*,
+    finitediff::FiniteDiff,
     friedrich::gaussian_process::GaussianProcess,
     friedrich::kernel::Gaussian,
     friedrich::prior::ConstantPrior,
@@ -19,18 +19,17 @@ use krabmaga::{
 };
 
 use {
-    krabmaga::engine::schedule::*, krabmaga::*, krabmaga::Info, krabmaga::ProgressBar,
+    krabmaga::engine::schedule::*, krabmaga::Info, krabmaga::ProgressBar, krabmaga::*,
     std::time::Duration,
 };
 
 use krabmaga::{
     engine::{schedule::Schedule, state::State},
     rand,
+    rand::prelude::*,
     rand::Rng,
     *,
-    rand::prelude::*
 };
-
 
 pub const ITERATIONS: usize = 10;
 pub const INIT_ELEMENTS: usize = 10;
@@ -57,10 +56,7 @@ lazy_static! {
     pub static ref RNG: Mutex<StdRng> = Mutex::new(StdRng::seed_from_u64(1));
 }
 
-
-
 fn main() {
-
     let (x, y) = bayesian_opt!(
         init_population,
         costly_function,
@@ -97,8 +93,8 @@ fn costly_function(x: &Vec<f64>) -> f64 {
     let dim: (i32, i32) = (200, 200);
     let mut steps_tot = 0;
     println!("Point inserted: {:?}", &x);
-    
-    let mut forest = Forest::new(dim, density);     
+
+    let mut forest = Forest::new(dim, density);
 
     for _ in 0..reps {
         let mut schedule = Schedule::new();
@@ -113,14 +109,11 @@ fn costly_function(x: &Vec<f64>) -> f64 {
         steps_tot += forest.step;
     }
 
-    println!("AVG steps {}", steps_tot as f64 / reps as f64 );
-    return 1. / (steps_tot as f64 / reps as f64)
-
+    println!("AVG steps {}", steps_tot as f64 / reps as f64);
+    return 1. / (steps_tot as f64 / reps as f64);
 }
 
-fn get_points(
-    x: &Vec<Vec<f64>>
-) -> Vec<Vec<f64>> {
+fn get_points(x: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
     let mut rng = RNG.lock().unwrap();
 
     let mut trial_x: Vec<Vec<f64>> = (0..BATCH_SIZE)
@@ -177,5 +170,4 @@ pub fn check_domain(new_x: &mut Vec<f64>) {
     } else if *density > 1. {
         *density = 1.;
     }
-
 }

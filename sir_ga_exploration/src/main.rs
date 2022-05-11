@@ -43,25 +43,25 @@ pub const STEP: u64 = 51; // 51 - 37
 pub const DAY: usize = 45; // 45 - 31
 
 fn main() {
-        let result = explore_ga_parallel!(
-            init_population,
-            fitness,
-            selection,
-            mutation,
-            crossover,
-            cmp,
-            EpidemicNetworkState,
-            DESIRED_FITNESS,
-            MAX_GENERATION,
-            STEP,
-            REPETITIONS,
-        );
-        if !result.is_empty() {
-            // I'm the master
-            // build csv from all procexplore_result
-            let name = "explore_result".to_string();
-            let _res = write_csv(&name, &result);
-        }
+    let result = explore_ga_parallel!(
+        init_population,
+        fitness,
+        selection,
+        mutation,
+        crossover,
+        cmp,
+        EpidemicNetworkState,
+        DESIRED_FITNESS,
+        MAX_GENERATION,
+        STEP,
+        REPETITIONS,
+    );
+    if !result.is_empty() {
+        // I'm the master
+        // build csv from all procexplore_result
+        let name = "explore_result".to_string();
+        let _res = write_csv(&name, &result);
+    }
 }
 
 fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
