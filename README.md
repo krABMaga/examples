@@ -13,6 +13,7 @@ This repository hosts working examples of agent-based simulations, based on the 
 | [Schelling](schelling)                      | :heavy_check_mark: | <img src="schelling/schelling.gif" alt="drawing" width="200" height="200"/>    |
 | [Sir_bayesian](sir_bayesian)                  | :heavy_check_mark: |
 | [Sir_ga_exploration](sir_ga_exploration)               | :heavy_check_mark: |
+| [Sugarscape](sugarscape)                        | :heavy_check_mark: | <img src="sugarscape/sugarscape.gif" alt="drawing" width="200" height="200"/>     |
 | [Template](template)                        | :heavy_check_mark: | <img src="template/template.gif" alt="drawing" width="200" height="200"/>     |
 | [Virus on a Network](virusnetwork)          | :heavy_check_mark: | <img src="virusnetwork/virus.gif" alt="drawing" width="200" height="200"/>     |
 | [Wolf Sheep Grass](wolfsheepgrass)          | :heavy_check_mark: | <img src="wolfsheepgrass/wsg.gif" alt="drawing" width="200" height="200"/>  |
