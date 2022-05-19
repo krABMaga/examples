@@ -1,17 +1,17 @@
-use crate::model::state::Environment;
 use crate::model::eater::Eater;
+use crate::model::state::Environment;
 use crate::visualization::eater_vis::EaterVis;
-use krabmaga::Rng;
 use krabmaga::bevy::prelude::Commands;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::location::Int2D;
 use krabmaga::engine::schedule::Schedule;
 use krabmaga::engine::state::State;
-use krabmaga::visualization::fields::number_grid_2d::BatchRender;
 use krabmaga::visualization::agent_render::AgentRender;
 use krabmaga::visualization::asset_handle_factory::AssetHandleFactoryResource;
+use krabmaga::visualization::fields::number_grid_2d::BatchRender;
 use krabmaga::visualization::simulation_descriptor::SimulationDescriptor;
 use krabmaga::visualization::visualization_state::VisualizationState;
+use krabmaga::Rng;
 
 #[derive(Clone)]
 pub struct EnvironmentVis;
@@ -45,11 +45,14 @@ impl VisualizationState<Environment> for EnvironmentVis {
         agent_render: &Box<dyn AgentRender>,
         state: &Box<&dyn State>,
     ) -> Option<Box<dyn Agent>> {
-        let mut rng=krabmaga::rand::thread_rng();
+        let mut rng = krabmaga::rand::thread_rng();
         let state = state.as_any().downcast_ref::<Environment>().unwrap();
         match state.eaters.get(&Eater {
             id: agent_render.get_id(),
-            position: Int2D { x: rng.gen_range(0..20), y: rng.gen_range(0..20) },
+            position: Int2D {
+                x: rng.gen_range(0..20),
+                y: rng.gen_range(0..20),
+            },
             vision: 4,
             metabolism: 50,
             age: 0,

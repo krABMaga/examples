@@ -1,10 +1,10 @@
-
 mod model;
 use crate::model::state::Environment;
-use {
-    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::simulate,  std::time::Duration, krabmaga::*,
-};
 use cfg_if::cfg_if;
+use {
+    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::simulate,
+    krabmaga::*, std::time::Duration,
+};
 cfg_if! {
     if #[cfg(any(feature = "parallel", feature = "visualization", feature = "visualization_wasm"))]{
         mod visualization;
@@ -21,34 +21,33 @@ cfg_if! {
     }
 }
 
-pub const MAX_SUGAR:u32=3;
+pub const MAX_SUGAR: u32 = 3;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
     let step = 5;
 
-    let dim = (8,8);
+    let dim = (8, 8);
     let num_agents = 8;
-  
+
     let state = Environment::new(dim, num_agents);
     let _ = simulate!(state, step, 1, false);
 }
 
-
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
-fn main(){
+fn main() {
     let step = 10;
 
-    let dim = (16,16);
+    let dim = (16, 16);
     let num_agents = 8;
-  
+
     let state = Environment::new(dim, num_agents);
     let mut app = Visualization::default()
         .with_window_dimensions(1000.0, 600.0)
-        .with_simulation_dimensions((dim.0+1) as f32, (dim.1+1) as f32)
+        .with_simulation_dimensions((dim.0 + 1) as f32, (dim.1 + 1) as f32)
         .with_background_color(Color::WHITE)
         .with_name("Sugarscape")
         .setup::<EnvironmentVis, Environment>(EnvironmentVis, state);
-        app.add_system(DenseNumberGrid2D::batch_render.system());
-        app.run()
+    app.add_system(DenseNumberGrid2D::batch_render.system());
+    app.run()
 }

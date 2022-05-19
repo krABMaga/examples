@@ -1,14 +1,14 @@
-use crate::model::state::{Patch, Environment};
+use crate::model::state::{Environment, Patch};
+use crate::MAX_SUGAR;
 use krabmaga::engine::fields::dense_number_grid_2d::DenseNumberGrid2D;
 use krabmaga::engine::location::Int2D;
 use krabmaga::{bevy::prelude::Image, visualization::fields::number_grid_2d::BatchRender};
-use crate::MAX_SUGAR;
 
 impl BatchRender<Environment> for DenseNumberGrid2D<Patch> {
     fn get_pixel(&self, loc: &Int2D) -> [u8; 4] {
         match self.get_value(loc) {
             Some(val) => {
-                if val.sugar_amount == MAX_SUGAR{
+                if val.sugar_amount == MAX_SUGAR {
                     [255u8, 179u8, 0u8, 255u8]
                 } else if val.sugar_amount == MAX_SUGAR - 1 {
                     [255u8, 179u8, 0u8, 128u8]

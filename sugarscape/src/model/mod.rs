@@ -1,2 +1,2 @@
-pub mod state;
 pub mod eater;
+pub mod state;

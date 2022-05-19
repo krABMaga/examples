@@ -1,10 +1,10 @@
 use crate::model::{eater::Eater, state::Environment};
-use krabmaga::bevy::prelude::{Quat, Transform, Visibility, Component};
+use krabmaga::bevy::ecs as bevy_ecs;
+use krabmaga::bevy::prelude::{Component, Quat, Transform, Visibility};
 use krabmaga::{
     engine::{agent::Agent, state::State},
     visualization::agent_render::{AgentRender, SpriteType},
 };
-use krabmaga::bevy::ecs as bevy_ecs;
 
 #[derive(Component)]
 pub struct EaterVis {
@@ -27,7 +27,7 @@ impl AgentRender for EaterVis {
         let loc = state.eaters.get_location(*agent);
         //println!("Trovato agente {} in pos {};{}", agent.id, agent.position.x, agent.position.y);
         match loc {
-            Some(loc) => ((loc.x+1) as f32, (loc.y+1) as f32, 0.),
+            Some(loc) => ((loc.x + 1) as f32, (loc.y + 1) as f32, 0.),
             None => (agent.position.x as f32, agent.position.y as f32, 0.),
         }
     }
@@ -59,18 +59,18 @@ impl AgentRender for EaterVis {
     ) {
         let concrete_agent = agent.downcast_ref::<Eater>().unwrap();
         //if concrete_agent.wealth>0{
-            // This snippet updates the agent location, scale and rotation for each frame.
-            let (loc_x, loc_y, z) = self.location(agent, state);
-            let rotation = self.rotation(agent, state);
-            let (scale_x, scale_y) = self.scale(agent, state);
+        // This snippet updates the agent location, scale and rotation for each frame.
+        let (loc_x, loc_y, z) = self.location(agent, state);
+        let rotation = self.rotation(agent, state);
+        let (scale_x, scale_y) = self.scale(agent, state);
 
-            let translation = &mut transform.translation;
-            translation.x = loc_x;
-            translation.y = loc_y;
-            translation.z = z;
-            transform.scale.x = scale_x;
-            transform.scale.y = scale_y;
-            //transform.rotation = Quat::from_rotation_z(rotation);
+        let translation = &mut transform.translation;
+        translation.x = loc_x;
+        translation.y = loc_y;
+        translation.z = z;
+        transform.scale.x = scale_x;
+        transform.scale.y = scale_y;
+        //transform.rotation = Quat::from_rotation_z(rotation);
         /*}
         else {
             _visible.is_visible=false;
