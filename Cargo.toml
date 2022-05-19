@@ -9,6 +9,7 @@ members = [
     "schelling",
     "sir_bayesian",
     "sir_ga_exploration",
+    "sugarscape",
     "template",
     "virusnetwork",
     "wolfsheepgrass",
