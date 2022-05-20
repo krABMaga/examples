@@ -25,10 +25,10 @@ pub const MAX_SUGAR: u32 = 3;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    let step = 5;
+    let step = 50;
 
-    let dim = (8, 8);
-    let num_agents = 8;
+    let dim = (64, 64);
+    let num_agents = 64;
 
     let state = Environment::new(dim, num_agents);
     let _ = simulate!(state, step, 1, false);
