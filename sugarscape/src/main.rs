@@ -2,9 +2,10 @@ mod model;
 use crate::model::state::Environment;
 use cfg_if::cfg_if;
 use {
-    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::simulate,
-    krabmaga::*, std::time::Duration,
+    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::*,
+    std::time::Duration,
 };
+
 cfg_if! {
     if #[cfg(any(feature = "parallel", feature = "visualization", feature = "visualization_wasm"))]{
         mod visualization;
