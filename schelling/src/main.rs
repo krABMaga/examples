@@ -46,12 +46,12 @@ mod visualization;
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
     // Initialize the simulation and its visualization here.
-    let dim: (i32, i32) = (20, 20);
+    let dim: (i32, i32) = (25, 25);
     let num_agents = 320;
     let world = World::new(dim, num_agents);
     let mut app = Visualization::default()
         .with_simulation_dimensions(dim.0 as f32, dim.1 as f32)
-        .with_window_dimensions(720., 720.)
+        .with_window_dimensions(1000., 720.)
         .with_background_color(Color::WHITE)
         .with_name("Schelling Model")
         .setup::<WorldVis, World>(WorldVis, world);
