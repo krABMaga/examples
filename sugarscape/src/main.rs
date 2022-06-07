@@ -39,8 +39,8 @@ fn main() {
 fn main() {
     let step = 10;
 
-    let dim = (16, 16);
-    let num_agents = 8;
+    let dim = (75, 75);
+    let num_agents = 150;
 
     let state = Environment::new(dim, num_agents);
     let mut app = Visualization::default()
