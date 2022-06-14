@@ -82,7 +82,7 @@ impl State for Environment {
             self.field.lazy_update();
         }
         self.eaters.lazy_update();
-        self.step = _step;
+        self.step = step;
     }
 
     //Resets the state
