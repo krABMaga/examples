@@ -3,7 +3,7 @@ use crate::{ENERGY_CONSUME, FULL_GROWN, GAIN_ENERGY_SHEEP, MOMENTUM_PROBABILITY,
 
 use core::fmt;
 use krabmaga::engine::agent::Agent;
-use krabmaga::engine::location::{Int2D, Location2D};
+use krabmaga::engine::location::Int2D;
 use krabmaga::engine::state::State;
 use krabmaga::rand;
 use krabmaga::rand::Rng;
@@ -139,16 +139,6 @@ impl Eq for Sheep {}
 impl PartialEq for Sheep {
     fn eq(&self, other: &Sheep) -> bool {
         self.id == other.id
-    }
-}
-
-impl Location2D<Int2D> for Sheep {
-    fn get_location(self) -> Int2D {
-        self.loc
-    }
-
-    fn set_location(&mut self, loc: Int2D) {
-        self.loc = loc;
     }
 }
 

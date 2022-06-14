@@ -1,10 +1,6 @@
 use core::fmt;
 use krabmaga::{
-    engine::{
-        agent::Agent,
-        location::{Int2D, Location2D},
-        state::State,
-    },
+    engine::{agent::Agent, location::Int2D, state::State},
     rand,
     rand::Rng,
 };
@@ -138,16 +134,6 @@ impl Eq for Wolf {}
 impl PartialEq for Wolf {
     fn eq(&self, other: &Wolf) -> bool {
         self.id == other.id
-    }
-}
-
-impl Location2D<Int2D> for Wolf {
-    fn get_location(self) -> Int2D {
-        self.loc
-    }
-
-    fn set_location(&mut self, loc: Int2D) {
-        self.loc = loc;
     }
 }
 

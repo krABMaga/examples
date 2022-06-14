@@ -3,7 +3,7 @@ use crate::model::state::Patch;
 use core::fmt;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field::Field;
-use krabmaga::engine::location::{Int2D, Location2D};
+use krabmaga::engine::location::Int2D;
 use krabmaga::engine::schedule::{Schedule, ScheduleOptions};
 use krabmaga::engine::state::State;
 use krabmaga::Rng;
@@ -169,16 +169,6 @@ impl Hash for Eater {
         H: Hasher,
     {
         self.id.hash(state);
-    }
-}
-
-impl Location2D<Int2D> for Eater {
-    fn get_location(self) -> Int2D {
-        self.position
-    }
-
-    fn set_location(&mut self, loc: Int2D) {
-        self.position = loc;
     }
 }
 

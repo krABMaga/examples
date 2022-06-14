@@ -1,8 +1,8 @@
 use crate::model::sea::Sea;
 use core::fmt;
 use krabmaga::engine::agent::Agent;
-use krabmaga::engine::fields::field_2d::toroidal_transform;
-use krabmaga::engine::location::{Location2D, Real2D};
+use krabmaga::engine::fields::field_2d::{toroidal_transform, Location2D};
+use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
 use krabmaga::rand;
 use krabmaga::rand::Rng;
@@ -32,7 +32,7 @@ impl Agent for Crab {
         }
 
         let loc_x = toroidal_transform(self.loc.x + self.dir_x, state.field.width);
-        let loc_y = toroidal_transform(self.loc.y + self.dir_y, state.field.heigth);
+        let loc_y = toroidal_transform(self.loc.y + self.dir_y, state.field.height);
         self.loc = Real2D { x: loc_x, y: loc_y };
 
         state
