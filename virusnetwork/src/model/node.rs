@@ -6,11 +6,7 @@ use std::{
 use krabmaga::engine::state::State;
 use krabmaga::rand;
 use krabmaga::{
-    engine::{
-        agent::Agent,
-        location::Real2D,
-        fields::field_2d::Location2D,
-    },
+    engine::{agent::Agent, fields::field_2d::Location2D, location::Real2D},
     rand::Rng,
 };
 

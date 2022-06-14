@@ -77,32 +77,12 @@ impl Environment {
 
 impl State for Environment {
     //At each step the positions of eaters into the field are updated.
-    fn update(&mut self, _step: u64) {
-        //The following piece of code updates each patch adding sugar based on its growback rate
-        /*if _step!=0{
-            self.field.apply_to_all_values(|patch|{
-                //print!("Aggiorno {} con sugar {} in ", patch.id, patch.sugar_amount);
-                let mut p=*patch;
-                if p.sugar_amount<MAX_SUGAR{
-                    p.sugar_amount+=p.sugar_growback;
-                    //println!("{}", p.sugar_amount);
-                }
-                /*if p.sugar_amount==99999{
-                    p.sugar_amount=0;
-                }*/
-                if p.sugar_amount>MAX_SUGAR {
-                    p.sugar_amount=MAX_SUGAR;
-                    //println!("{}", p.sugar_amount);
-                }
-                p
-            }, GridOption::READWRITE);
-        }*/
-        if _step == 0 {
+    fn update(&mut self, step: u64) {
+        if step == 0 {
             self.field.lazy_update();
         }
         self.eaters.lazy_update();
         self.step = _step;
-        //println!("\n|||||||| Starting round {} ||||||||", self.step+1);
     }
 
     //Resets the state
