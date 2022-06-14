@@ -8,7 +8,8 @@ use krabmaga::rand;
 use krabmaga::{
     engine::{
         agent::Agent,
-        location::{Location2D, Real2D},
+        location::Real2D,
+        fields::field_2d::Location2D,
     },
     rand::Rng,
 };
