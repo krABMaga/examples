@@ -90,7 +90,7 @@ impl Agent for Sheep {
             self.last = Some(Int2D { x, y });
         }
 
-        state.sheeps_grid.set_object_location(*self, &self.loc);
+        state.sheep_grid.set_object_location(*self, &self.loc);
         //EAT
         if state.grass_field.get_value_unbuffered(&self.loc).is_none() {
             if let Some(grass_val) = state.grass_field.get_value(&self.loc) {
@@ -120,7 +120,7 @@ impl Agent for Sheep {
                 );
 
                 state.next_id += 1;
-                state.new_sheeps.push(new_sheep);
+                state.new_sheep.push(new_sheep);
             }
         }
     }

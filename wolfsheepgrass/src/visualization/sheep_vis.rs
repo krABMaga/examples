@@ -20,7 +20,7 @@ impl AgentRender for SheepVis {
     fn location(&self, agent: &Box<dyn Agent>, state: &Box<&dyn State>) -> (f32, f32, f32) {
         let state = state.as_any().downcast_ref::<WsgState>().unwrap();
         let agent = agent.downcast_ref::<Sheep>().unwrap();
-        let loc = state.sheeps_grid.get_location(*agent);
+        let loc = state.sheep_grid.get_location(*agent);
         match loc {
             Some(loc) => (loc.x as f32, loc.y as f32, 1.),
             None => (agent.loc.x as f32, agent.loc.y as f32, 1.),

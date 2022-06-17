@@ -60,7 +60,7 @@ impl VisualizationState<WsgState> for VisState {
                 None => None,
             }
         } else {
-            match state.sheeps_grid.get(&Sheep::new(
+            match state.sheep_grid.get(&Sheep::new(
                 agent_render.get_id(),
                 Int2D { x: 0, y: 0 },
                 0.,
@@ -80,9 +80,9 @@ impl VisualizationState<WsgState> for VisState {
         commands: &mut Commands,
         asset_factory: &mut AssetHandleFactoryResource,
     ) {
-        // let new_sheeps = state.new_sheeps.lock().unwrap();
-        // for sheep in &*new_sheeps {
-        for sheep in &state.new_sheeps {
+        // let new_sheep = state.new_sheep.lock().unwrap();
+        // for sheep in &*new_sheep {
+        for sheep in &state.new_sheep {
             //let boxed_agent = &(*sheep).as_agent();
             let boxed_agent = &sheep.as_agent();
             let boxed_state = Box::new(state.as_state());

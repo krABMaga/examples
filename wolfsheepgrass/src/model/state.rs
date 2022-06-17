@@ -35,13 +35,13 @@ impl fmt::Display for LifeState {
 pub struct WsgState {
     pub dim: (i32, i32),
     pub wolves_grid: DenseGrid2D<Wolf>,
-    pub sheeps_grid: DenseGrid2D<Sheep>,
+    pub sheep_grid: DenseGrid2D<Sheep>,
     pub grass_field: DenseNumberGrid2D<u16>,
     pub step: u64,
     pub next_id: u32,
-    pub new_sheeps: Vec<Sheep>,
+    pub new_sheep: Vec<Sheep>,
     pub new_wolves: Vec<Wolf>,
-    pub killed_sheeps: HashSet<Sheep>,
+    pub killed_sheep: HashSet<Sheep>,
     pub initial_animals: (u32, u32),
 }
 
@@ -50,14 +50,14 @@ impl WsgState {
         WsgState {
             dim,
             wolves_grid: DenseGrid2D::new(dim.0, dim.1),
-            sheeps_grid: DenseGrid2D::new(dim.0, dim.1),
+            sheep_grid: DenseGrid2D::new(dim.0, dim.1),
             grass_field: DenseNumberGrid2D::new(dim.0, dim.1),
             step: 0,
             next_id: initial_animals.1 + initial_animals.0,
-            new_sheeps: Vec::new(),
+            new_sheep: Vec::new(),
             new_wolves: Vec::new(),
             initial_animals,
-            killed_sheeps: HashSet::new(),
+            killed_sheep: HashSet::new(),
         }
     }
 }
@@ -66,10 +66,10 @@ impl State for WsgState {
     fn reset(&mut self) {
         self.step = 0;
         self.wolves_grid = DenseGrid2D::new(self.dim.0, self.dim.1);
-        self.sheeps_grid = DenseGrid2D::new(self.dim.0, self.dim.1);
+        self.sheep_grid = DenseGrid2D::new(self.dim.0, self.dim.1);
         self.grass_field = DenseNumberGrid2D::new(self.dim.0, self.dim.1);
         self.next_id = self.initial_animals.0 + self.initial_animals.1;
-        self.new_sheeps = Vec::new();
+        self.new_sheep = Vec::new();
         self.new_wolves = Vec::new();
         self.initial_animals = (self.initial_animals.0, self.initial_animals.1);
     }
@@ -83,7 +83,7 @@ impl State for WsgState {
 
         generate_grass(self);
         generate_wolves(self, schedule);
-        generate_sheeps(self, schedule);
+        generate_sheep(self, schedule);
 
         addplot!(
             String::from("Agents"),
@@ -116,7 +116,7 @@ impl State for WsgState {
         }
 
         self.grass_field.lazy_update();
-        self.sheeps_grid.lazy_update();
+        self.sheep_grid.lazy_update();
         self.wolves_grid.lazy_update();
 
         self.step = step;
@@ -139,12 +139,12 @@ impl State for WsgState {
     }
 
     fn before_step(&mut self, _schedule: &mut Schedule) {
-        self.new_sheeps.clear();
+        self.new_sheep.clear();
         self.new_wolves.clear();
     }
 
     fn after_step(&mut self, schedule: &mut Schedule) {
-        for sheep in self.new_sheeps.iter() {
+        for sheep in self.new_sheep.iter() {
             schedule.schedule_repeating(Box::new(*sheep), schedule.time + 1.0, 0);
         }
 
@@ -152,17 +152,17 @@ impl State for WsgState {
             schedule.schedule_repeating(Box::new(*wolf), schedule.time + 1.0, 1);
         }
 
-        for sheep in self.killed_sheeps.iter() {
+        for sheep in self.killed_sheep.iter() {
             schedule.dequeue(Box::new(*sheep), sheep.id);
         }
 
         let agents = schedule.get_all_events();
-        let mut num_sheeps: f32 = 0.;
+        let mut num_sheep: f32 = 0.;
         let mut num_wolves: f32 = 0.;
 
         for n in agents {
             if let Some(_s) = n.downcast_ref::<Sheep>() {
-                num_sheeps += 1.;
+                num_sheep += 1.;
             }
             if let Some(_w) = n.downcast_ref::<Wolf>() {
                 num_wolves += 1.;
@@ -177,16 +177,16 @@ impl State for WsgState {
         );
         plot!(
             String::from("Agents"),
-            String::from("Sheeps"),
+            String::from("Sheep"),
             schedule.step as f64,
-            num_sheeps as f64
+            num_sheep as f64
         );
 
         plot!(
             String::from("Dead/Born"),
-            String::from("Dead Sheeps"),
+            String::from("Dead Sheep"),
             schedule.step as f64,
-            self.killed_sheeps.len() as f64
+            self.killed_sheep.len() as f64
         );
         plot!(
             String::from("Dead/Born"),
@@ -196,12 +196,12 @@ impl State for WsgState {
         );
         plot!(
             String::from("Dead/Born"),
-            String::from("Bord Sheeps"),
+            String::from("Born Sheep"),
             schedule.step as f64,
-            self.new_sheeps.len() as f64
+            self.new_sheep.len() as f64
         );
 
-        self.killed_sheeps.clear();
+        self.killed_sheep.clear();
     }
 }
 
@@ -224,7 +224,7 @@ fn generate_grass(state: &mut WsgState) {
     });
 }
 
-fn generate_sheeps(state: &mut WsgState, schedule: &mut Schedule) {
+fn generate_sheep(state: &mut WsgState, schedule: &mut Schedule) {
     let mut rng = rand::thread_rng();
 
     for id in 0..state.initial_animals.0 {
@@ -240,7 +240,7 @@ fn generate_sheeps(state: &mut WsgState, schedule: &mut Schedule) {
             GAIN_ENERGY_SHEEP,
             SHEEP_REPR,
         );
-        state.sheeps_grid.set_object_location(sheep, &loc);
+        state.sheep_grid.set_object_location(sheep, &loc);
 
         schedule.schedule_repeating(Box::new(sheep), 0., 0);
     }
