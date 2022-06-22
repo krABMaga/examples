@@ -27,7 +27,7 @@ impl AgentRender for EaterVis {
         let loc = state.eaters.get_location(*agent);
         //println!("Trovato agente {} in pos {};{}", agent.id, agent.position.x, agent.position.y);
         match loc {
-            Some(loc) => ((loc.x + 1) as f32, (loc.y + 1) as f32, 0.),
+            Some(loc) => (loc.x as f32, loc.y as f32, 0.),
             None => (agent.position.x as f32, agent.position.y as f32, 0.),
         }
     }

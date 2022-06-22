@@ -45,7 +45,7 @@ fn main() {
     let state = Environment::new(dim, num_agents);
     let mut app = Visualization::default()
         .with_window_dimensions(1000.0, 600.0)
-        .with_simulation_dimensions((dim.0 + 1) as f32, (dim.1 + 1) as f32)
+        .with_simulation_dimensions(dim.0 as f32, dim.1 as f32)
         .with_background_color(Color::WHITE)
         .with_name("Sugarscape")
         .setup::<EnvironmentVis, Environment>(EnvironmentVis, state);
