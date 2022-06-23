@@ -29,12 +29,12 @@ pub static GAIN_RESISTANCE_CHANCE: f64 = 0.20;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    let step: u64 = 10;
+    let step: u64 = 110;
     let dim: (f32, f32) = (100., 100.);
-    let num_nodes = 100;
+    let num_nodes = 3_000;
     let epidemic_network = EpidemicNetworkState::new(dim, num_nodes, DISCRETIZATION, TOROIDAL);
 
-    simulate!(epidemic_network, step, 1);
+    simulate!(epidemic_network, step, 10);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
@@ -53,7 +53,6 @@ fn main() {
         .with_simulation_dimensions(dim.0, dim.1)
         .with_background_color(Color::rgb(255., 255., 255.))
         .setup::<VisState, EpidemicNetworkState>(VisState, epidemic_network);
-
     app.add_system(EpidemicNetworkState::render);
     app.run();
 }

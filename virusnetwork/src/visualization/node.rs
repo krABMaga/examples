@@ -61,11 +61,16 @@ impl AgentRender for NetNodeVis {
     /// Simply update the transform based on the location chosen
     fn update(
         &mut self,
-        _agent: &Box<dyn Agent>,
-        _transform: &mut Transform,
-        _state: &Box<&dyn State>,
+        agent: &Box<dyn Agent>,
+        transform: &mut Transform,
+        state: &Box<&dyn State>,
         _visible: &mut Visibility,
     ) {
+        let (loc_x, loc_y, z) = self.location(agent, state);
+        let translation = &mut transform.translation;
+        translation.x = loc_x;
+        translation.y = loc_y;
+        translation.z = z;
     }
 
     fn get_id(&self) -> u32 {
