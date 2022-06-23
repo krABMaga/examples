@@ -42,7 +42,7 @@ mod visualization;
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
     // Initialize the simulation and its visualization here.
-    let dim: (i32, i32) = (75, 75);
+    let dim: (i32, i32) = (50, 50);
     let density: f64 = 0.7;
 
     let state = Forest::new(dim, density);
