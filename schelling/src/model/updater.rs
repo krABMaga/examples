@@ -79,9 +79,6 @@ impl Agent for Updater {
         updates.clear();
     }
 
-    fn get_id(&self) -> u32 {
-        self.id
-    }
     fn before_step(
         &mut self,
         _state: &mut dyn State,

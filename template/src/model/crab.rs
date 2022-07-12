@@ -40,10 +40,6 @@ impl Agent for Crab {
             .set_object_location(*self, Real2D { x: loc_x, y: loc_y });
     }
 
-    fn get_id(&self) -> u32 {
-        self.id
-    }
-
     /// Put the code that decides if an agent should be removed or not
     /// for example in simulation where agents can die
     fn is_stopped(&mut self, _state: &mut dyn State) -> bool {

@@ -32,7 +32,7 @@ fn main() {
     let num_agents = 64;
 
     let state = Environment::new(dim, num_agents);
-    let _ = simulate!(state, step, 1, false);
+    let _ = simulate!(state, step, 10);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

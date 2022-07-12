@@ -8,7 +8,7 @@ pub const WIDTH: i32 = 200;
 pub const HEIGHT: i32 = 200;
 pub const NUM_AGENT: u32 = 100;
 pub const EVAPORATION: f32 = 0.999;
-pub const STEP: u64 = 100;
+pub const STEP: u64 = 1000;
 // Nest coordinate range
 pub const HOME_XMIN: i32 = 175;
 pub const HOME_XMAX: i32 = 175;

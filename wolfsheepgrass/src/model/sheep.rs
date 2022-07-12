@@ -128,10 +128,6 @@ impl Agent for Sheep {
     fn is_stopped(&mut self, _state: &mut dyn State) -> bool {
         self.animal_state == LifeState::Dead
     }
-
-    fn get_id(&self) -> u32 {
-        self.id
-    }
 }
 
 impl Eq for Sheep {}

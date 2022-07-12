@@ -21,7 +21,6 @@ readme = "README.md"
 # krabmaga = "0.1.*"
 krabmaga = {git = "https://github.com/krABMaga/krABMaga"}
 
-
 [features]
 visualization = ["krabmaga/visualization"]
 visualization_wasm = ["krabmaga/visualization_wasm"]

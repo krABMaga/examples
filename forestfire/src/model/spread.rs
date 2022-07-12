@@ -77,10 +77,6 @@ impl Agent for Spread {
             real_state.field.set_object_location(obj.0, &obj.1);
         }
     }
-
-    fn get_id(&self) -> u32 {
-        self.id
-    }
 }
 
 impl Spread {

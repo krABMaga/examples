@@ -93,10 +93,6 @@ impl Agent for NetNode {
         state.network.update_node(*self);
         state.field1.set_object_location(*self, self.loc);
     }
-
-    fn get_id(&self) -> u32 {
-        self.id
-    }
 }
 
 impl Hash for NetNode {

@@ -20,7 +20,6 @@ readme = "README.md"
 [dependencies]
 krabmaga = {git = "https://github.com/krABMaga/krABMaga"}
 
-
 [features]
 visualization = ["krabmaga/visualization"]
 visualization_wasm = ["krabmaga/visualization_wasm"]

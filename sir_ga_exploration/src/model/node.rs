@@ -80,10 +80,6 @@ impl Agent for NetNode {
         }
         state.network.update_node(*self);
     }
-
-    fn get_id(&self) -> u32 {
-        self.id
-    }
 }
 
 impl Hash for NetNode {

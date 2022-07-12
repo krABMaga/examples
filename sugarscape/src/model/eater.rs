@@ -126,10 +126,6 @@ impl Agent for Eater {
         }
     }
 
-    fn get_id(&self) -> u32 {
-        self.id
-    }
-
     //If the agent has 0 wealth or it exceedes its max age, it dies
     //When an agent dies it respawns in a random position
     fn is_stopped(&mut self, _state: &mut dyn State) -> bool {

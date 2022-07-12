@@ -237,10 +237,6 @@ impl Agent for Ant {
         self.deposit_pheromone(state);
         self.act(state);
     }
-
-    fn get_id(&self) -> u32 {
-        self.id
-    }
 }
 
 impl Eq for Ant {}
