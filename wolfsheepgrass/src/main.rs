@@ -22,7 +22,7 @@ use {
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    let step = 200;
+    let step = 500;
 
     setup_csv!(
         String::from("Agents"),
@@ -40,33 +40,33 @@ fn main() {
     let initial_animals: (u32, u32) = ((200. * 0.6) as u32, (200. * 0.4) as u32);
 
     let state = WsgState::new(dim, initial_animals);
-    let _ = simulate!(state, step, 10);
+    simulate_rocket!(state, step, 20);
     // deve diventare una macro - in un threD (?)
     // create bin directory
     // create file in bin directory
     // write in file content of main2.rs
     // cargo build --release --bin main2
-    let output =Command::new("cargo")
-                .arg("build")
-                .arg("--release")
-                .arg("--features")
-                .arg("web_plot")
-                .arg("--bin")
-                .arg("plots")
-                .output()
-                .expect("failed to execute process");
+    // let output = Command::new("cargo")
+    //     .arg("build")
+    //     .arg("--release")
+    //     .arg("--features")
+    //     .arg("web_plot")
+    //     .arg("--bin")
+    //     .arg("plots")
+    //     .output()
+    //     .expect("failed to execute process");
 
-    //destroy file and folder
-    //run the compiled file here examples/target/release
-    let output2 =Command::new("cargo")
-                .arg("run")
-                .arg("--release")
-                .arg("--features")
-                .arg("web_plot")
-                .arg("--bin")
-                .arg("plots")
-                .output()
-                .expect("failed to execute process");
+    // //destroy file and folder
+    // //run the compiled file here examples/target/release
+    // let output2 = Command::new("cargo")
+    //     .arg("run")
+    //     .arg("--release")
+    //     .arg("--features")
+    //     .arg("web_plot")
+    //     .arg("--bin")
+    //     .arg("plots")
+    //     .output()
+    //     .expect("failed to execute process");
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

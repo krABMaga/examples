@@ -169,32 +169,32 @@ impl State for WsgState {
             }
         }
 
-        plot!(
+        plot_csv!(
             String::from("Agents"),
             String::from("Wolfs"),
             schedule.step as f64,
             num_wolves as f64
         );
-        plot!(
+        plot_csv!(
             String::from("Agents"),
             String::from("Sheep"),
             schedule.step as f64,
             num_sheep as f64
         );
 
-        plot!(
+        plot_csv!(
             String::from("Dead/Born"),
             String::from("Dead Sheep"),
             schedule.step as f64,
             self.killed_sheep.len() as f64
         );
-        plot!(
+        plot_csv!(
             String::from("Dead/Born"),
             String::from("Born Wolfs"),
             schedule.step as f64,
             self.new_wolves.len() as f64
         );
-        plot!(
+        plot_csv!(
             String::from("Dead/Born"),
             String::from("Born Sheep"),
             schedule.step as f64,

@@ -19,14 +19,11 @@ readme = "README.md"
 
 [dependencies]
 # krabmaga = "0.1.*"
-krabmaga = {path = "D:/RepositoryTirocinio/krABMaga"}
+krabmaga = {path = "D:/IsisLab/krABMaga/sirica/krABMaga"}
 rocket = "0.5.0-rc.2"
-cfg-if = "1.*"
-serde = "1.0.9"
+
 
 [features]
+web_plot = [ "krabmaga/web_plot"]
 visualization = ["krabmaga/visualization"]
 visualization_wasm = ["krabmaga/visualization_wasm"]
-
-
-web_plot = [ "krabmaga/web_plot"]
