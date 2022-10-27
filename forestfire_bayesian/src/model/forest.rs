@@ -86,14 +86,6 @@ impl Forest {
         }
     }
 
-    pub fn as_state_mut(&mut self) -> &mut dyn State {
-        self
-    }
-
-    #[allow(dead_code)]
-    pub fn as_state(&self) -> &dyn State {
-        self
-    }
 }
 
 impl State for Forest {

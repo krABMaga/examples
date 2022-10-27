@@ -4,10 +4,7 @@ use crate::model::forest::Tree;
 
 mod model;
 
-use krabmaga::{
-    explore::bayesian::*,
-};
-
+use krabmaga::explore::bayesian::*;
 
 use krabmaga::{
     engine::{schedule::Schedule, state::State},
@@ -42,15 +39,9 @@ lazy_static! {
 }
 
 fn main() {
+    let x_init = init_population();
 
-    let x_init  = init_population(); 
-
-    let (x, y) = bayesian_search!(
-        x_init,
-        objective,
-        get_points,
-        ITERATIONS
-    );
+    let (x, y) = bayesian_search!(x_init, objective, get_points, ITERATIONS);
 
     println!("---\nFinal res: Point {:?}, val {y}", x);
 }
@@ -69,7 +60,7 @@ fn init_population() -> Vec<Vec<f64>> {
 }
 
 fn objective(x: &Vec<f64>) -> f64 {
-    let density = x[0] as f64;
+    let density = x[0];
     let n_step = 500;
     let reps = 3;
     let dim: (i32, i32) = (200, 200);
@@ -92,10 +83,11 @@ fn objective(x: &Vec<f64>) -> f64 {
     }
 
     println!("AVG steps {}", steps_tot as f64 / reps as f64);
-    return (steps_tot as f64 / reps as f64);
+    
+    steps_tot as f64 / reps as f64
 }
 
-fn get_points(_x: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
+fn get_points(_x: &[Vec<f64>]) -> Vec<Vec<f64>> {
     let mut rng = RNG.lock().unwrap();
 
     let trial_x: Vec<Vec<f64>> = (0..BATCH_SIZE)
@@ -108,4 +100,3 @@ fn get_points(_x: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
 
     trial_x
 }
-
