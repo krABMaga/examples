@@ -85,7 +85,6 @@ impl Forest {
             green: 0,
         }
     }
-
 }
 
 impl State for Forest {

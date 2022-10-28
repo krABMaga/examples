@@ -45,7 +45,7 @@ fn init_population() -> Vec<Vec<f64>> {
     x_init
 }
 
-fn objective(x: &Vec<f64>) -> f64 {
+fn objective(x: &[f64] ) -> f64 {
     let density = x[0];
     let n_step = 500;
     let reps = 3;
@@ -68,7 +68,7 @@ fn objective(x: &Vec<f64>) -> f64 {
     }
 
     println!("AVG steps {}", steps_tot as f64 / reps as f64);
-    
+
     steps_tot as f64 / reps as f64
 }
 
