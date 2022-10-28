@@ -14,7 +14,7 @@ use krabmaga::{
 };
 
 pub const ITERATIONS: usize = 10;
-pub const INIT_ELEMENTS: usize = 10;
+pub const INIT_ELEMENTS: usize = 4;
 pub const BATCH_SIZE: usize = 200;
 
 /* pub static STEP: u64 = 10;
@@ -23,25 +23,11 @@ pub static HEIGHT: i32 = 6400;
 pub const DENSITY: f64 = 0.7; */
 
 lazy_static! {
-    pub static ref DATA: Vec<f32> = {
-        let mut rdr = Reader::from_path("data/data.csv").unwrap();
-
-        let mut x: Vec<f32> = Vec::new();
-
-        for result in rdr.records() {
-            let record = result.unwrap();
-            let y: f32 = record[0].parse().unwrap();
-            x.push(y);
-        }
-        x
-    };
-    pub static ref RNG: Mutex<StdRng> = Mutex::new(StdRng::seed_from_u64(1));
+    pub static ref RNG: Mutex<StdRng> = Mutex::new(StdRng::seed_from_u64(10));
 }
 
 fn main() {
-    let x_init = init_population();
-
-    let (x, y) = bayesian_search!(x_init, objective, get_points, ITERATIONS);
+    let (x, y) = bayesian_search!(init_population, objective, get_points, ITERATIONS);
 
     println!("---\nFinal res: Point {:?}, val {y}", x);
 }
@@ -65,7 +51,6 @@ fn objective(x: &Vec<f64>) -> f64 {
     let reps = 3;
     let dim: (i32, i32) = (200, 200);
     let mut steps_tot = 0;
-    println!("Point inserted: {:?}", &x);
 
     let mut forest = Forest::new(dim, density);
 
