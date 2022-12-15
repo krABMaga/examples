@@ -3,7 +3,7 @@ use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field_2d::{toroidal_distance, toroidal_transform, Location2D};
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
-use krabmaga::rand;
+use krabmaga::{rand, log};
 use krabmaga::rand::Rng;
 use std::hash::{Hash, Hasher};
 
@@ -25,6 +25,8 @@ impl Bird {
 
 impl Agent for Bird {
     fn step(&mut self, state: &mut dyn State) {
+        log!(LogType::Info, format!("hello" ));
+        println!("Hello world");
         let state = state.as_any().downcast_ref::<Flocker>().unwrap();
         let vec = state.field1.get_neighbors_within_distance(self.loc, 10.0);
 
