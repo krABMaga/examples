@@ -2,15 +2,7 @@
 resolver = "2"
 
 members = [
-    "antsforaging",
     "flockers",
-    "forestfire",
-    "forestfire_bayesian",
-    "schelling",
-    "sir_bayesian",
+    "flockers_original",
     "sir_ga_exploration",
-    "sugarscape",
-    "template",
-    "virusnetwork",
-    "wolfsheepgrass",
 ]

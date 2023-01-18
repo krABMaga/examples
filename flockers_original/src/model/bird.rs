@@ -3,7 +3,7 @@ use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field_2d::{toroidal_distance, toroidal_transform, Location2D};
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
-use krabmaga::{rand, log};
+use krabmaga::rand;
 use krabmaga::rand::Rng;
 use std::hash::{Hash, Hasher};
 
@@ -25,12 +25,8 @@ impl Bird {
 
 impl Agent for Bird {
     fn step(&mut self, state: &mut dyn State) {
-        //log!(LogType::Info, format!("hello" ));
-        //println!("Hello world");
-        let state = state.as_any_mut().downcast_mut::<Flocker>().unwrap();
+        let state = state.as_any().downcast_ref::<Flocker>().unwrap();
         let vec = state.field1.get_neighbors_within_distance(self.loc, 10.0);
-
-        //println!("Ci sono {} vicini di {}", vec.len(), self.id);
 
         let width = state.dim.0;
         let height = state.dim.1;
@@ -52,9 +48,9 @@ impl Agent for Bird {
             let mut count = 0;
 
             for elem in &vec {
-                if self.id != elem.0.id {
-                    let dx = toroidal_distance(self.loc.x, elem.0.loc.x, width);
-                    let dy = toroidal_distance(self.loc.y, elem.0.loc.y, height);
+                if self.id != elem.id {
+                    let dx = toroidal_distance(self.loc.x, elem.loc.x, width);
+                    let dy = toroidal_distance(self.loc.y, elem.loc.y, height);
                     count += 1;
 
                     //avoidance calculation
@@ -67,8 +63,8 @@ impl Agent for Bird {
                     y_cohe += dy;
 
                     //consistency calculation
-                    x_cons += elem.0.last_d.x;
-                    y_cons += elem.0.last_d.y;
+                    x_cons += elem.last_d.x;
+                    y_cons += elem.last_d.y;
                 }
             }
 
@@ -143,9 +139,9 @@ impl Agent for Bird {
         drop(vec);
         state
             .field1
-            .insert(*self, loc_x, loc_y);
-        if self.id==0{
-        println!("agente con id {} si è mosso in {};{} ", self.id, loc_x, loc_y );}
+            .set_object_location(*self, Real2D { x: loc_x, y: loc_y });
+            if self.id==0{
+                println!("agente con id {} si è mosso in {};{} ", self.id, loc_x, loc_y );}
     }
 }
 

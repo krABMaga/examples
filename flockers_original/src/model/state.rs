@@ -1,7 +1,7 @@
 use crate::model::bird::Bird;
 use crate::{DISCRETIZATION, TOROIDAL};
 use krabmaga::engine::fields::field::Field;
-use krabmaga::engine::fields::kdtree_mpi::Kdtree;
+use krabmaga::engine::fields::field_2d::Field2D;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::schedule::Schedule;
 use krabmaga::engine::state::State;
@@ -11,7 +11,7 @@ use std::any::Any;
 
 pub struct Flocker {
     pub step: u64,
-    pub field1: Kdtree<Bird>,
+    pub field1: Field2D<Bird>,
     pub initial_flockers: u32,
     pub dim: (f32, f32),
 }
@@ -21,7 +21,7 @@ impl Flocker {
     pub fn new(dim: (f32, f32), initial_flockers: u32) -> Self {
         Flocker {
             step: 0,
-            field1: Kdtree::new("0".to_string(), 0.0, 0.0, dim.0, dim.1, 8),
+            field1: Field2D::new(dim.0, dim.1, DISCRETIZATION, TOROIDAL),
             initial_flockers,
             dim,
         }
@@ -31,12 +31,11 @@ impl Flocker {
 impl State for Flocker {
     fn reset(&mut self) {
         self.step = 0;
-        self.field1 = Kdtree::new("0".to_string(), 0.0, 0.0, self.dim.0, self.dim.1, 8);
+        self.field1 = Field2D::new(self.dim.0, self.dim.1, DISCRETIZATION, TOROIDAL);
     }
 
     fn init(&mut self, schedule: &mut Schedule) {
         let mut rng = rand::thread_rng();
-        self.field1.first_subdivision();
         // Should be moved in the init method on the model exploration changes
         for bird_id in 0..self.initial_flockers {
             let r1: f32 = rng.gen();
@@ -47,14 +46,13 @@ impl State for Flocker {
                 y: self.dim.1 * r2,
             };
             let bird = Bird::new(bird_id, loc, last_d);
-            self.field1.insert(bird, loc.x, loc.y);
+            self.field1.set_object_location(bird, loc);
             schedule.schedule_repeating(Box::new(bird), 0., 0);
         }
     }
 
     fn update(&mut self, _step: u64) {
         self.field1.lazy_update();
-        //self.field1.print_leaves();
     }
 
     fn as_any(&self) -> &dyn Any {

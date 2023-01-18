@@ -1,5 +1,5 @@
 [package]
-name = "flockers"
+name = "flockers_original"
 version = "0.2.0"
 authors = [
     "Carmine Spagnuolo <spagnuolocarmine@gmail.com>", 
@@ -23,7 +23,6 @@ readme = "README.md"
 krabmaga = {path="C:/Users/Andrea/Visual Studio Code/Rust/krABMaga"}
 
 [features]
-distributed_mpi = ["krabmaga/distributed_mpi"]
 parallel = ["krabmaga/parallel"]
 visualization = ["krabmaga/visualization"]
 visualization_wasm = ["krabmaga/visualization_wasm"]
