@@ -16,41 +16,41 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --release --features bayesian
+          args: --release --all-features
 
-  checkvis:
-    name: Check visualization examples
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --release --features "visualization, bayesian"
+  # checkvis:
+  #   name: Check visualization examples
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions-rs/toolchain@v1
+  #       with:
+  #         profile: minimal
+  #         toolchain: stable
+  #         override: true
+  #     - uses: actions-rs/cargo@v1
+  #       with:
+  #         command: check
+  #         args: --release --features "visualization, bayesian"
 
-  checkmpi:
-    name: Check mpi examples
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup MPI
-        uses: mpi4py/setup-mpi@v1
-        with:
-          mpi: openmpi
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --release --features distributed_mpi
+  # checkmpi:
+  #   name: Check mpi examples
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Setup MPI
+  #       uses: mpi4py/setup-mpi@v1
+  #       with:
+  #         mpi: openmpi
+  #     - uses: actions-rs/toolchain@v1
+  #       with:
+  #         profile: minimal
+  #         toolchain: stable
+  #         override: true
+  #     - uses: actions-rs/cargo@v1
+  #       with:
+  #         command: check
+  #         args: --release --features distributed_mpi
 
   fmt:
     name: Rustfmt
