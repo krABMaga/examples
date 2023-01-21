@@ -1,6 +1,7 @@
-on: [push, pull_request]
-  paths-ignore: 
-    - '~/sir_bayesian'
+on: 
+  push:
+    paths-ignore: 
+      - '~/sir_bayesian'
 
 name: Continuous integration
 
