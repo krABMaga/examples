@@ -1,4 +1,6 @@
 on: [push, pull_request]
+  paths-ignore: 
+    - '~/sir_bayesian'
 
 name: Continuous integration
 
@@ -19,7 +21,7 @@ jobs:
           args: --release
 
   checkmpi:
-    name: Check normal examples
+    name: Check mpi examples
     runs-on: ubuntu-latest
     steps:
       - uses: mpi4py/setup-mpi@v1
@@ -36,7 +38,7 @@ jobs:
           path: |
             ~/sir_ga_exploration
           command: check
-          args: --release --all-features
+          args: --release --features distributed_mpi
 
   checkvis:
     name: Check visualization examples
