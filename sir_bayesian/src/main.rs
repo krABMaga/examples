@@ -2,10 +2,10 @@ use rand::distributions::weighted::WeightedIndex;
 
 #[cfg(any(feature = "bayesian"))]
 use krabmaga::{
-    argmin::prelude::Error,
-    argmin::prelude::*,
-    argmin::solver::linesearch::MoreThuenteLineSearch,
-    argmin::solver::quasinewton::LBFGS,
+    // argmin::prelude::Error,
+    // argmin::prelude::*,
+    // argmin::solver::linesearch::MoreThuenteLineSearch,
+    // argmin::solver::quasinewton::LBFGS,
     explore::bayesian_opt::*,
     finitediff::FiniteDiff,
     friedrich::gaussian_process::GaussianProcess,

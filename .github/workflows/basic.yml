@@ -54,7 +54,8 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --release --features "visualization, bayesian"
+          args: --release --features visualization
+          # args: --release --features "visualization, bayesian"
 
   # checkmpi:
   #   name: Check mpi examples
