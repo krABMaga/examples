@@ -51,7 +51,7 @@ fn init_population() -> Vec<Vec<f64>> {
     x_init
 }
 
-fn objective(x: &[f64] ) -> f64 {
+fn objective(x: &[f64]) -> f64 {
     let density = x[0];
     let n_step = 500;
     let reps = 3;
