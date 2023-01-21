@@ -43,7 +43,7 @@ pub const STEP: u64 = 51; // 51 - 37
 pub const DAY: usize = 45; // 45 - 31
 
 fn main() {
-    let result = explore_ga_parallel!(
+    let result = explore_ga_distributed_mpi!(
         init_population,
         fitness,
         selection,
