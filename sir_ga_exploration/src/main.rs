@@ -42,6 +42,11 @@ lazy_static! {
 pub const STEP: u64 = 51; // 51 - 37
 pub const DAY: usize = 45; // 45 - 31
 
+#[cfg(not(any(feature = "distributed_mpi")))]
+fn main() {
+    println!("No bayesian feature enabled");
+}
+#[cfg(any(feature = "distributed_mpi"))]
 fn main() {
     let result = explore_ga_distributed_mpi!(
         init_population,

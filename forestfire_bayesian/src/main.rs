@@ -4,6 +4,7 @@ use crate::model::forest::Tree;
 
 mod model;
 
+#[cfg(any(feature = "bayesian"))]
 use krabmaga::{
     argmin::prelude::Error,
     argmin::prelude::*,
@@ -56,6 +57,12 @@ lazy_static! {
     pub static ref RNG: Mutex<StdRng> = Mutex::new(StdRng::seed_from_u64(1));
 }
 
+#[cfg(not(any(feature = "bayesian")))]
+fn main() {
+    println!("No bayesian feature enabled");
+}
+
+#[cfg(any(feature = "bayesian"))]
 fn main() {
     let (x, y) = bayesian_opt!(
         init_population,
@@ -69,6 +76,7 @@ fn main() {
     println!("---\nFinal res: Point {:?}, val {y}", x);
 }
 
+#[cfg(any(feature = "bayesian"))]
 fn init_population() -> (Vec<Vec<f64>>, Vec<f64>) {
     let mut x_init: Vec<Vec<f64>> = Vec::with_capacity(INIT_ELEMENTS);
     let mut y_init: Vec<f64> = Vec::with_capacity(INIT_ELEMENTS);
@@ -86,6 +94,7 @@ fn init_population() -> (Vec<Vec<f64>>, Vec<f64>) {
     (x_init, y_init)
 }
 
+#[cfg(any(feature = "bayesian"))]
 fn costly_function(x: &Vec<f64>) -> f64 {
     let density = x[0] as f64;
     let n_step = 500;
@@ -113,6 +122,7 @@ fn costly_function(x: &Vec<f64>) -> f64 {
     return 1. / (steps_tot as f64 / reps as f64);
 }
 
+#[cfg(any(feature = "bayesian"))]
 fn get_points(x: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
     let mut rng = RNG.lock().unwrap();
 
@@ -128,6 +138,7 @@ fn get_points(x: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
 }
 
 ///Expected Improvement algorithm
+#[cfg(any(feature = "bayesian"))]
 pub fn acquisition_function(
     gauss_pr: &GaussianProcess<Gaussian, ConstantPrior>,
     x_new: &Vec<f64>,
