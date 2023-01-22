@@ -40,8 +40,7 @@ use {
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::simulate,
-    krabmaga::Info, krabmaga::ProgressBar, krabmaga::*, std::time::Duration,
+    krabmaga::simulate
 };
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

@@ -2,7 +2,6 @@ use crate::model::state::Environment;
 use crate::model::state::Patch;
 use core::fmt;
 use krabmaga::engine::agent::Agent;
-use krabmaga::engine::fields::field::Field;
 use krabmaga::engine::location::Int2D;
 use krabmaga::engine::schedule::{Schedule, ScheduleOptions};
 use krabmaga::engine::state::State;
@@ -109,7 +108,7 @@ impl Agent for Eater {
             let rand = rng.gen_range(0..len);
             let nearest_patch = near_patches[rand].0;
             let nearest_pos = near_patches[rand].1;
-            let p = state.field.get_value(&nearest_pos).unwrap();
+            // let p = state.field.get_value(&nearest_pos).unwrap();
 
             self.wealth += nearest_patch.sugar_amount as i32;
             self.wealth -= self.metabolism as i32;

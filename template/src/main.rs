@@ -4,8 +4,7 @@ mod model;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    krabmaga::engine::schedule::*, krabmaga::engine::state::State, krabmaga::simulate_old,
-    krabmaga::Info, krabmaga::ProgressBar, krabmaga::*, std::time::Duration,
+    krabmaga::*
 };
 
 // Visualization specific imports

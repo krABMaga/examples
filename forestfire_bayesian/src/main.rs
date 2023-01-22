@@ -4,12 +4,11 @@ use crate::model::forest::Tree;
 
 mod model;
 
+#[cfg(any(feature = "bayesian"))]
 use krabmaga::explore::bayesian::*;
 
 use krabmaga::{
-    engine::{schedule::Schedule, state::State},
     rand::prelude::*,
-    rand::Rng,
     *,
 };
 
@@ -28,6 +27,9 @@ lazy_static! {
 
 #[cfg(not(any(feature = "bayesian")))]
 fn main() {
+    let density = 100.;
+    let dim: (i32, i32) = (200, 200);
+    let mut _forest = Forest::new(dim, density);
     println!("No bayesian feature enabled");
 }
 
@@ -38,6 +40,7 @@ fn main() {
     println!("---\nFinal res: Point {:?}, val {y}", x);
 }
 
+#[cfg(any(feature = "bayesian"))]
 fn init_population() -> Vec<Vec<f64>> {
     let mut x_init: Vec<Vec<f64>> = Vec::with_capacity(INIT_ELEMENTS);
 
@@ -51,6 +54,7 @@ fn init_population() -> Vec<Vec<f64>> {
     x_init
 }
 
+#[cfg(any(feature = "bayesian"))]
 fn objective(x: &[f64]) -> f64 {
     let density = x[0];
     let n_step = 500;
@@ -78,6 +82,7 @@ fn objective(x: &[f64]) -> f64 {
     steps_tot as f64 / reps as f64
 }
 
+#[cfg(any(feature = "bayesian"))]
 fn get_points(_x: &[Vec<f64>]) -> Vec<Vec<f64>> {
     let mut rng = RNG.lock().unwrap();
 

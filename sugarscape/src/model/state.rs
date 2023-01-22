@@ -1,12 +1,10 @@
 use std::any::Any;
 
 use crate::model::eater::Eater;
-use crate::MAX_SUGAR;
 use core::fmt;
 use krabmaga::engine::fields::dense_number_grid_2d::DenseNumberGrid2D;
 use krabmaga::engine::fields::dense_object_grid_2d::DenseGrid2D;
 use krabmaga::engine::fields::field::Field;
-use krabmaga::engine::fields::grid_option::GridOption;
 use krabmaga::{
     engine::{location::Int2D, schedule::Schedule, state::State},
     rand::Rng,
@@ -111,22 +109,22 @@ impl State for Environment {
         let dim_div = (bottom_left_mid.0).pow(2);
         id = 0;
 
-        let DIMEN = bottom_left_mid.0 + bottom_left_mid.1;
-        let DIMEN_UP = up_right_mid.0 + up_right_mid.1;
-        let DIMEN_CORNER_UP = top_left_corner.1;
-        let DIMEN_CORNER_DOWN = bottom_right_corner.0;
+        let dimen = bottom_left_mid.0 + bottom_left_mid.1;
+        let dimen_up = up_right_mid.0 + up_right_mid.1;
+        let dimen_corner_up = top_left_corner.1;
+        let dimen_corner_down = bottom_right_corner.0;
 
         //Initializes the patches
         for i in 0..self.dim.0 {
             for j in 0..self.dim.1 {
-                let x = j - DIMEN / 2;
-                let x_up = j - DIMEN_UP / 2;
-                let x_corner_up = j - DIMEN_CORNER_UP;
+                let x = j - dimen / 2;
+                let x_up = j - dimen_up / 2;
+                let x_corner_up = j - dimen_corner_up;
                 let x_corner_down = j;
-                let y = DIMEN / 2 - i;
-                let y_up = DIMEN_UP / 2 - i;
+                let y = dimen / 2 - i;
+                let y_up = dimen_up / 2 - i;
                 let y_corner_up = i;
-                let y_corner_down = DIMEN_CORNER_DOWN - i;
+                let y_corner_down = dimen_corner_down - i;
 
                 let sumsq = x * x + y * y;
                 let sumsq_up = x_up * x_up + y_up * y_up;
