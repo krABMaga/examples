@@ -1,13 +1,11 @@
-use krabmaga::{
-    engine::{schedule::Schedule, state::State},
-    rand::Rng,
-    *,
-};
+use krabmaga::*;
 
+#[cfg(any(feature = "distributed_mpi"))]
+use krabmaga::{engine::schedule::Schedule, engine::state::State, rand::Rng};
 use rand::prelude::*;
 
-use model::state::EpidemicNetworkState;
-use std::cmp::Ordering::Equal;
+#[cfg(any(feature = "distributed_mpi"))]
+use {crate::model::state::EpidemicNetworkState, std::cmp::Ordering::Equal};
 mod model;
 
 // generic model parameters
@@ -42,8 +40,14 @@ lazy_static! {
 pub const STEP: u64 = 51; // 51 - 37
 pub const DAY: usize = 45; // 45 - 31
 
+#[cfg(not(any(feature = "distributed_mpi")))]
 fn main() {
-    let result = explore_ga_parallel!(
+    println!("No bayesian feature enabled");
+}
+
+#[cfg(any(feature = "distributed_mpi"))]
+fn main() {
+    let result = explore_ga_distributed_mpi!(
         init_population,
         fitness,
         selection,
@@ -63,7 +67,7 @@ fn main() {
         let _res = write_csv(&name, &result);
     }
 }
-
+#[cfg(any(feature = "distributed_mpi"))]
 fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
     let mut avg_results: Vec<f32> = vec![0.0; DAY];
 
@@ -88,11 +92,13 @@ fn fitness(computed_ind: &mut Vec<(EpidemicNetworkState, Schedule)>) -> f32 {
 // we want to minimize the fitness, therefore the comparison
 // return true, meaning that fitness1 is better than fitness2,
 // if fitness1 is lower than fitness 2
+#[cfg(any(feature = "distributed_mpi"))]
 fn cmp(fitness1: &f32, fitness2: &f32) -> bool {
     *fitness1 < *fitness2
 }
 
 // function that initialize the populatin
+#[cfg(any(feature = "distributed_mpi"))]
 fn init_population() -> Vec<String> {
     // create an array of EpidemicNetworkState
     let mut population = Vec::new();
@@ -111,6 +117,7 @@ fn init_population() -> Vec<String> {
     population
 }
 
+#[cfg(any(feature = "distributed_mpi"))]
 fn selection(population_fitness: &mut Vec<(String, f32)>) {
     let mut min_fitness = 1.;
     for individual_fitness in population_fitness.iter_mut() {
@@ -131,6 +138,7 @@ fn selection(population_fitness: &mut Vec<(String, f32)>) {
     population_fitness.sort_by(|s1, s2| s1.1.partial_cmp(&s2.1).unwrap_or(Equal));
 }
 
+#[cfg(any(feature = "distributed_mpi"))]
 fn crossover(population: &mut Vec<String>) {
     let mut children: Vec<String> = Vec::new();
 
@@ -294,6 +302,7 @@ fn crossover(population: &mut Vec<String>) {
     *population = children;
 }
 
+#[cfg(any(feature = "distributed_mpi"))]
 fn mutation(individual: &mut String) {
     let new_ind: String;
     let new_individual: Vec<&str> = individual.split(';').collect();

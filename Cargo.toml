@@ -7,7 +7,6 @@ members = [
     "forestfire",
     "forestfire_bayesian",
     "schelling",
-    "sir_bayesian",
     "sir_ga_exploration",
     "sugarscape",
     "template",
