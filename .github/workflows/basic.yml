@@ -10,81 +10,56 @@ jobs:
     steps:
       - uses: Swatinem/rust-cache@v2
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --release
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo check --release
 
   checkmpi:
     name: Check mpi examples
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2    
       - uses: mpi4py/setup-mpi@v1
         with:
           mpi: openmpi
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          path: |
-            ~/sir_ga_exploration
-          command: check
-          args: --release --features distributed_mpi
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo check --release --features distributed_mpi
 
   checkvis:
     name: Check visualization examples
     runs-on: ubuntu-latest
     steps:
-      - uses: Swatinem/rust-cache@v2
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --release --features visualization
+      - uses: Swatinem/rust-cache@v2
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo check --release --features visualization
 
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+          components: rustfmt
+      - run: cargo fmt --all -- --check
 
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - run: rustup component add clippy
-      - uses: actions-rs/cargo@v1
+          components: clippy
+      - run: cargo clippy
+
+  clippyvis:
+    name: Clippy visualization
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          command: clippy
-          args: --features bayesian
+          components: rustfmt
+      - run: cargo clippy --features "visualization, bayesian"
