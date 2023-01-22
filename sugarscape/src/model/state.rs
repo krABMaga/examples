@@ -12,6 +12,7 @@ use krabmaga::{
 use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Copy, Debug)]
+#[allow(dead_code)]
 pub struct Patch {
     pub id: u32,
     pub sugar_amount: u32,
@@ -19,7 +20,7 @@ pub struct Patch {
 }
 
 impl Patch {
-    pub fn new(id: u32, sugar_amount: u32, sugar_growback: u32) -> Self {
+    pub fn new(id: u32, sugar_amount: u32, _sugar_growback: u32) -> Self {
         Patch {
             id,
             sugar_amount,
@@ -107,7 +108,6 @@ impl State for Environment {
         let top_left_corner = (0, self.dim.1);
         let bottom_right_corner = (self.dim.0, 0);
         let dim_div = (bottom_left_mid.0).pow(2);
-        id = 0;
 
         let dimen = bottom_left_mid.0 + bottom_left_mid.1;
         let dimen_up = up_right_mid.0 + up_right_mid.1;

@@ -29,6 +29,7 @@ pub struct EpidemicNetworkState {
 }
 
 impl EpidemicNetworkState {
+    #[allow(dead_code)]
     pub fn new(
         spread: f32,
         recovery: f32,
@@ -54,6 +55,7 @@ impl EpidemicNetworkState {
     }
 
     // GA required new function to convert the string into parameters
+    #[allow(dead_code)]
     pub fn new_with_parameters(r: usize, parameters: &str) -> EpidemicNetworkState {
         let parameters_ind: Vec<&str> = parameters.split(';').collect();
         let spread = parameters_ind[0]

@@ -18,8 +18,7 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# krabmaga = "0.1.*"
-krabmaga = {git = "https://github.com/ddevin96/krABMaga"}
+krabmaga = {git = "https://github.com/krABMaga/krABMaga"}
 
 [features]
 visualization = ["krabmaga/visualization"]
