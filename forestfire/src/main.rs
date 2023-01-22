@@ -5,9 +5,7 @@ use crate::model::forest::Tree;
 mod model;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-use {
-    krabmaga::simulate
-};
+use krabmaga::simulate;
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

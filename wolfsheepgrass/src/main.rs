@@ -15,9 +15,7 @@ pub const MOMENTUM_PROBABILITY: f64 = 0.8;
 
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-use {
-    krabmaga::*
-};
+use krabmaga::*;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {

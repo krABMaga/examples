@@ -4,9 +4,7 @@ mod model;
 
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-use {
-    krabmaga::simulate
-};
+use krabmaga::simulate;
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

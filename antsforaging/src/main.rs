@@ -39,9 +39,7 @@ use {
 };
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-use {
-    krabmaga::simulate
-};
+use krabmaga::simulate;
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 pub mod visualization;

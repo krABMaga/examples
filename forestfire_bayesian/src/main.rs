@@ -5,12 +5,9 @@ use crate::model::forest::Tree;
 mod model;
 
 #[cfg(any(feature = "bayesian"))]
-use krabmaga::explore::bayesian::*;
+use krabmaga::{engine::schedule::Schedule, engine::state::State, explore::bayesian::*};
 
-use krabmaga::{
-    rand::prelude::*,
-    *,
-};
+use krabmaga::{rand::prelude::*, *};
 
 pub const ITERATIONS: usize = 10;
 pub const INIT_ELEMENTS: usize = 4;

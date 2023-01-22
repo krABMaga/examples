@@ -1,9 +1,7 @@
 extern crate krabmaga;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-use {
-    krabmaga::*
-};
+use krabmaga::*;
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

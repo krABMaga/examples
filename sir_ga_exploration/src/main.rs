@@ -1,7 +1,11 @@
 use krabmaga::*;
 
+#[cfg(any(feature = "distributed_mpi"))]
+use krabmaga::{engine::schedule::Schedule, engine::state::State, rand::Rng};
 use rand::prelude::*;
 
+#[cfg(any(feature = "distributed_mpi"))]
+use {crate::model::state::EpidemicNetworkState, std::cmp::Ordering::Equal};
 mod model;
 
 // generic model parameters
