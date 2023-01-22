@@ -3,11 +3,13 @@ on: [push, pull_request]
 name: Continuous integration
 
 jobs:
+
   checknormal:
     name: Check normal examples
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -22,10 +24,11 @@ jobs:
     name: Check mpi examples
     runs-on: ubuntu-latest
     steps:
+      - uses: Swatinem/rust-cache@v2    
       - uses: mpi4py/setup-mpi@v1
         with:
           mpi: openmpi
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -42,7 +45,8 @@ jobs:
     name: Check visualization examples
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -57,7 +61,7 @@ jobs:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -73,7 +77,7 @@ jobs:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
