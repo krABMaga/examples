@@ -6,6 +6,7 @@ members = [
     "flockers",
     "forestfire",
     "forestfire_bayesian",
+    "robotic_factory",
     "schelling",
     "sir_ga_exploration",
     "sugarscape",
