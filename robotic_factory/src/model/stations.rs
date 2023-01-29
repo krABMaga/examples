@@ -7,7 +7,7 @@ use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
 
-use crate::model::order::MaterialManagement;
+use crate::model::robot_factory::RobotFactory;
 use crate::model::robot_factory::{Robot, RobotFactory};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -46,7 +46,7 @@ impl Station {
         Station {
             id,
             location,
-            material_management: MaterialManagement::new(),
+            material_management: MaterialManagement::default(),
             station_type,
             finisher_information: FinisherInformation {
                 process_time: if is_delux_finisher { 7 } else { 4 },
@@ -141,5 +141,40 @@ impl Agent for Station {
                 }
             }
         }
+    }
+}
+
+//----------------OrderManagement----------------
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct MaterialManagement {
+    supply: u32,
+    products: u32,
+}
+
+impl MaterialManagement {
+    pub fn has_supply(&self) -> bool {
+        self.supply > 0
+    }
+    pub fn get_supply_count(&self) -> u32 {
+        self.supply
+    }
+    pub fn get_products_count(&self) -> u32 {
+        self.products
+    }
+    pub fn has_products(&self) -> bool {
+        self.products > 0
+    }
+
+    pub fn decrement_supply(&mut self) {
+        self.supply -= 1;
+    }
+    pub fn increment_products(&mut self) {
+        self.products += 1;
+    }
+    pub fn add_supply(&mut self, amount: u32) {
+        self.supply += amount;
+    }
+    pub fn add_products(&mut self, amount: u32) {
+        self.products += amount;
     }
 }
