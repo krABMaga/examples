@@ -1,62 +1,39 @@
-use krabmaga::{rand, Rng};
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-enum OrderState {
-    Ready,
-    Cut,
-    Stitched,
-    Finished,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub struct Order {
-    state: OrderState,
-    is_luxury: bool,
-}
-
-impl Order {
-    pub fn new() -> Order {
-        Order {
-            state: OrderState::Ready,
-            is_luxury: rand::thread_rng().gen_bool(0.03),
-        }
-    }
-}
-
 //----------------OrderManagement----------------
-#[derive(Clone)]
-pub struct OrderManagement {
-    orders: Vec<Order>,
-    products: Vec<Order>,
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct MaterialManagement {
+    supply: u32,
+    products: u32,
 }
 
-impl OrderManagement {
-    pub fn new() -> OrderManagement {
-        OrderManagement {
-            orders: vec![],
-            products: vec![],
+impl MaterialManagement {
+    pub fn new() -> MaterialManagement {
+        MaterialManagement {
+            supply: 0,
+            products: 0,
         }
     }
 
-    pub fn place_order(&mut self, order: Order) {
-        self.orders.push(order);
+    pub fn has_supply(&self) -> bool {
+        self.supply > 0
     }
-    pub fn has_next_order(&self) -> bool {
-        !self.orders.is_empty()
+    pub fn get_supply_count(&self) -> u32 {
+        self.supply
     }
-    pub fn queue_length(&self) -> usize {
-        self.orders.len()
+    pub fn get_products_count(&self) -> u32 {
+        self.products
     }
-    pub fn get_next_product(&mut self) -> Order {
-        self.products.pop().unwrap()
+    pub fn has_products(&self) -> bool {
+        self.products > 0
     }
-    pub fn has_next_product(&self) -> bool {
-        !self.products.is_empty()
+
+    pub fn decrement_supply(&mut self) {
+        self.supply -= 1;
     }
-    pub fn finish_next_order(&mut self) {
-        if self.has_next_order() {
-            let next = self.get_next_product();
-            self.products.push(next);
-        }
+    pub fn increment_products(&mut self) {
+        self.products += 1;
     }
+    pub fn add_supply(&mut self, amount: u32) {
+        self.supply += amount;
+    }
+    pub fn add_products(&mut self, amount: u32) { self.products += amount; }
 }

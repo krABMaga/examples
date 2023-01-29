@@ -1,178 +1,145 @@
+use std::fmt;
+use std::hash::{Hash, Hasher};
+
+use krabmaga::{rand, Rng};
 use krabmaga::engine::agent::Agent;
+use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
-use krabmaga::{rand, Rng};
 
-use crate::model::order::Order;
-use crate::model::order::OrderManagement;
+use crate::model::order::MaterialManagement;
+use crate::model::robot_factory::{Robot, RobotFactory};
 
-pub(crate) trait Station {
-    fn get_order_management(&mut self) -> &mut OrderManagement;
-    fn place_order(&mut self, order: Order) {
-        self.get_order_management().place_order(order)
-    }
-    fn get_next_product(&mut self) -> Order {
-        self.get_order_management().get_next_product()
-    }
-    fn has_next_product(&mut self) -> bool {
-        self.get_order_management().has_next_product()
-    }
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub enum StationType {
+    Sticher,
+    Cutter,
+    Finisher,
+    LoadingDock,
+    StorageRoom,
+    RobotRoom,
 }
 
-//----------------SticherStation----------------
-#[derive(Clone)]
-pub struct SticherStation {
-    order_management: OrderManagement,
-    location: Real2D,
-}
-
-impl SticherStation {
-    pub fn new(location: Real2D) -> SticherStation {
-        SticherStation {
-            order_management: OrderManagement::new(),
-            location,
-        }
-    }
-}
-
-impl Station for SticherStation {
-    fn get_order_management(&mut self) -> &mut OrderManagement {
-        &mut self.order_management
-    }
-}
-
-impl Agent for SticherStation {
-    fn step(&mut self, _state: &mut dyn State) {
-        self.order_management.finish_next_order();
-    }
-}
-
-//----------------CuttingStation----------------
-#[derive(Clone)]
-pub struct CuttingStation {
-    order_management: OrderManagement,
-    location: Real2D,
-}
-
-impl CuttingStation {
-    pub fn new(location: Real2D) -> CuttingStation {
-        CuttingStation {
-            order_management: OrderManagement::new(),
-            location,
-        }
-    }
-}
-
-impl Station for CuttingStation {
-    fn get_order_management(&mut self) -> &mut OrderManagement {
-        &mut self.order_management
-    }
-}
-
-impl Agent for CuttingStation {
-    fn step(&mut self, _state: &mut dyn State) {
-        self.order_management.finish_next_order();
-    }
-}
-
-//----------------Finisher----------------
-
-#[derive(Clone)]
-pub struct FinisherStation {
-    order_management: OrderManagement,
-    location: Real2D,
-    progress_time: u32,
+#[derive(Clone, Copy, Eq, PartialEq, Hash)]
+pub struct FinisherInformation {
     process_time: u32,
+    progress: u32,
+    is_delux: bool,
 }
 
-impl FinisherStation {
-    fn new(process_time: u32, location: Real2D) -> FinisherStation {
-        if process_time <= 0 {
-            panic!("process_time must be greater than 0");
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub struct Station {
+    id: u32,
+    location: Real2D,
+    material_management: MaterialManagement,
+    station_type: StationType,
+
+    finisher_information: FinisherInformation,
+}
+
+impl Station {
+    pub fn new(id: u32, location: Real2D, station_type: StationType, mut is_delux_finisher: bool) -> Station {
+        if station_type != StationType::Finisher {
+            is_delux_finisher = false;
         }
-        FinisherStation {
-            order_management: OrderManagement::new(),
+
+        Station {
+            id,
             location,
-            progress_time: 0,
-            process_time,
+            material_management: MaterialManagement::new(),
+            station_type,
+            finisher_information: FinisherInformation {
+                process_time: if is_delux_finisher { 7 } else { 4 },
+                progress: 0,
+                is_delux: is_delux_finisher,
+            },
+        }
+    }
+
+    pub fn get_station_type(&self) -> StationType {
+        self.station_type
+    }
+
+    pub fn try_convert_one_supply(&mut self) {
+        if self.material_management.has_supply() {
+            self.material_management.decrement_supply();
+            self.material_management.increment_products();
         }
     }
 }
 
-impl Station for FinisherStation {
-    fn get_order_management(&mut self) -> &mut OrderManagement {
-        &mut self.order_management
+impl Location2D<Real2D> for Station {
+    fn get_location(self) -> Real2D {
+        self.location
+    }
+
+    fn set_location(&mut self, loc: Real2D) {
+        self.location = loc;
     }
 }
 
-impl Agent for FinisherStation {
-    fn step(&mut self, _state: &mut dyn State) {
-        if self.order_management.has_next_order() {
-            if self.progress_time < self.process_time {
-                self.progress_time += 1;
-            } else {
-                self.order_management.finish_next_order();
-                self.progress_time = 0;
+impl Hash for Station {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
+
+impl fmt::Display for Station {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}({})", self.station_type, self.id)
+    }
+}
+
+impl Agent for Station {
+    fn step(&mut self, state: &mut dyn State) {
+        let state_mut = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
+
+        match self.station_type {
+            StationType::Sticher | StationType::Cutter => {
+                //make-garments (except for finish call)
+                self.try_convert_one_supply();
+            }
+            StationType::Finisher => {
+                // finish
+                if self.material_management.has_supply() {
+                    self.finisher_information.progress += 1;
+                    self.material_management.decrement_supply();
+                }
+
+                if self.finisher_information.progress >= self.finisher_information.process_time {
+                    self.finisher_information.progress = 0;
+                    self.material_management.increment_products();
+                }
+            }
+            StationType::LoadingDock => {
+                // deliver-more-material-sheets
+                if rand::thread_rng().gen_bool(0.03) && self.material_management.get_products_count() < 3 {
+                    self.material_management.add_products(rand::thread_rng().gen_range(0..10));
+                }
+
+                if rand::thread_rng().gen_bool(0.03) {
+                    for _ in 0..rand::thread_rng().gen_range(0..3) {
+                        state_mut.bump_required_orders(rand::thread_rng().gen_bool(0.5));
+                    }
+                }
+            }
+            StationType::StorageRoom => {}
+            StationType::RobotRoom => {
+                //recharge
+
+                let robots = state_mut.get_robots();
+
+                for mut robot in robots.iter() {
+                    let robot_loc = robot.borrow().get_location();
+                    let station_loc = self.get_location();
+
+                    let distance = (robot_loc.x - station_loc.x).powi(2) + (robot_loc.y - station_loc.y).powi(2);
+
+                    if distance <= 4.0 {
+                        robot.borrow().charge(5, state_mut);
+                    }
+                }
             }
         }
     }
-}
-
-//----------------LoadingDock----------------
-
-#[derive(Clone)]
-pub struct LoadingDock {
-    order_management: OrderManagement,
-    location: Real2D,
-}
-
-impl LoadingDock {
-    pub fn new(location: Real2D) -> LoadingDock {
-        LoadingDock {
-            order_management: OrderManagement::new(),
-            location,
-        }
-    }
-}
-
-impl Station for LoadingDock {
-    fn get_order_management(&mut self) -> &mut OrderManagement {
-        &mut self.order_management
-    }
-}
-
-impl Agent for LoadingDock {
-    fn step(&mut self, _state: &mut dyn State) {
-        if self.order_management.queue_length() < 3 && rand::thread_rng().gen_bool(0.03) {
-            self.order_management.place_order(Order::new());
-        }
-    }
-}
-
-//----------------Storage Room----------------
-
-#[derive(Clone)]
-pub struct StorageRoom {
-    pub finished_orders: u32,
-    location: Real2D,
-}
-
-impl StorageRoom {
-    pub fn new(location: Real2D) -> StorageRoom {
-        StorageRoom {
-            finished_orders: 0,
-            location,
-        }
-    }
-
-    pub fn close_order(&mut self) {
-        self.finished_orders += 1;
-    }
-}
-
-//----------------Robot Room---------------- aka charging station
-
-#[derive(Clone)]
-pub struct RobotRoom {
-    location: Real2D,
 }
