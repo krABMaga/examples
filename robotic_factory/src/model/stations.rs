@@ -7,8 +7,8 @@ use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
 
+use crate::model::robot::Robot;
 use crate::model::robot_factory::RobotFactory;
-use crate::model::robot_factory::{Robot, RobotFactory};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum StationType {
@@ -92,7 +92,7 @@ impl fmt::Display for Station {
 
 impl Agent for Station {
     fn step(&mut self, state: &mut dyn State) {
-        let state_mut = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
+        let state_typed = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
 
         match self.station_type {
             StationType::Sticher | StationType::Cutter => {
@@ -119,24 +119,23 @@ impl Agent for Station {
 
                 if rand::thread_rng().gen_bool(0.03) {
                     for _ in 0..rand::thread_rng().gen_range(0..3) {
-                        state_mut.bump_required_orders(rand::thread_rng().gen_bool(0.5));
+                        state_typed.bump_required_orders(rand::thread_rng().gen_bool(0.5));
                     }
                 }
             }
             StationType::StorageRoom => {}
             StationType::RobotRoom => {
                 //recharge
+                let robots: Vec<&Robot> = state_typed.get_robots();
 
-                let robots = state_mut.get_robots();
-
-                for mut robot in robots.iter() {
-                    let robot_loc = robot.borrow().get_location();
+                for robot in robots {
+                    let robot_loc = robot.get_location();
                     let station_loc = self.get_location();
 
                     let distance = (robot_loc.x - station_loc.x).powi(2) + (robot_loc.y - station_loc.y).powi(2);
 
                     if distance <= 4.0 {
-                        robot.borrow().charge(5, state_mut);
+                        state_typed.charge_robot(robot.get_id());
                     }
                 }
             }
