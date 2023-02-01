@@ -17,7 +17,7 @@ use crate::model::robot::{CarriedProduct, Robot};
 use crate::model::stations::*;
 
 pub struct RobotFactory {
-    robots: Vec<Robot>,
+    robots: Vec<RefCell<Robot>>,
     stations: Vec<Station>,
 
     robot_grid: Field2D<Robot>,
@@ -28,33 +28,11 @@ pub struct RobotFactory {
 }
 
 impl RobotFactory {
-    pub fn charge_robot(&mut self, robot_id: u32) {
-
-        for robot in self.robots.iter_mut() {
-            if robot.get_id() == robot_id {
-                robot.charge = min(robot.get_max_charge() as i32, robot.charge + 5);
-                robot.set_order(CarriedProduct::Nothing);
-
-                if rand::thread_rng().gen_bool(0.5) {
-                    robot.change_destination(self.get_random_station());
-                } else {
-                    robot.change_destination(self.get_random_station_with_type(StationType::LoadingDock));
-                }
-            }
-        }
-    }
-}
-
-impl RobotFactory {
-    pub fn get_robots_mut(&mut self) -> Vec<&mut Robot> {
-        self.robots.iter_mut().collect()
+    pub fn get_robots(&self) -> Vec<RefCell<Robot>> {
+        self.robots.clone()
     }
 
-    pub fn get_robots(&self) -> Vec<&Robot> {
-        self.robots.iter().collect()
-    }
-
-    pub fn get_robots_mut_with_ownership(&mut self) -> Vec<Robot> {
+    pub fn get_robots_mut_with_ownership(&mut self) -> Vec<RefCell<Robot>> {
         self.robots.clone()
     }
 
@@ -124,7 +102,7 @@ impl RobotFactory {
             schedule.schedule_repeating(Box::new(*station), 0.0, priority);
         }
         for robot in self.robots.iter() {
-            schedule.schedule_repeating(Box::new(*robot), 0.0, 3);
+            schedule.schedule_repeating(Box::new(*robot.borrow()), 0.0, 3);
         }
 
         schedule.schedule_repeating(Box::new(ShiftControl {}), 0.0, 6);
@@ -157,7 +135,7 @@ impl State for RobotFactory {
         //spawn 3 robots
         for _ in 0..3 {
             let robot = Robot::new((station_count + self.robots.len()) as u32, Real2D { x: 0.0, y: 0.0 }, self);
-            self.robots.push(robot);
+            self.robots.push(RefCell::new(robot));
             self.robot_grid.set_object_location(robot, robot.get_location());
         }
 

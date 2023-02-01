@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::fmt;
 use std::hash::{Hash, Hasher};
 
@@ -126,16 +127,17 @@ impl Agent for Station {
             StationType::StorageRoom => {}
             StationType::RobotRoom => {
                 //recharge
-                let robots: Vec<&Robot> = state_typed.get_robots();
+                let robots: Vec<RefCell<Robot>> = state_typed.get_robots();
 
                 for robot in robots {
+                    let mut robot = robot.borrow_mut();
                     let robot_loc = robot.get_location();
                     let station_loc = self.get_location();
 
                     let distance = (robot_loc.x - station_loc.x).powi(2) + (robot_loc.y - station_loc.y).powi(2);
 
                     if distance <= 4.0 {
-                        state_typed.charge_robot(robot.get_id());
+                        robot.charge(5, state_typed)
                     }
                 }
             }
