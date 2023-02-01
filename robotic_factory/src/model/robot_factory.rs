@@ -18,11 +18,10 @@ use crate::model::robot::{CarriedProduct, Robot};
 use crate::model::stations::*;
 
 pub struct RobotFactory {
-    robots: Vec<RefCell<Robot>>,
-    stations: Vec<Station>,
+    stations: Vec<Station>, //copy used for finding the locations of random stations
 
-    robot_grid: Field2D<Robot>,
-    station_grid: Field2D<Station>,
+    pub robot_grid: Field2D<Robot>,
+    pub station_grid: Field2D<Station>,
 
     pub standard_order_count: u32,
     pub luxury_order_count: u32,
@@ -31,21 +30,12 @@ pub struct RobotFactory {
 impl RobotFactory {
     pub fn new() -> RobotFactory {
         RobotFactory {
-            robots: vec![],
             stations: vec![],
-            robot_grid: Field2D::new(100.0, 10.0, 0.1, false),
-            station_grid: Field2D::new(100.0, 10.0, 0.1, false),
+            robot_grid: Field2D::new(100.0, 100.0, 0.1, false),
+            station_grid: Field2D::new(100.0, 100.0, 0.1, false),
             standard_order_count: 0,
             luxury_order_count: 0,
         }
-    }
-
-    pub fn get_robots(&self) -> Vec<RefCell<Robot>> {
-        self.robots.clone()
-    }
-
-    pub fn get_robots_mut_with_ownership(&mut self) -> Vec<RefCell<Robot>> {
-        self.robots.clone()
     }
 
     pub fn get_random_station(&self) -> (StationType, Real2D) {
@@ -116,9 +106,6 @@ impl RobotFactory {
             let priority = get_station_priority(station_type);
             schedule.schedule_repeating(Box::new(*station), 0.0, priority);
         }
-        for robot in self.robots.iter() {
-            schedule.schedule_repeating(Box::new(*robot.borrow()), 0.0, 3);
-        }
 
         schedule.schedule_repeating(Box::new(ShiftControl {}), 0.0, 6);
     }
@@ -148,10 +135,10 @@ impl State for RobotFactory {
         }
 
         //spawn 3 robots
-        for _ in 0..3 {
-            let robot = Robot::new((station_count + self.robots.len()) as u32, Real2D { x: 0.0, y: 0.0 }, self);
-            self.robots.push(RefCell::new(robot));
+        for i in 0..3 {
+            let robot = Robot::new((station_count + i) as u32, Real2D { x: 0.0, y: 0.0 }, self);
             self.robot_grid.set_object_location(robot, robot.get_location());
+            schedule.schedule_repeating(Box::new(robot), 0.0, 3);
         }
 
         self.do_initial_scheduling(schedule);
@@ -178,7 +165,6 @@ impl State for RobotFactory {
         self.luxury_order_count = 0;
 
         self.stations.clear();
-        self.robots.clear();
 
         self.station_grid = Field2D::new(100.0, 100.0, 0.01, false);
         self.station_grid = Field2D::new(100.0, 100.0, 0.01, false);

@@ -1,4 +1,5 @@
 use krabmaga::engine::fields::field_2d::Location2D;
+use krabmaga::engine::location::Real2D;
 use krabmaga::engine::schedule::Schedule;
 use krabmaga::engine::state::State;
 
@@ -16,17 +17,27 @@ fn main() {
     let mut schedule = Schedule::new();
 
     factory.init(&mut schedule);
+    factory.update(0);
 
-    let station = factory.get_random_station_with_type(StationType::RobotRoom);
 
-    let robots = factory.get_robots();
+    let robot_room_location = factory.get_random_station_with_type(StationType::RobotRoom);
 
-    factory.get_robots().iter_mut().for_each(|x| {
-        let mut robot = x.borrow_mut();
+    let neighbors = factory.robot_grid.get_neighbors_within_distance(robot_room_location.1, 2.0);
+
+    for mut neighbor_robot in neighbors {
+        neighbor_robot.charge(5, &factory);
+    }
+
+
+    factory.update(1);
+
+    let derp = factory.robot_grid.get_neighbors_within_distance( Real2D { x: 0.0, y: 0.0 },2.0);
+
+    for mut robot in derp {
         robot.charge(5, &factory);
-        println!("Robot {} has {} charge", robot.get_id(), robot.get_charge());
-    });
+    }
 
+    factory.update(2);
 
     print!("Done!")
 }

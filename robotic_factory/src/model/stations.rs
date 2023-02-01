@@ -127,18 +127,10 @@ impl Agent for Station {
             StationType::StorageRoom => {}
             StationType::RobotRoom => {
                 //recharge
-                let robots: Vec<RefCell<Robot>> = state_typed.get_robots();
+                let neighbors = state_typed.robot_grid.get_neighbors_within_distance(self.location, 2.0);
 
-                for robot in robots {
-                    let mut robot = robot.borrow_mut();
-                    let robot_loc = robot.get_location();
-                    let station_loc = self.get_location();
-
-                    let distance = (robot_loc.x - station_loc.x).powi(2) + (robot_loc.y - station_loc.y).powi(2);
-
-                    if distance <= 4.0 {
-                        robot.charge(5, state_typed)
-                    }
+                for mut neighbor_robot in neighbors {
+                    neighbor_robot.charge(5, state_typed);
                 }
             }
         }
