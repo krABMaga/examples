@@ -1,6 +1,7 @@
 use std::any::Any;
 use std::cell::RefCell;
 use std::cmp::min;
+use std::collections::HashMap;
 use std::hash::Hash;
 use std::panic::Location;
 
@@ -28,6 +29,17 @@ pub struct RobotFactory {
 }
 
 impl RobotFactory {
+    pub fn new() -> RobotFactory {
+        RobotFactory {
+            robots: vec![],
+            stations: vec![],
+            robot_grid: Field2D::new(100.0, 10.0, 0.1, false),
+            station_grid: Field2D::new(100.0, 10.0, 0.1, false),
+            standard_order_count: 0,
+            luxury_order_count: 0,
+        }
+    }
+
     pub fn get_robots(&self) -> Vec<RefCell<Robot>> {
         self.robots.clone()
     }
@@ -88,17 +100,20 @@ impl RobotFactory {
         //5. Loading Dock
         //6. Shift Control
 
-        let station_priority_map = [
-            (StationType::Cutter, 1),
-            (StationType::Sticher, 1),
-            (StationType::Finisher, 2),
-            (StationType::RobotRoom, 4),
-            (StationType::LoadingDock, 5)
-        ];
+        fn get_station_priority(station_type: StationType) -> i32 {
+            match station_type {
+                StationType::Cutter => 1,
+                StationType::Sticher => 1,
+                StationType::Finisher => 2,
+                StationType::RobotRoom => 4,
+                StationType::LoadingDock => 5,
+                _ => 0
+            }
+        }
 
         for station in self.stations.iter() {
             let station_type = station.get_station_type();
-            let priority = station_priority_map.iter().find(|x| x.0 == station_type).unwrap().1;
+            let priority = get_station_priority(station_type);
             schedule.schedule_repeating(Box::new(*station), 0.0, priority);
         }
         for robot in self.robots.iter() {
@@ -165,8 +180,8 @@ impl State for RobotFactory {
         self.stations.clear();
         self.robots.clear();
 
-        self.station_grid = Field2D::new(100.0, 100.0, 0.0000001, false);
-        self.station_grid = Field2D::new(100.0, 100.0, 0.0000001, false);
+        self.station_grid = Field2D::new(100.0, 100.0, 0.01, false);
+        self.station_grid = Field2D::new(100.0, 100.0, 0.01, false);
     }
 
     fn update(&mut self, step: u64) {

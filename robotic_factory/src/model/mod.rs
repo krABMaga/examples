@@ -1,3 +1,3 @@
-mod robot_factory;
-mod stations;
+pub(crate) mod robot_factory;
+pub(crate) mod stations;
 mod robot;
