@@ -8,7 +8,7 @@ use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
 
-use crate::model::robot::Robot;
+use crate::model::robot::{CarriedProduct, Robot};
 use crate::model::robot_factory::RobotFactory;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -25,14 +25,14 @@ pub enum StationType {
 pub struct FinisherInformation {
     process_time: u32,
     progress: u32,
-    is_delux: bool,
+    is_deluxe: bool,
 }
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub struct Station {
     id: u32,
     location: Real2D,
-    material_management: MaterialManagement,
+    pub material_management: MaterialManagement,
     station_type: StationType,
 
     finisher_information: FinisherInformation,
@@ -52,7 +52,7 @@ impl Station {
             finisher_information: FinisherInformation {
                 process_time: if is_delux_finisher { 7 } else { 4 },
                 progress: 0,
-                is_delux: is_delux_finisher,
+                is_deluxe: is_delux_finisher,
             },
         }
     }
@@ -66,6 +66,39 @@ impl Station {
             self.material_management.decrement_supply();
             self.material_management.increment_products();
         }
+    }
+
+    pub fn take_product(&mut self, robot_factory: &mut RobotFactory) -> CarriedProduct {
+        if !self.has_product_available() {
+            panic!("No product available");
+        }
+
+        self.material_management.decrement_products();
+        match self.station_type {
+            StationType::LoadingDock => CarriedProduct::Bolts,
+            StationType::Cutter => CarriedProduct::Cuttings,
+            StationType::Sticher => {
+                let order: Option<bool> = robot_factory.retrieve_order();
+                //the implementation defaults to creating a deluxe garment if no order is available
+                if order.is_none() || (order.is_some() && order.unwrap()) {
+                    CarriedProduct::StichedDeluxe
+                } else {
+                    CarriedProduct::StichedStandard
+                }
+            }
+            StationType::Finisher => {
+                if self.finisher_information.is_deluxe {
+                    CarriedProduct::FinishedDeluxe
+                } else {
+                    CarriedProduct::FinishedStandard
+                }
+            }
+            _ => panic!("Wrong station type"),
+        }
+    }
+
+    pub fn has_product_available(&self) -> bool {
+        self.material_management.get_products_count() > 0
     }
 }
 
@@ -144,6 +177,7 @@ pub struct MaterialManagement {
     products: u32,
 }
 
+
 impl MaterialManagement {
     pub fn has_supply(&self) -> bool {
         self.supply > 0
@@ -158,12 +192,15 @@ impl MaterialManagement {
         self.products > 0
     }
 
+    pub fn increment_supply(&mut self) { self.supply += 1; }
     pub fn decrement_supply(&mut self) {
         self.supply -= 1;
     }
     pub fn increment_products(&mut self) {
         self.products += 1;
     }
+    pub fn decrement_products(&mut self) { self.products -= 1; }
+
     pub fn add_supply(&mut self, amount: u32) {
         self.supply += amount;
     }

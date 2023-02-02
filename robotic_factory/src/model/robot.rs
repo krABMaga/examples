@@ -2,11 +2,12 @@ use std::cmp::min;
 use std::fmt;
 use std::hash::Hash;
 
-use krabmaga::{rand, Rng};
+use krabmaga::{rand, Rng, thread_rng};
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
+use krabmaga::rand::seq::IteratorRandom;
 
 use crate::model::robot_factory::RobotFactory;
 use crate::model::stations::{Station, StationType};
@@ -17,10 +18,23 @@ pub enum CarriedProduct {
     Nothing,
     Bolts,
     Cuttings,
-    Standard,
-    Deluxe,
+    StichedStandard,
+    StichedDeluxe,
+    FinishedStandard,
+    FinishedDeluxe,
 }
 
+impl CarriedProduct {
+    fn get_destination_type_of_product(&mut self) -> StationType {
+        match self {
+            CarriedProduct::Nothing => StationType::LoadingDock,
+            CarriedProduct::Bolts => StationType::Cutter,
+            CarriedProduct::Cuttings => StationType::Sticher,
+            CarriedProduct::StichedStandard | CarriedProduct::StichedDeluxe => StationType::Finisher,
+            CarriedProduct::FinishedStandard | CarriedProduct::FinishedDeluxe => StationType::LoadingDock,
+        }
+    }
+}
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Robot {
@@ -32,6 +46,7 @@ pub struct Robot {
     destination_type: StationType,
     order: CarriedProduct,
 }
+
 
 impl Robot {
     pub fn change_destination(&mut self, target: (StationType, Real2D)) {
@@ -118,27 +133,100 @@ impl Robot {
     }
 
 
-    fn move_step_towards_destination(&mut self, _state: &RobotFactory) {
+    fn move_step_towards_destination(&mut self, state: &RobotFactory) {
         let x = self.location.x;
         let y = self.location.y;
+        //get direction vector
         let mut dx = self.destination.x - x;
         let mut dy = self.destination.y - y;
+
+        //get length of direction vector
+
+        //ensure max step disatance is 1 by normalization
         let distance = (dx * dx + dy * dy).sqrt();
+        if distance > 1.0 {
+            dx /= distance;
+            dy /= distance;
+        }
 
-        //normalize movement vector
-        dx /= distance;
-        dy /= distance;
+        //apply direction vector to current position
+        self.location = Real2D { x: x + dx, y: y + dy };
+        state.robot_grid.set_object_location(*self, self.location);
 
-        let _new_position = Real2D {
-            x: x + dx,
-            y: y + dy,
-        };
-        //state.move_robot(self, new_position);
+        if self.order == CarriedProduct::Nothing {
+            self.charge -= 1;
+        } else {
+            self.charge -= 2;
+        }
+    }
+
+    fn is_at_destination(&self, state: &RobotFactory) -> bool {
+        let x = self.location.x;
+        let y = self.location.y;
+        //get direction vector
+        let mut dx = self.destination.x - x;
+        let mut dy = self.destination.y - y;
+
+        let distance_sq = (dx * dx + dy * dy);
+        return distance_sq < 0.01;
+    }
+
+    fn renew_destination(&mut self, state: &RobotFactory) {
+        self.destination_type = self.order.get_destination_type_of_product();
+        self.change_destination(state.get_random_station_with_type(self.destination_type));
+    }
+
+    fn drop_off_product(&mut self, station: &mut Station) {
+        self.order = CarriedProduct::Nothing;
+        station.material_management.increment_supply();
     }
 }
 
 impl Agent for Robot {
     fn step(&mut self, state: &mut dyn State) {
-        let robot_factory = state.as_any().downcast_ref::<RobotFactory>().unwrap();
+        //Set robot destination
+
+        let mut robot_factory = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
+
+        if !self.is_at_destination(robot_factory) {
+            self.move_step_towards_destination(robot_factory);
+        } else {
+            let mut neighbor_stations = robot_factory.station_grid.get_neighbors_within_distance(self.location, 0.01);
+            let mut station = neighbor_stations.iter_mut()
+                .filter(|station| station.get_station_type() == self.destination_type)
+                .choose(&mut rand::thread_rng()).unwrap();
+
+            match self.destination_type {
+                StationType::LoadingDock => {
+                    if station.has_product_available() {
+                        self.order = station.take_product(&mut robot_factory);
+                        self.renew_destination(robot_factory);
+                    }
+                }
+                StationType::Sticher | StationType::Cutter | StationType::Finisher => {
+                    self.drop_off_product(&mut station);
+                    if station.has_product_available() { //todo: this should check all stations around the robot
+                        self.order = station.take_product(&mut robot_factory);
+                        self.renew_destination(robot_factory);
+                    } else {
+                        self.change_destination(robot_factory.get_random_station_with_type(StationType::LoadingDock));
+                    }
+                }
+                StationType::StorageRoom => {
+                    self.drop_off_product(&mut station);
+                    self.order = station.take_product(&mut robot_factory); //storage room returns CarriedProduct::Nothing
+                    self.renew_destination(robot_factory);
+                }
+                StationType::RobotRoom => {
+                    //nothing to-do here
+                }
+            }
+        }
+
+        //return-home
+        if self.charge < 2 {
+            let loading_station = robot_factory.get_random_station_with_type(StationType::LoadingDock);
+            self.change_destination(loading_station);
+        }
     }
 }
