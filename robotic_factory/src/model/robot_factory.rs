@@ -53,6 +53,10 @@ impl RobotFactory {
         return (station.get_station_type(), station.get_location());
     }
 
+    pub fn get_robots(&mut self) -> Vec<Robot> {
+        self.robot_grid.get_neighbors_within_relax_distance(Real2D { x: 0.0, y: 0.0 }, 100.0)
+    }
+
     /// Picks a random order, deletes it and returns whether it was a luxury order or not.
     ///
     /// _Returns_: None if there are no orders Else returns Some(true) if it was a luxury order
@@ -181,14 +185,16 @@ struct ShiftControl {}
 
 impl Agent for ShiftControl {
     fn step(&mut self, state: &mut dyn State) {
-        // if rand::thread_rng().gen_bool(0.02) {
-        //     let mut factory = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
-        //     factory.get_robots_mut()
-        //         .choose_multiple(&mut rand::thread_rng(), 3)
-        //         .for_each(|mut robot| {
-        //             let random_loading_dock = factory.get_random_station_with_type(StationType::LoadingDock);
-        //             robot.change_destination(random_loading_dock);
-        //         });
-        // }
+        if rand::thread_rng().gen_bool(0.02) {
+            let mut factory = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
+
+            let mut robots = factory.get_robots();
+            let mut robots_to_reschedule = robots.iter_mut().choose_multiple(&mut rand::thread_rng(), 3);
+
+            for mut robot in robots_to_reschedule {
+                let loading_dock = factory.get_random_station_with_type(StationType::LoadingDock);
+                robot.change_destination(loading_dock);
+            }
+        }
     }
 }
