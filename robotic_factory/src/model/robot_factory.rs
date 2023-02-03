@@ -64,6 +64,7 @@ impl RobotFactory {
         let mut found = HashSet::new();
         let mut reduced_robots = vec![];
 
+        //find unique robots  by id (alternatively, one could use HashSet::from_iter, which is probably slower)
         for robot in too_many_robots {
             if found.contains(&robot.get_id()) {
                 continue;
@@ -75,24 +76,28 @@ impl RobotFactory {
                 }
             }
         }
-        reduced_robots
+        reduced_robots.into_iter().collect()
     }
 
-    pub fn get_stations(&self) -> Vec<Station> {
-        let mut stations = vec![];
+    pub fn get_stations(&self) -> HashSet<Station> {
+        let mut stations = HashSet::new();
         for station_location in &self.station_locations {
-            let mut station = self.station_grid.get_objects(station_location.location);
-            stations.append(&mut station);
+            let mut stations_at_location = self.station_grid.get_objects(station_location.location);
+            for s in stations_at_location {
+                stations.insert(s);
+            }
         }
         stations
     }
 
-    pub fn get_stations_of_type(&self, station_type: StationType) -> Vec<Station> {
-        let mut stations = vec![];
+    pub fn get_stations_of_type(&self, station_type: StationType) -> HashSet<Station> {
+        let mut stations = HashSet::new();
         for station_location in &self.station_locations {
             if station_location.station_type == station_type {
-                let mut station = self.station_grid.get_objects(station_location.location);
-                stations.append(&mut station);
+                let mut stations_at_location = self.station_grid.get_objects(station_location.location);
+                for s in stations_at_location {
+                    stations.insert(s);
+                }
             }
         }
         stations
@@ -226,5 +231,109 @@ impl Agent for ShiftControl {
                 robot.change_destination(loading_dock);
             }
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use krabmaga::thread_rng;
+
+    use super::*;
+
+    #[test]
+    fn test_get_robots_count() {
+        let mut factory = RobotFactory::new();
+        let mut schedule = Schedule::new();
+
+        factory.init(&mut schedule);
+        factory.update(0);
+
+        let mut robots = factory.get_robots();
+        assert_eq!(robots.len(), ROBOT_COUNT);
+    }
+
+    #[test]
+    fn test_get_stations_count() {
+        let mut factory = RobotFactory::new();
+        let mut schedule = Schedule::new();
+
+        factory.init(&mut schedule);
+        factory.update(0);
+
+        let mut stations = factory.get_stations();
+        assert_eq!(factory.station_locations.len(), stations.len());
+    }
+
+    #[test]
+    fn places_and_retrieves_standard_order() {
+        let mut factory = RobotFactory::new();
+
+        factory.bump_required_orders(false);
+
+        assert_eq!(factory.standard_order_count, 1);
+        assert_eq!(factory.luxury_order_count, 0);
+
+        let order = factory.retrieve_order();
+
+        assert_eq!(order.is_some(), true);
+        assert_eq!(order.unwrap(), false);
+        assert_eq!(factory.standard_order_count, 0);
+        assert_eq!(factory.luxury_order_count, 0);
+    }
+
+    #[test]
+    fn places_and_retrieves_luxury_order() {
+        let mut factory = RobotFactory::new();
+
+        factory.bump_required_orders(true);
+
+        assert_eq!(factory.standard_order_count, 0);
+        assert_eq!(factory.luxury_order_count, 1);
+
+        let order = factory.retrieve_order();
+
+        assert_eq!(order.is_some(), true);
+        assert_eq!(order.unwrap(), true);
+        assert_eq!(factory.standard_order_count, 0);
+        assert_eq!(factory.luxury_order_count, 0);
+    }
+
+    #[test]
+    fn correctly_retrieves_order_type() {
+        let mut factory = RobotFactory::new();
+
+        let total_orders = 100;
+        let deluxe_chance = 0.3;
+
+        for _ in 0..total_orders {
+            factory.bump_required_orders(thread_rng().gen_bool(deluxe_chance))
+        }
+
+        assert_eq!(factory.standard_order_count + factory.luxury_order_count, total_orders);
+
+        let mut luxury_count = 0;
+        let mut standard_count = 0;
+
+        for _ in 0..5000000 {
+            let order = factory.retrieve_order();
+            if order.is_some() {
+                if order.unwrap() {
+                    luxury_count += 1;
+                } else {
+                    standard_count += 1;
+                }
+                factory.bump_required_orders(order.unwrap());
+            }
+        }
+
+        let luxury_ratio = luxury_count as f64 / (luxury_count + standard_count) as f64;
+        let standard_ratio = standard_count as f64 / (luxury_count + standard_count) as f64;
+
+        println!("Luxury ratio: {}", luxury_ratio);
+        println!("Standard ratio: {}", standard_ratio);
+
+        assert!((luxury_ratio - deluxe_chance).abs() < 0.1);
+        assert!((standard_ratio - (1.0 - deluxe_chance)).abs() < 0.1);
     }
 }
