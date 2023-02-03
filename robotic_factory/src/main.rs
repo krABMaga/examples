@@ -9,6 +9,19 @@ use model::stations::*;
 mod model;
 mod visualization;
 
+
+pub const ROBOT_COUNT: usize = 3;
+pub const JUST_IN_TIME_CHARGE: u32 = 50;
+
+pub const CHARGE_PER_STEP: u32 = 5;
+pub const MAX_CHARGE: u32 = 350;
+pub const INITIAL_CHARGE: i32 = 100;
+pub const ENERGY_COST_PER_STEP: i32 = 1;
+pub const ENERGY_COST_PER_STEP_WHILE_CARRYING: i32 = 2;
+
+pub const FACTORY_WIDTH: f32 = 100.0;
+pub const FACTORY_HEIGHT: f32 = 100.0;
+
 fn main() {
     println!("Hello, world!");
 
@@ -31,7 +44,7 @@ fn main() {
 
     factory.update(1);
 
-    let derp = factory.robot_grid.get_neighbors_within_distance( Real2D { x: 0.0, y: 0.0 },2.0);
+    let derp = factory.robot_grid.get_neighbors_within_distance(Real2D { x: 0.0, y: 0.0 }, 2.0);
 
     for mut robot in derp {
         robot.charge(5, &factory);

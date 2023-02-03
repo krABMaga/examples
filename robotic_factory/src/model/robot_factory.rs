@@ -1,6 +1,7 @@
 use std::any::Any;
 use std::cell::RefCell;
-use std::cmp::min;
+use std::cmp;
+use std::cmp::{max, min};
 use std::collections::HashSet;
 use std::panic::Location;
 
@@ -13,6 +14,7 @@ use krabmaga::engine::schedule::Schedule;
 use krabmaga::engine::state::State;
 use krabmaga::rand::seq::{IteratorRandom, SliceRandom};
 
+use crate::{FACTORY_HEIGHT, FACTORY_WIDTH, ROBOT_COUNT};
 use crate::model::robot::{CarriedProduct, Robot};
 use crate::model::stations::*;
 
@@ -28,16 +30,16 @@ pub struct RobotFactory {
     pub robot_grid: Field2D<Robot>,
     pub station_grid: Field2D<Station>,
 
-    pub standard_order_count: u32,
-    pub luxury_order_count: u32,
+    standard_order_count: u32,
+    luxury_order_count: u32,
 }
 
 impl RobotFactory {
     pub fn new() -> RobotFactory {
         RobotFactory {
             station_locations: vec![],
-            robot_grid: Field2D::new(100.0, 100.0, 0.1, false),
-            station_grid: Field2D::new(100.0, 100.0, 0.1, false),
+            robot_grid: Field2D::new(FACTORY_WIDTH, FACTORY_HEIGHT, 0.1, false),
+            station_grid: Field2D::new(FACTORY_WIDTH, FACTORY_HEIGHT, 0.1, false),
             standard_order_count: 0,
             luxury_order_count: 0,
         }
@@ -57,7 +59,7 @@ impl RobotFactory {
     }
 
     pub fn get_robots(&mut self) -> Vec<Robot> {
-        let mut too_many_robots = self.robot_grid.get_neighbors_within_distance(Real2D { x: 0.0, y: 0.0 }, 100.0); //todo: replace with field size
+        let mut too_many_robots = self.robot_grid.get_neighbors_within_distance(Real2D { x: 0.0, y: 0.0 }, f32::max(FACTORY_WIDTH, FACTORY_HEIGHT));
 
         let mut found = HashSet::new();
         let mut reduced_robots = vec![];
@@ -68,7 +70,7 @@ impl RobotFactory {
             } else {
                 found.insert(robot.get_id());
                 reduced_robots.push(robot);
-                if reduced_robots.len() == 3 {//todo: replace with max robot size
+                if reduced_robots.len() == ROBOT_COUNT {
                     break;
                 }
             }
@@ -167,7 +169,7 @@ impl State for RobotFactory {
         }
 
         //spawn 3 robots
-        for i in 0..3 {
+        for i in 0..ROBOT_COUNT {
             let robot = Robot::new((station_count + i) as u32, Real2D { x: 0.0, y: 0.0 }, self);
             self.robot_grid.set_object_location(robot, robot.get_location());
             schedule.schedule_repeating(Box::new(robot), 0.0, 3);
@@ -198,8 +200,8 @@ impl State for RobotFactory {
 
         self.station_locations.clear();
 
-        self.station_grid = Field2D::new(100.0, 100.0, 0.01, false);
-        self.station_grid = Field2D::new(100.0, 100.0, 0.01, false);
+        self.robot_grid = Field2D::new(FACTORY_WIDTH, FACTORY_HEIGHT, 0.1, false);
+        self.station_grid = Field2D::new(FACTORY_WIDTH, FACTORY_HEIGHT, 0.1, false);
     }
 
     fn update(&mut self, step: u64) {

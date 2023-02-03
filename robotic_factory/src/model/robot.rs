@@ -8,6 +8,7 @@ use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
 use krabmaga::rand::seq::IteratorRandom;
+use crate::{ENERGY_COST_PER_STEP, ENERGY_COST_PER_STEP_WHILE_CARRYING, INITIAL_CHARGE, MAX_CHARGE};
 
 use crate::model::robot_factory::{RobotFactory, StationLocation};
 use crate::model::stations::{Station, StationType};
@@ -99,13 +100,12 @@ impl fmt::Display for Robot {
 
 impl Robot {
     pub fn new(id: u32, location: Real2D, state: &dyn State) -> Robot {
-        let default_max_charge = 350;
         let robot_factory = state.as_any().downcast_ref::<RobotFactory>().unwrap();
         let initial_destination = robot_factory.get_random_station_location_with_type(StationType::LoadingDock).location;
         Robot {
             id,
-            max_charge: default_max_charge,
-            charge: default_max_charge as i32,
+            max_charge: MAX_CHARGE,
+            charge: INITIAL_CHARGE,
             location,
             destination: initial_destination,
             destination_type: StationType::LoadingDock,
@@ -154,9 +154,9 @@ impl Robot {
         state.robot_grid.set_object_location(*self, self.location);
 
         if self.order == CarriedProduct::Nothing {
-            self.charge -= 1;
+            self.charge -= ENERGY_COST_PER_STEP;
         } else {
-            self.charge -= 2;
+            self.charge -= ENERGY_COST_PER_STEP_WHILE_CARRYING;
         }
     }
 

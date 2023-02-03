@@ -7,6 +7,7 @@ use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
+use crate::CHARGE_PER_STEP;
 
 use crate::model::robot::{CarriedProduct, Robot};
 use crate::model::robot_factory::RobotFactory;
@@ -163,7 +164,7 @@ impl Agent for Station {
                 let neighbors = state_typed.robot_grid.get_neighbors_within_distance(self.location, 2.0);
 
                 for mut neighbor_robot in neighbors {
-                    neighbor_robot.charge(5, state_typed);
+                    neighbor_robot.charge(CHARGE_PER_STEP, state_typed);
                 }
 
                 let loading_docks = state_typed.get_stations_of_type(StationType::LoadingDock);
