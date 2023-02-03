@@ -114,7 +114,7 @@ impl Robot {
     }
 
     pub fn charge(&mut self, amount: u32, state: &RobotFactory) {
-        self.charge = min(self.max_charge as i32, self.charge - amount as i32);
+        self.charge = min(self.max_charge as i32, self.charge + amount as i32);
         self.order = CarriedProduct::Nothing;
 
         if self.is_fully_charged() {
