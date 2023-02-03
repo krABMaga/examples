@@ -20,9 +20,9 @@ fn main() {
     factory.update(0);
 
 
-    let robot_room_location = factory.get_random_station_with_type(StationType::RobotRoom);
+    let robot_room_location = factory.get_random_station_location_with_type(StationType::RobotRoom);
 
-    let neighbors = factory.robot_grid.get_neighbors_within_distance(robot_room_location.1, 2.0);
+    let neighbors = factory.robot_grid.get_neighbors_within_distance(robot_room_location.location, 2.0);
 
     for mut neighbor_robot in neighbors {
         neighbor_robot.charge(5, &factory);
@@ -38,6 +38,8 @@ fn main() {
     }
 
     factory.update(2);
+
+    let robots = factory.get_robots();
 
     print!("Done!")
 }

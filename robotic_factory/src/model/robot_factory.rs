@@ -1,8 +1,7 @@
 use std::any::Any;
 use std::cell::RefCell;
 use std::cmp::min;
-use std::collections::HashMap;
-use std::hash::Hash;
+use std::collections::HashSet;
 use std::panic::Location;
 
 use krabmaga::{rand, Rng};
@@ -17,8 +16,14 @@ use krabmaga::rand::seq::{IteratorRandom, SliceRandom};
 use crate::model::robot::{CarriedProduct, Robot};
 use crate::model::stations::*;
 
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct StationLocation {
+    pub station_type: StationType,
+    pub location: Real2D,
+}
+
 pub struct RobotFactory {
-    stations: Vec<Station>, //copy used for finding the locations of random stations
+    station_locations: Vec<StationLocation>, //holds the location information of all stations
 
     pub robot_grid: Field2D<Robot>,
     pub station_grid: Field2D<Station>,
@@ -30,7 +35,7 @@ pub struct RobotFactory {
 impl RobotFactory {
     pub fn new() -> RobotFactory {
         RobotFactory {
-            stations: vec![],
+            station_locations: vec![],
             robot_grid: Field2D::new(100.0, 100.0, 0.1, false),
             station_grid: Field2D::new(100.0, 100.0, 0.1, false),
             standard_order_count: 0,
@@ -38,23 +43,57 @@ impl RobotFactory {
         }
     }
 
-    pub fn get_random_station(&self) -> (StationType, Real2D) {
-        let station = self.stations.choose(&mut rand::thread_rng()).unwrap();
-        return (station.get_station_type(), station.get_location());
+    pub fn get_random_station_location(&self) -> StationLocation {
+        self.station_locations.choose(&mut rand::thread_rng()).unwrap().clone()
     }
 
-    pub fn get_stations_of_type(&self, station_type: StationType) -> Vec<&Station> {
-        self.stations.iter().filter(|x| { x.get_station_type() == station_type }).collect()
+    pub fn get_locations_of(&self, station_type: StationType) -> Vec<StationLocation> {
+        self.station_locations.iter().filter(|station| station.station_type == station_type).map(|station| station.clone()).collect()
     }
 
-    pub fn get_random_station_with_type(&self, destination_type: StationType) -> (StationType, Real2D) {
-        let binding = self.get_stations_of_type(destination_type);
-        let station = binding.choose(&mut rand::thread_rng()).unwrap();
-        return (station.get_station_type(), station.get_location());
+    pub fn get_random_station_location_with_type(&self, destination_type: StationType) -> StationLocation {
+        let binding = self.get_locations_of(destination_type);
+        binding.choose(&mut rand::thread_rng()).unwrap().clone()
     }
 
     pub fn get_robots(&mut self) -> Vec<Robot> {
-        self.robot_grid.get_neighbors_within_relax_distance(Real2D { x: 0.0, y: 0.0 }, 100.0)
+        let mut too_many_robots = self.robot_grid.get_neighbors_within_distance(Real2D { x: 0.0, y: 0.0 }, 100.0); //todo: replace with field size
+
+        let mut found = HashSet::new();
+        let mut reduced_robots = vec![];
+
+        for robot in too_many_robots {
+            if found.contains(&robot.get_id()) {
+                continue;
+            } else {
+                found.insert(robot.get_id());
+                reduced_robots.push(robot);
+                if reduced_robots.len() == 3 {//todo: replace with max robot size
+                    break;
+                }
+            }
+        }
+        reduced_robots
+    }
+
+    pub fn get_stations(&self) -> Vec<Station> {
+        let mut stations = vec![];
+        for station_location in &self.station_locations {
+            let mut station = self.station_grid.get_objects(station_location.location);
+            stations.append(&mut station);
+        }
+        stations
+    }
+
+    pub fn get_stations_of_type(&self, station_type: StationType) -> Vec<Station> {
+        let mut stations = vec![];
+        for station_location in &self.station_locations {
+            if station_location.station_type == station_type {
+                let mut station = self.station_grid.get_objects(station_location.location);
+                stations.append(&mut station);
+            }
+        }
+        stations
     }
 
     /// Picks a random order, deletes it and returns whether it was a luxury order or not.
@@ -84,8 +123,10 @@ impl RobotFactory {
             self.standard_order_count += 1;
         }
     }
+}
 
-    pub fn do_initial_scheduling(&mut self, schedule: &mut Schedule) {
+impl State for RobotFactory {
+    fn init(&mut self, schedule: &mut Schedule) {
         //scheduling order is
         //1. Cutters and Stitchers
         //2. Finishers
@@ -93,7 +134,6 @@ impl RobotFactory {
         //4. Robot Room
         //5. Loading Dock
         //6. Shift Control
-
         fn get_station_priority(station_type: StationType) -> i32 {
             match station_type {
                 StationType::Cutter => 1,
@@ -105,19 +145,6 @@ impl RobotFactory {
             }
         }
 
-        for station in self.stations.iter() {
-            let station_type = station.get_station_type();
-            let priority = get_station_priority(station_type);
-            schedule.schedule_repeating(Box::new(*station), 0.0, priority);
-        }
-
-        schedule.schedule_repeating(Box::new(ShiftControl {}), 0.0, 6);
-    }
-}
-
-
-impl State for RobotFactory {
-    fn init(&mut self, schedule: &mut Schedule) {
         let mut stations: Vec<Station> = Vec::new();
 
         //spawn 1 loading dock, 2 stichers, 2 cutters, 2 finishers, 1 storage room, 1 robot room
@@ -134,8 +161,9 @@ impl State for RobotFactory {
         let station_count = stations.len();
 
         for station in stations {
-            self.stations.push(station);
+            self.station_locations.push(StationLocation { location: station.get_location(), station_type: station.get_station_type() });
             self.station_grid.set_object_location(station, station.get_location());
+            schedule.schedule_repeating(Box::new(station), 0.0, get_station_priority(station.get_station_type()));
         }
 
         //spawn 3 robots
@@ -145,7 +173,7 @@ impl State for RobotFactory {
             schedule.schedule_repeating(Box::new(robot), 0.0, 3);
         }
 
-        self.do_initial_scheduling(schedule);
+        schedule.schedule_repeating(Box::new(ShiftControl {}), 0.0, 6);
     }
 
     fn as_any_mut(&mut self) -> &mut dyn Any {
@@ -168,7 +196,7 @@ impl State for RobotFactory {
         self.standard_order_count = 0;
         self.luxury_order_count = 0;
 
-        self.stations.clear();
+        self.station_locations.clear();
 
         self.station_grid = Field2D::new(100.0, 100.0, 0.01, false);
         self.station_grid = Field2D::new(100.0, 100.0, 0.01, false);
@@ -192,7 +220,7 @@ impl Agent for ShiftControl {
             let mut robots_to_reschedule = robots.iter_mut().choose_multiple(&mut rand::thread_rng(), 3);
 
             for mut robot in robots_to_reschedule {
-                let loading_dock = factory.get_random_station_with_type(StationType::LoadingDock);
+                let loading_dock = factory.get_random_station_location_with_type(StationType::LoadingDock);
                 robot.change_destination(loading_dock);
             }
         }

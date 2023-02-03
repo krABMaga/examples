@@ -9,7 +9,7 @@ use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
 use krabmaga::rand::seq::IteratorRandom;
 
-use crate::model::robot_factory::RobotFactory;
+use crate::model::robot_factory::{RobotFactory, StationLocation};
 use crate::model::stations::{Station, StationType};
 
 //----------------Robot----------------
@@ -49,9 +49,9 @@ pub struct Robot {
 
 
 impl Robot {
-    pub fn change_destination(&mut self, target: (StationType, Real2D)) {
-        self.destination = target.1;
-        self.destination_type = target.0;
+    pub fn change_destination(&mut self, target: StationLocation) {
+        self.destination = target.location;
+        self.destination_type = target.station_type;
     }
 
     pub fn get_charge(&self) -> i32 {
@@ -101,7 +101,7 @@ impl Robot {
     pub fn new(id: u32, location: Real2D, state: &dyn State) -> Robot {
         let default_max_charge = 350;
         let robot_factory = state.as_any().downcast_ref::<RobotFactory>().unwrap();
-        let initial_destination = robot_factory.get_random_station_with_type(StationType::LoadingDock).1;
+        let initial_destination = robot_factory.get_random_station_location_with_type(StationType::LoadingDock).location;
         Robot {
             id,
             max_charge: default_max_charge,
@@ -119,9 +119,9 @@ impl Robot {
 
         if self.is_fully_charged() {
             if rand::thread_rng().gen_bool(0.5) {
-                self.change_destination(state.get_random_station());
+                self.change_destination(state.get_random_station_location());
             } else {
-                self.change_destination(state.get_random_station_with_type(StationType::LoadingDock));
+                self.change_destination(state.get_random_station_location_with_type(StationType::LoadingDock));
             }
         }
 
@@ -173,7 +173,7 @@ impl Robot {
 
     fn renew_destination(&mut self, state: &RobotFactory) {
         self.destination_type = self.order.get_destination_type_of_product();
-        self.change_destination(state.get_random_station_with_type(self.destination_type));
+        self.change_destination(state.get_random_station_location_with_type(self.destination_type));
     }
 
     fn drop_off_product(&mut self, station: &mut Station) {
@@ -209,7 +209,7 @@ impl Agent for Robot {
                         self.order = station.take_product(&mut robot_factory);
                         self.renew_destination(robot_factory);
                     } else {
-                        self.change_destination(robot_factory.get_random_station_with_type(StationType::LoadingDock));
+                        self.change_destination(robot_factory.get_random_station_location_with_type(StationType::LoadingDock));
                     }
                 }
                 StationType::StorageRoom => {
@@ -225,7 +225,7 @@ impl Agent for Robot {
 
         //return-home
         if self.charge < 2 {
-            let loading_station = robot_factory.get_random_station_with_type(StationType::LoadingDock);
+            let loading_station = robot_factory.get_random_station_location_with_type(StationType::LoadingDock);
             self.change_destination(loading_station);
         }
     }

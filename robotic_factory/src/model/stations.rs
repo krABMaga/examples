@@ -158,12 +158,18 @@ impl Agent for Station {
                 }
             }
             StationType::StorageRoom => {}
-            StationType::RobotRoom => {
+            StationType::RobotRoom => {//aka charging station
                 //recharge
                 let neighbors = state_typed.robot_grid.get_neighbors_within_distance(self.location, 2.0);
 
                 for mut neighbor_robot in neighbors {
                     neighbor_robot.charge(5, state_typed);
+                }
+
+                let loading_docks = state_typed.get_stations_of_type(StationType::LoadingDock);
+
+                if loading_docks.iter().any(|dock| { dock.material_management.has_supply() }) {
+                    todo!("set destination to random loading dock adn check jist in time")
                 }
             }
         }
