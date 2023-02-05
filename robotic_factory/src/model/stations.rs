@@ -7,8 +7,8 @@ use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
-use crate::CHARGE_PER_STEP;
 
+use crate::CHARGE_PER_STEP;
 use crate::model::robot::{CarriedProduct, Robot};
 use crate::model::robot_factory::RobotFactory;
 
@@ -127,7 +127,9 @@ impl fmt::Display for Station {
 
 impl Agent for Station {
     fn step(&mut self, state: &mut dyn State) {
-        let state_typed = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
+        let factory = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
+
+        factory.station_grid.set_object_location(*self, self.location);
 
         match self.station_type {
             StationType::Sticher | StationType::Cutter => {
@@ -154,20 +156,20 @@ impl Agent for Station {
 
                 if rand::thread_rng().gen_bool(0.03) {
                     for _ in 0..rand::thread_rng().gen_range(0..3) {
-                        state_typed.bump_required_orders(rand::thread_rng().gen_bool(0.5));
+                        factory.bump_required_orders(rand::thread_rng().gen_bool(0.5));
                     }
                 }
             }
             StationType::StorageRoom => {}
             StationType::RobotRoom => {//aka charging station
                 //recharge
-                let neighbors = state_typed.robot_grid.get_neighbors_within_distance(self.location, 2.0);
+                let neighbors = factory.robot_grid.get_neighbors_within_distance(self.location, 2.0);
 
                 for mut neighbor_robot in neighbors {
-                    neighbor_robot.charge(CHARGE_PER_STEP, state_typed);
+                    neighbor_robot.charge(CHARGE_PER_STEP, factory);
                 }
 
-                let loading_docks = state_typed.get_stations_of_type(StationType::LoadingDock);
+                let loading_docks = factory.get_stations_of_type(StationType::LoadingDock);
 
                 if loading_docks.iter().any(|dock| { dock.material_management.has_supply() }) {
                     todo!("set destination to random loading dock adn check jist in time")

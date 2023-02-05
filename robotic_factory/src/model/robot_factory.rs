@@ -134,6 +134,8 @@ impl RobotFactory {
 
 impl State for RobotFactory {
     fn init(&mut self, schedule: &mut Schedule) {
+        self.reset();
+
         //scheduling order is
         //1. Cutters and Stitchers
         //2. Finishers
@@ -155,15 +157,15 @@ impl State for RobotFactory {
         let mut stations: Vec<Station> = Vec::new();
 
         //spawn 1 loading dock, 2 stichers, 2 cutters, 2 finishers, 1 storage room, 1 robot room
-        stations.push(Station::new(stations.len() as u32, Real2D { x: 0.0, y: 0.0 }, StationType::LoadingDock, false));
-        stations.push(Station::new(stations.len() as u32, Real2D { x: 0.0, y: 0.0 }, StationType::Sticher, false));
-        stations.push(Station::new(stations.len() as u32, Real2D { x: 0.0, y: 0.0 }, StationType::Sticher, false));
-        stations.push(Station::new(stations.len() as u32, Real2D { x: 0.0, y: 0.0 }, StationType::Cutter, false));
-        stations.push(Station::new(stations.len() as u32, Real2D { x: 0.0, y: 0.0 }, StationType::Cutter, false));
-        stations.push(Station::new(stations.len() as u32, Real2D { x: 0.0, y: 0.0 }, StationType::Finisher, false));
-        stations.push(Station::new(stations.len() as u32, Real2D { x: 0.0, y: 0.0 }, StationType::Finisher, true));
-        stations.push(Station::new(stations.len() as u32, Real2D { x: 0.0, y: 0.0 }, StationType::StorageRoom, false));
-        stations.push(Station::new(stations.len() as u32, Real2D { x: 0.0, y: 0.0 }, StationType::RobotRoom, false));
+        stations.push(Station::new(stations.len() as u32, Real2D { x: 1.0, y: 0.0 }, StationType::LoadingDock, false));
+        stations.push(Station::new(stations.len() as u32, Real2D { x: 2.0, y: 0.0 }, StationType::Sticher, false));
+        stations.push(Station::new(stations.len() as u32, Real2D { x: 3.0, y: 0.0 }, StationType::Sticher, false));
+        stations.push(Station::new(stations.len() as u32, Real2D { x: 4.0, y: 0.0 }, StationType::Cutter, false));
+        stations.push(Station::new(stations.len() as u32, Real2D { x: 5.0, y: 0.0 }, StationType::Cutter, false));
+        stations.push(Station::new(stations.len() as u32, Real2D { x: 6.0, y: 0.0 }, StationType::Finisher, false));
+        stations.push(Station::new(stations.len() as u32, Real2D { x: 7.0, y: 0.0 }, StationType::Finisher, true));
+        stations.push(Station::new(stations.len() as u32, Real2D { x: 8.0, y: 0.0 }, StationType::StorageRoom, false));
+        stations.push(Station::new(stations.len() as u32, Real2D { x: 9.0, y: 0.0 }, StationType::RobotRoom, false));
 
         let station_count = stations.len();
 
@@ -335,5 +337,31 @@ mod tests {
 
         assert!((luxury_ratio - deluxe_chance).abs() < 0.1);
         assert!((standard_ratio - (1.0 - deluxe_chance)).abs() < 0.1);
+    }
+
+    #[test]
+    fn test_get_station_after_step() {
+        let mut factory = RobotFactory::new();
+        let mut schedule = Schedule::new();
+
+        factory.init(&mut schedule);
+
+        schedule.step(&mut factory);
+
+        let mut stations = factory.get_stations();
+        assert_eq!(factory.station_locations.len(), stations.len());
+    }
+
+    #[test]
+    fn test_get_robots_after_step() {
+        let mut factory = RobotFactory::new();
+        let mut schedule = Schedule::new();
+
+        factory.init(&mut schedule);
+
+        schedule.step(&mut factory);
+
+        let mut robots = factory.get_robots();
+        assert_eq!(robots.len(), ROBOT_COUNT);
     }
 }

@@ -2,7 +2,7 @@ use std::cmp::min;
 use std::fmt;
 use std::hash::Hash;
 
-use krabmaga::{rand, Rng, thread_rng};
+use krabmaga::{rand, Rng};
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::Real2D;
@@ -193,9 +193,15 @@ impl Agent for Robot {
             self.move_step_towards_destination(robot_factory);
         } else {
             let mut neighbor_stations = robot_factory.station_grid.get_neighbors_within_distance(self.location, 0.01);
-            let mut station = neighbor_stations.iter_mut()
+            let mut station_opt = neighbor_stations.iter_mut()
                 .filter(|station| station.get_station_type() == self.destination_type)
-                .choose(&mut rand::thread_rng()).unwrap();
+                .choose(&mut rand::thread_rng());
+
+            if station_opt.is_none() {
+                panic!("Robot {} is at destination but no station of type {:?} found", self.id, self.destination_type);
+            }
+
+            let mut station = station_opt.unwrap();
 
             match self.destination_type {
                 StationType::LoadingDock => {
