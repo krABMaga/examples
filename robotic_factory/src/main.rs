@@ -13,7 +13,7 @@ mod visualization;
 pub const ROBOT_COUNT: usize = 3;
 pub const JUST_IN_TIME_CHARGE: u32 = 50;
 
-pub const CHARGE_PER_STEP: u32 = 5;
+pub const CHARGE_PER_STEP: i32 = 5;
 pub const MAX_CHARGE: u32 = 350;
 pub const INITIAL_CHARGE: i32 = 100;
 pub const ENERGY_COST_PER_STEP: i32 = 1;

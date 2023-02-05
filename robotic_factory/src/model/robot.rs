@@ -8,8 +8,8 @@ use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
 use krabmaga::rand::seq::IteratorRandom;
-use crate::{ENERGY_COST_PER_STEP, ENERGY_COST_PER_STEP_WHILE_CARRYING, INITIAL_CHARGE, MAX_CHARGE};
 
+use crate::{ENERGY_COST_PER_STEP, ENERGY_COST_PER_STEP_WHILE_CARRYING, INITIAL_CHARGE, MAX_CHARGE};
 use crate::model::robot_factory::{RobotFactory, StationLocation};
 use crate::model::stations::{Station, StationType};
 
@@ -113,8 +113,9 @@ impl Robot {
         }
     }
 
-    pub fn charge(&mut self, amount: u32, state: &RobotFactory) {
-        self.charge = min(self.max_charge as i32, self.charge + amount as i32);
+
+    pub fn charge(&mut self, amount: i32, state: &RobotFactory) {
+        self.charge = min(self.max_charge as i32, self.charge + amount);
         self.order = CarriedProduct::Nothing;
 
         if self.is_fully_charged() {
@@ -228,5 +229,40 @@ impl Agent for Robot {
             let loading_station = robot_factory.get_random_station_location_with_type(StationType::LoadingDock);
             self.change_destination(loading_station);
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn does_charge() {
+        let mut factory = RobotFactory::new();
+        let mut robot = Robot::new(0, Real2D { x: 0.0, y: 0.0 }, factory.as_state());
+
+        let original_charge = robot.charge;
+        let charging_amount = thread_rng().gen_range(1..=10) as i32;
+
+        //increase max charge to ensure we don't bump into the max charge
+        robot.max_charge = (original_charge + charging_amount + 1) as u32;
+        robot.charge(charging_amount, &factory);
+
+        assert_eq!(robot.charge, charging_amount + original_charge);
+    }
+
+    #[test]
+    fn does_not_overcharge() {
+        let mut factory = RobotFactory::new();
+        let mut robot = Robot::new(0, Real2D { x: 0.0, y: 0.0 }, factory.as_state());
+
+        robot.max_charge = thread_rng().gen_range(10..=1000) as u32;
+        robot.charge = robot.max_charge as i32; //fully charge the robot
+
+        let charging_amount = thread_rng().gen_range(1..=10) as i32;
+        robot.charge(charging_amount, &factory);
+
+        assert_eq!(robot.charge as u32, robot.max_charge);
     }
 }
