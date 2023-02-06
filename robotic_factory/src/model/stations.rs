@@ -8,7 +8,7 @@ use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
 
-use crate::CHARGE_PER_STEP;
+use crate::{CHARGE_PER_STEP, DELUXE_FINISHER_CYCLES, ORDER_GENEREATION_CHANCE, STANDARD_FINISHER_CYCLES};
 use crate::model::robot::{CarriedProduct, Robot};
 use crate::model::robot_factory::RobotFactory;
 
@@ -27,6 +27,7 @@ pub struct FinisherInformation {
     process_time: u32,
     progress: u32,
     is_deluxe: bool,
+    is_processing: bool,
 }
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -51,9 +52,10 @@ impl Station {
             material_management: MaterialManagement::default(),
             station_type,
             finisher_information: FinisherInformation {
-                process_time: if is_delux_finisher { 7 } else { 4 },
+                process_time: if is_delux_finisher { DELUXE_FINISHER_CYCLES } else { STANDARD_FINISHER_CYCLES },
                 progress: 0,
                 is_deluxe: is_delux_finisher,
+                is_processing: false,
             },
         }
     }
@@ -129,8 +131,6 @@ impl Agent for Station {
     fn step(&mut self, state: &mut dyn State) {
         let factory = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
 
-        factory.station_grid.set_object_location(*self, self.location);
-
         match self.station_type {
             StationType::Sticher | StationType::Cutter => {
                 //make-garments (except for finish call)
@@ -138,19 +138,26 @@ impl Agent for Station {
             }
             StationType::Finisher => {
                 // finish
-                if self.material_management.has_supply() {
+
+                if self.finisher_information.is_processing {
+                    self.finisher_information.progress += 1;
+                }
+
+                if self.material_management.has_supply() && !self.finisher_information.is_processing {
                     self.finisher_information.progress += 1;
                     self.material_management.decrement_supply();
+                    self.finisher_information.is_processing = true;
                 }
 
                 if self.finisher_information.progress >= self.finisher_information.process_time {
                     self.finisher_information.progress = 0;
                     self.material_management.increment_products();
+                    self.finisher_information.is_processing = false;
                 }
             }
             StationType::LoadingDock => {
                 // deliver-more-material-sheets
-                if rand::thread_rng().gen_bool(0.03) && self.material_management.get_products_count() < 3 {
+                if rand::thread_rng().gen_bool(ORDER_GENEREATION_CHANCE) && self.material_management.get_products_count() < 3 {
                     self.material_management.add_products(rand::thread_rng().gen_range(0..10));
                 }
 
@@ -176,6 +183,8 @@ impl Agent for Station {
                 }
             }
         }
+
+        factory.station_grid.set_object_location(*self, self.location);
     }
 }
 
@@ -215,5 +224,131 @@ impl MaterialManagement {
     }
     pub fn add_products(&mut self, amount: u32) {
         self.products += amount;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use krabmaga::engine::schedule::Schedule;
+
+    use super::*;
+
+    #[test]
+    fn stitcher_converts_supply_to_products() {
+        let mut stitcher = Station::new(0, Real2D { x: 0.0, y: 0.0 }, StationType::Sticher, false);
+        station_converts_supply_to_products(stitcher)
+    }
+
+    #[test]
+    fn cutter_converts_supply_to_products() {
+        let mut cutter = Station::new(0, Real2D { x: 0.0, y: 0.0 }, StationType::Cutter, false);
+        station_converts_supply_to_products(cutter);
+    }
+
+    fn station_converts_supply_to_products(mut station: Station) {
+        let mut factory = RobotFactory::new();
+
+        assert_eq!(station.material_management.get_supply_count(), 0);
+        assert_eq!(station.material_management.get_products_count(), 0);
+
+        station.step(factory.as_state_mut());
+
+        assert_eq!(station.material_management.get_supply_count(), 0);
+        assert_eq!(station.material_management.get_products_count(), 0);
+
+        station.material_management.add_supply(3);
+
+        station.step(factory.as_state_mut());
+
+        assert_eq!(station.material_management.get_products_count(), 1);
+        assert_eq!(station.material_management.get_supply_count(), 2);
+    }
+
+    #[test]
+    fn standard_finisher_converts_supply_to_products_after_steps() {
+        let mut finisher = Station::new(0, Real2D { x: 0.0, y: 0.0 }, StationType::Finisher, false);
+        test_finisher(finisher, STANDARD_FINISHER_CYCLES);
+    }
+
+    #[test]
+    fn deluxe_finisher_converts_supply_to_products_after_steps() {
+        let mut finisher = Station::new(0, Real2D { x: 0.0, y: 0.0 }, StationType::Finisher, true);
+        test_finisher(finisher, DELUXE_FINISHER_CYCLES);
+    }
+
+    fn test_finisher(mut finisher_station: Station, expected_finishing_cycles: u32) {
+        assert_eq!(finisher_station.get_station_type(), StationType::Finisher);
+
+        let mut factory = RobotFactory::new();
+
+        finisher_station.material_management.add_supply(3);
+        assert_eq!(finisher_station.material_management.get_products_count(), 0);
+
+        for _ in 0..expected_finishing_cycles - 1 {
+            finisher_station.step(factory.as_state_mut());
+        }
+        assert_eq!(finisher_station.material_management.get_products_count(), 0);
+
+        finisher_station.step(factory.as_state_mut());
+        assert_eq!(finisher_station.material_management.get_products_count(), 1);
+
+        for _ in 0..expected_finishing_cycles - 1 {
+            finisher_station.step(factory.as_state_mut());
+        }
+        assert_eq!(finisher_station.material_management.get_products_count(), 1);
+
+        finisher_station.step(factory.as_state_mut());
+        assert_eq!(finisher_station.material_management.get_products_count(), 2);
+    }
+
+
+    #[test]
+    fn loading_dock_creates_supply() {
+        let mut factory = RobotFactory::new();
+        let mut loading_dock = Station::new(0, Real2D { x: 0.0, y: 0.0 }, StationType::LoadingDock, false);
+
+
+        for _ in 0..1000 {
+            loading_dock.step(factory.as_state_mut());
+        }
+
+        println!("Products available: {}", loading_dock.material_management.get_products_count());
+        assert!(loading_dock.material_management.get_products_count() > 0);
+    }
+
+
+    #[test]
+    fn does_create_supply_during_simulation() {
+        let mut factory = RobotFactory::new();
+        let mut scheduler = Schedule::new();
+
+        factory.init(&mut scheduler);
+        factory.update(0);
+
+        let robots = factory.get_robots();
+        for robot in robots.iter() {
+            scheduler.dequeue(Box::new(*robot), robot.id);
+        }
+
+        let mut loading_docks = factory.get_stations_of_type(StationType::LoadingDock);
+
+        for dock in loading_docks.iter() {
+            assert_eq!(dock.material_management.get_products_count(), 0);
+        }
+
+        for step in 0..1000 {
+            scheduler.step(&mut factory);
+            loading_docks = factory.get_stations_of_type(StationType::LoadingDock);
+            if loading_docks.iter().all(|dock| { dock.material_management.get_products_count() > 0 }) {
+                println!("Took {} steps to create supply", step);
+                break;
+            }
+        }
+
+
+        for dock in loading_docks.iter() {
+            println!("Products available: {} for loading dock {}", dock.material_management.get_products_count(), dock.id);
+            assert!(dock.material_management.get_products_count() > 0);
+        }
     }
 }

@@ -19,6 +19,11 @@ pub const FACTORY_HEIGHT: f32 = 100.0;
 
 pub const STEP: u64 = 100;
 
+pub const ORDER_GENEREATION_CHANCE: f64 = 0.03;
+
+pub const DELUXE_FINISHER_CYCLES: u32 = 7;
+pub const STANDARD_FINISHER_CYCLES: u32 = 4;
+
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use krabmaga::*;
