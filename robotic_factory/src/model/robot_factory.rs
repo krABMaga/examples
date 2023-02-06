@@ -1,11 +1,8 @@
 use std::any::Any;
-use std::cell::RefCell;
-use std::cmp;
 use std::cmp::{max, min};
 use std::collections::HashSet;
-use std::panic::Location;
 
-use krabmaga::{rand, Rng};
+use krabmaga::*;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field::Field;
 use krabmaga::engine::fields::field_2d::{Field2D, Location2D};
@@ -14,9 +11,12 @@ use krabmaga::engine::schedule::Schedule;
 use krabmaga::engine::state::State;
 use krabmaga::rand::seq::{IteratorRandom, SliceRandom};
 
+use StationType::{RobotRoom, StorageRoom};
+
 use crate::{FACTORY_HEIGHT, FACTORY_WIDTH, ROBOT_COUNT};
 use crate::model::robot::{CarriedProduct, Robot};
 use crate::model::stations::*;
+use crate::model::stations::StationType::LoadingDock;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct StationLocation {
@@ -32,6 +32,8 @@ pub struct RobotFactory {
 
     standard_order_count: u32,
     luxury_order_count: u32,
+
+    step: u64,
 }
 
 impl RobotFactory {
@@ -42,6 +44,7 @@ impl RobotFactory {
             station_grid: Field2D::new(FACTORY_WIDTH, FACTORY_HEIGHT, 0.1, false),
             standard_order_count: 0,
             luxury_order_count: 0,
+            step: 0,
         }
     }
 
@@ -143,20 +146,22 @@ impl State for RobotFactory {
         //4. Robot Room
         //5. Loading Dock
         //6. Shift Control
+
         fn get_station_priority(station_type: StationType) -> i32 {
             match station_type {
-                StationType::Cutter => 1,
-                StationType::Sticher => 1,
+                StationType::Cutter | StationType::Sticher => 1,
                 StationType::Finisher => 2,
-                StationType::RobotRoom => 4,
+                RobotRoom => 4,
                 StationType::LoadingDock => 5,
                 _ => 0
             }
         }
 
-        let mut stations: Vec<Station> = Vec::new();
+        //prepare the shift control
+        schedule.schedule_repeating(Box::new(ShiftControl {}), 0.0, 6);
 
         //spawn 1 loading dock, 2 stichers, 2 cutters, 2 finishers, 1 storage room, 1 robot room
+        let mut stations: Vec<Station> = Vec::new();
         stations.push(Station::new(stations.len() as u32, Real2D { x: 1.0, y: 0.0 }, StationType::LoadingDock, false));
         stations.push(Station::new(stations.len() as u32, Real2D { x: 2.0, y: 0.0 }, StationType::Sticher, false));
         stations.push(Station::new(stations.len() as u32, Real2D { x: 3.0, y: 0.0 }, StationType::Sticher, false));
@@ -164,25 +169,45 @@ impl State for RobotFactory {
         stations.push(Station::new(stations.len() as u32, Real2D { x: 5.0, y: 0.0 }, StationType::Cutter, false));
         stations.push(Station::new(stations.len() as u32, Real2D { x: 6.0, y: 0.0 }, StationType::Finisher, false));
         stations.push(Station::new(stations.len() as u32, Real2D { x: 7.0, y: 0.0 }, StationType::Finisher, true));
-        stations.push(Station::new(stations.len() as u32, Real2D { x: 8.0, y: 0.0 }, StationType::StorageRoom, false));
-        stations.push(Station::new(stations.len() as u32, Real2D { x: 9.0, y: 0.0 }, StationType::RobotRoom, false));
+        stations.push(Station::new(stations.len() as u32, Real2D { x: 8.0, y: 0.0 }, StorageRoom, false));
+        stations.push(Station::new(stations.len() as u32, Real2D { x: 9.0, y: 0.0 }, RobotRoom, false));
 
-        let station_count = stations.len();
 
+        //spawn stations
+        let station_count = stations.len(); //prepare for later
         for station in stations {
             self.station_locations.push(StationLocation { location: station.get_location(), station_type: station.get_station_type() });
             self.station_grid.set_object_location(station, station.get_location());
             schedule.schedule_repeating(Box::new(station), 0.0, get_station_priority(station.get_station_type()));
         }
 
-        //spawn 3 robots
+        //spawn robots
         for i in 0..ROBOT_COUNT {
             let robot = Robot::new((station_count + i) as u32, Real2D { x: 0.0, y: 0.0 }, self);
             self.robot_grid.set_object_location(robot, robot.get_location());
             schedule.schedule_repeating(Box::new(robot), 0.0, 3);
         }
 
-        schedule.schedule_repeating(Box::new(ShiftControl {}), 0.0, 6);
+        addplot!(
+            String::from("Outstanding Orders"),
+            String::from("Time"),
+            String::from("Count"),
+            true
+        );
+
+        addplot!(
+            String::from("Robots' Energy"),
+            String::from("Time"),
+            String::from("Energy (%)"),
+            true
+        );
+
+        addplot!(
+            String::from("Machine Supply"),
+            String::from("Time"),
+            String::from("Supply"),
+            true
+        );
     }
 
     fn as_any_mut(&mut self) -> &mut dyn Any {
@@ -212,8 +237,58 @@ impl State for RobotFactory {
     }
 
     fn update(&mut self, step: u64) {
+        self.step = step;
+
         self.station_grid.lazy_update();
         self.robot_grid.lazy_update();
+    }
+
+    fn after_step(&mut self, schedule: &mut Schedule) {
+        plot!(
+            String::from("Outstanding Orders"),
+            String::from("Standard Orders"),
+            self.step as f64,
+            self.standard_order_count as f64
+        );
+
+        plot!(
+            String::from("Outstanding Orders"),
+            String::from("Deluxe Orders"),
+            self.step as f64,
+            self.luxury_order_count as f64
+        );
+
+
+        let robots = self.get_robots();
+        for robot in robots {
+            plot!(
+                String::from("Robots' Energy"),
+                format!("Robot {}", robot.get_id()),
+                self.step as f64,
+                (robot.charge / robot.max_charge as i32) as f64 * 100.0
+            );
+        }
+
+        //filter out robot rooms and Storage rooms
+        let types_to_ignore: HashSet<StationType> = HashSet::from_iter(
+            vec![RobotRoom, StorageRoom, LoadingDock].into_iter());
+        let mut supply_counts = HashMap::new();
+        self.get_stations().iter()
+            .filter(|station| !types_to_ignore.contains(&station.get_station_type()))
+            .for_each(|station| {
+                let count = supply_counts.entry(station.get_station_type()).or_insert(0);
+                *count += station.material_management.get_supply_count();
+            });
+
+        for (station_type, supply) in supply_counts {
+            log!(LogType::Info, format!("{:?}s supply: {}", station_type, supply));
+            plot!(
+                String::from("Machine Supply"),
+                format!("{:?}s", station_type),
+                self.step as f64,
+                supply as f64
+            );
+        }
     }
 }
 

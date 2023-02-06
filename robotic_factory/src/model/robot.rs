@@ -39,9 +39,9 @@ impl CarriedProduct {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Robot {
-    id: u32,
-    max_charge: u32,
-    pub(crate) charge: i32,
+    pub id: u32,
+    pub max_charge: u32,
+    pub charge: i32,
     location: Real2D,
     destination: Real2D,
     destination_type: StationType,
@@ -241,11 +241,16 @@ impl Agent for Robot {
 
 #[cfg(test)]
 mod tests {
+    use krabmaga::engine::schedule::Schedule;
+    use krabmaga::thread_rng;
+
     use super::*;
 
     #[test]
     fn does_charge() {
         let mut factory = RobotFactory::new();
+        let mut scheduler = Schedule::new();
+        factory.init(&mut scheduler);
         let mut robot = Robot::new(0, Real2D { x: 0.0, y: 0.0 }, factory.as_state());
 
         let original_charge = robot.charge;
@@ -261,6 +266,8 @@ mod tests {
     #[test]
     fn does_not_overcharge() {
         let mut factory = RobotFactory::new();
+        let mut scheduler = Schedule::new();
+        factory.init(&mut scheduler);
         let mut robot = Robot::new(0, Real2D { x: 0.0, y: 0.0 }, factory.as_state());
 
         robot.max_charge = thread_rng().gen_range(10..=1000) as u32;
