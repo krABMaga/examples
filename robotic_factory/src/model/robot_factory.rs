@@ -25,7 +25,7 @@ pub struct StationLocation {
 }
 
 pub struct RobotFactory {
-    station_locations: Vec<StationLocation>, //holds the location information of all stations
+    pub station_locations: Vec<StationLocation>, //holds the location information of all stations
 
     pub robot_grid: Field2D<Robot>,
     pub station_grid: Field2D<Station>,
@@ -151,7 +151,7 @@ impl State for RobotFactory {
             match station_type {
                 StationType::Cutter | StationType::Sticher => 1,
                 StationType::Finisher => 2,
-                RobotRoom => 4,
+                StationType::RobotRoom => 4,
                 StationType::LoadingDock => 5,
                 _ => 0
             }

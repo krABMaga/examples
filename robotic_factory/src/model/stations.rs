@@ -231,6 +231,9 @@ impl MaterialManagement {
 mod tests {
     use krabmaga::engine::schedule::Schedule;
 
+    use crate::JUST_IN_TIME_CHARGE;
+    use crate::model::robot_factory::StationLocation;
+
     use super::*;
 
     #[test]
@@ -350,5 +353,34 @@ mod tests {
             println!("Products available: {} for loading dock {}", dock.material_management.get_products_count(), dock.id);
             assert!(dock.material_management.get_products_count() > 0);
         }
+    }
+
+    #[test]
+    fn robot_room_charges_robots() {
+        //given
+        let mut factory = RobotFactory::new();
+        let mut robot_room = Station::new(0, Real2D { x: 0.0, y: 0.0 }, StationType::RobotRoom, false);
+        let mut loading_dock = Station::new(0, Real2D { x: 0.0, y: 0.0 }, StationType::LoadingDock, false);
+
+        factory.station_grid.set_object_location(robot_room, robot_room.location);
+        factory.station_locations.push(StationLocation { station_type: StationType::RobotRoom, location: robot_room.location });
+        factory.station_grid.set_object_location(loading_dock, loading_dock.location);
+        factory.station_locations.push(StationLocation { station_type: StationType::LoadingDock, location: loading_dock.location });
+
+        let mut robot = Robot::new(0, Real2D { x: 0.0, y: 0.0 }, &mut factory);
+        robot.charge = 0;
+        robot.max_charge = CHARGE_PER_STEP.saturating_add(100) as u32;
+        factory.robot_grid.set_object_location(robot, robot.get_location());
+
+        factory.update(0);
+
+        //when
+        robot_room.step(factory.as_state_mut());
+        factory.update(1);
+
+        robot = *factory.robot_grid.get_objects(robot.get_location()).first().unwrap();
+
+        //then
+        assert_eq!(robot.charge, CHARGE_PER_STEP);
     }
 }
