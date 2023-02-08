@@ -4,16 +4,19 @@ use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 
-use krabmaga::{log, rand, Rng};
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::schedule::ScheduleOptions;
 use krabmaga::engine::state::State;
+use krabmaga::{log, rand, Rng};
 
-use crate::{CHARGE_PER_STEP, DELUXE_FINISHER_CYCLES, JUST_IN_TIME_CHARGE, ORDER_GENEREATION_CHANCE, STANDARD_FINISHER_CYCLES};
 use crate::model::robot::{CarriedProduct, Robot};
-use crate::model::robot_factory::RobotFactory;
+use crate::model::robot_factory::{RobotFactory, StationLocation};
+use crate::{
+    CHARGE_PER_STEP, DELUXE_FINISHER_CYCLES, JUST_IN_TIME_CHARGE, ORDER_GENEREATION_CHANCE,
+    STANDARD_FINISHER_CYCLES,
+};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum StationType {
@@ -44,7 +47,12 @@ pub struct Station {
 }
 
 impl Station {
-    pub fn new(id: u32, location: Real2D, station_type: StationType, mut is_delux_finisher: bool) -> Station {
+    pub fn new(
+        id: u32,
+        location: Real2D,
+        station_type: StationType,
+        mut is_delux_finisher: bool,
+    ) -> Station {
         if station_type != StationType::Finisher {
             is_delux_finisher = false;
         }
@@ -55,7 +63,11 @@ impl Station {
             material_management: MaterialManagement::default(),
             station_type,
             finisher_information: FinisherInformation {
-                process_time: if is_delux_finisher { DELUXE_FINISHER_CYCLES } else { STANDARD_FINISHER_CYCLES },
+                process_time: if is_delux_finisher {
+                    DELUXE_FINISHER_CYCLES
+                } else {
+                    STANDARD_FINISHER_CYCLES
+                },
                 progress: 0,
                 is_deluxe: is_delux_finisher,
                 is_processing: false,
@@ -69,6 +81,17 @@ impl Station {
 
     pub fn get_station_type(&self) -> StationType {
         self.station_type
+    }
+
+    pub fn is_deluxe_finisher(&self) -> bool {
+        self.finisher_information.is_deluxe
+    }
+
+    pub fn to_station_location(&self) -> StationLocation {
+        StationLocation {
+            station_type: self.station_type,
+            location: self.location,
+        }
     }
 
     pub fn try_convert_one_supply(&mut self) {
@@ -156,7 +179,8 @@ impl Agent for Station {
                     self.finisher_information.progress += 1;
                 }
 
-                if self.material_management.has_supply() && !self.finisher_information.is_processing {
+                if self.material_management.has_supply() && !self.finisher_information.is_processing
+                {
                     self.finisher_information.progress += 1;
                     self.material_management.decrement_supply();
                     self.finisher_information.is_processing = true;
@@ -170,8 +194,11 @@ impl Agent for Station {
             }
             StationType::LoadingDock => {
                 // deliver-more-material-sheets
-                if rand::thread_rng().gen_bool(ORDER_GENEREATION_CHANCE) && self.material_management.get_products_count() < 3 {
-                    self.material_management.add_products(rand::thread_rng().gen_range(0..10));
+                if rand::thread_rng().gen_bool(ORDER_GENEREATION_CHANCE)
+                    && self.material_management.get_products_count() < 3
+                {
+                    self.material_management
+                        .add_products(rand::thread_rng().gen_range(0..10));
                 }
 
                 if rand::thread_rng().gen_bool(0.03) {
@@ -181,10 +208,13 @@ impl Agent for Station {
                 }
             }
             StationType::StorageRoom => {}
-            StationType::RobotRoom => {//aka charging station
+            StationType::RobotRoom => {
+                //aka charging station
                 //recharge
 
-                let mut neighbors = factory.robot_grid.get_neighbors_within_distance(self.location, 1.4);
+                let mut neighbors = factory
+                    .robot_grid
+                    .get_neighbors_within_distance(self.location, 1.4);
 
                 if neighbors.len() == 0 {
                     return;
@@ -192,38 +222,60 @@ impl Agent for Station {
 
                 let mut future_states: HashMap<usize, Robot> = HashMap::new();
                 for robot in neighbors.iter() {
-                    factory.robot_grid.get_objects_unbuffered(robot.get_next_location()).iter().for_each(|other| {
-                        future_states.insert(other.get_id(), *other);
-                    });
+                    factory
+                        .robot_grid
+                        .get_objects_unbuffered(robot.get_next_location())
+                        .iter()
+                        .for_each(|other| {
+                            future_states.insert(other.get_id(), *other);
+                        });
                 }
-
 
                 for mut robot in future_states.values_mut() {
                     robot.charge(CHARGE_PER_STEP, factory);
                 }
 
-
                 let loading_docks = factory.get_stations_of_type(StationType::LoadingDock);
-                if loading_docks.iter().any(|dock| { dock.material_management.has_products() }) {
+                if loading_docks
+                    .iter()
+                    .any(|dock| dock.material_management.has_products())
+                {
                     for mut robot in future_states.values_mut() {
                         if robot.charge >= JUST_IN_TIME_CHARGE {
-                            log!(LogType::Info, format!("Just-in-time charging for Robot {}", robot), true);
-                            robot.change_destination(factory.get_random_station_location_with_type(StationType::LoadingDock));
+                            log!(
+                                LogType::Info,
+                                format!("Just-in-time charging for Robot {}", robot),
+                                true
+                            );
+                            robot.change_destination(
+                                factory.get_random_station_location_with_type(
+                                    StationType::LoadingDock,
+                                ),
+                            );
                         }
                     }
                 }
 
                 for robot in future_states.values() {
-                    factory.robot_grid.remove_object_location(*robot, robot.get_location());
-                    factory.robot_grid.set_object_location(*robot, robot.get_location());
+                    factory
+                        .robot_grid
+                        .remove_object_location(*robot, robot.get_location());
+                    factory
+                        .robot_grid
+                        .set_object_location(*robot, robot.get_location());
                 }
             }
         }
 
-        factory.station_grid.set_object_location(*self, self.location);
+        factory
+            .station_grid
+            .set_object_location(*self, self.location);
     }
 
-    fn before_step(&mut self, _state: &mut dyn State) -> Option<Vec<(Box<dyn Agent>, ScheduleOptions)>> {
+    fn before_step(
+        &mut self,
+        _state: &mut dyn State,
+    ) -> Option<Vec<(Box<dyn Agent>, ScheduleOptions)>> {
         //load self state from factory state
         let factory = _state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
 
@@ -256,7 +308,6 @@ pub struct MaterialManagement {
     products: u32,
 }
 
-
 impl MaterialManagement {
     pub fn has_supply(&self) -> bool {
         self.supply > 0
@@ -271,14 +322,18 @@ impl MaterialManagement {
         self.products > 0
     }
 
-    pub fn increment_supply(&mut self) { self.supply += 1; }
+    pub fn increment_supply(&mut self) {
+        self.supply += 1;
+    }
     pub fn decrement_supply(&mut self) {
         self.supply -= 1;
     }
     pub fn increment_products(&mut self) {
         self.products += 1;
     }
-    pub fn decrement_products(&mut self) { self.products -= 1; }
+    pub fn decrement_products(&mut self) {
+        self.products -= 1;
+    }
 
     pub fn add_supply(&mut self, amount: u32) {
         self.supply += amount;
@@ -292,8 +347,8 @@ impl MaterialManagement {
 mod tests {
     use krabmaga::engine::schedule::Schedule;
 
-    use crate::{INITIAL_LOADING_DOCK_PRODUCTS, JUST_IN_TIME_CHARGE};
     use crate::model::robot_factory::StationLocation;
+    use crate::{INITIAL_LOADING_DOCK_PRODUCTS, JUST_IN_TIME_CHARGE};
 
     use super::*;
 
@@ -365,21 +420,26 @@ mod tests {
         assert_eq!(finisher_station.material_management.get_products_count(), 2);
     }
 
-
     #[test]
     fn loading_dock_creates_supply() {
         let mut factory = RobotFactory::new();
-        let mut loading_dock = Station::new(0, Real2D { x: 0.0, y: 0.0 }, StationType::LoadingDock, false);
-
+        let mut loading_dock = Station::new(
+            0,
+            Real2D { x: 0.0, y: 0.0 },
+            StationType::LoadingDock,
+            false,
+        );
 
         for _ in 0..1000 {
             loading_dock.step(factory.as_state_mut());
         }
 
-        println!("Products available: {}", loading_dock.material_management.get_products_count());
+        println!(
+            "Products available: {}",
+            loading_dock.material_management.get_products_count()
+        );
         assert!(loading_dock.material_management.get_products_count() > 0);
     }
-
 
     #[test]
     fn does_create_supply_during_simulation() {
@@ -391,7 +451,7 @@ mod tests {
 
         let robots = factory.get_robots();
         for robot in robots.iter() {
-            scheduler.dequeue(Box::new(*robot), robot.id);
+            scheduler.dequeue(Box::new(*robot), robot.get_id() as u32);
         }
 
         let mut loading_docks = factory.get_stations_of_type(StationType::LoadingDock);
@@ -403,15 +463,21 @@ mod tests {
         for step in 0..1000 {
             scheduler.step(&mut factory);
             loading_docks = factory.get_stations_of_type(StationType::LoadingDock);
-            if loading_docks.iter().all(|dock| { dock.material_management.get_products_count() > 0 }) {
+            if loading_docks
+                .iter()
+                .all(|dock| dock.material_management.get_products_count() > 0)
+            {
                 println!("Took {} steps to create supply", step);
                 break;
             }
         }
 
-
         for dock in loading_docks.iter() {
-            println!("Products available: {} for loading dock {}", dock.material_management.get_products_count(), dock.id);
+            println!(
+                "Products available: {} for loading dock {}",
+                dock.material_management.get_products_count(),
+                dock.id
+            );
             assert!(dock.material_management.get_products_count() > 0);
         }
     }
@@ -420,18 +486,36 @@ mod tests {
     fn robot_room_charges_robots() {
         //given
         let mut factory = RobotFactory::new();
-        let mut robot_room = Station::new(0, Real2D { x: 0.0, y: 0.0 }, StationType::RobotRoom, false);
-        let mut loading_dock = Station::new(0, Real2D { x: 0.0, y: 0.0 }, StationType::LoadingDock, false);
+        let mut robot_room =
+            Station::new(0, Real2D { x: 0.0, y: 0.0 }, StationType::RobotRoom, false);
+        let mut loading_dock = Station::new(
+            0,
+            Real2D { x: 0.0, y: 0.0 },
+            StationType::LoadingDock,
+            false,
+        );
 
-        factory.station_grid.set_object_location(robot_room, robot_room.location);
-        factory.station_locations.push(StationLocation { station_type: StationType::RobotRoom, location: robot_room.location });
-        factory.station_grid.set_object_location(loading_dock, loading_dock.location);
-        factory.station_locations.push(StationLocation { station_type: StationType::LoadingDock, location: loading_dock.location });
+        factory
+            .station_grid
+            .set_object_location(robot_room, robot_room.location);
+        factory.station_locations.push(StationLocation {
+            station_type: StationType::RobotRoom,
+            location: robot_room.location,
+        });
+        factory
+            .station_grid
+            .set_object_location(loading_dock, loading_dock.location);
+        factory.station_locations.push(StationLocation {
+            station_type: StationType::LoadingDock,
+            location: loading_dock.location,
+        });
 
         let mut robot = Robot::new(0, Real2D { x: 0.0, y: 0.0 }, &mut factory);
         robot.charge = 0;
         robot.max_charge = CHARGE_PER_STEP.saturating_add(100) as u32;
-        factory.robot_grid.set_object_location(robot, robot.get_location());
+        factory
+            .robot_grid
+            .set_object_location(robot, robot.get_location());
 
         factory.update(0);
 
@@ -439,7 +523,11 @@ mod tests {
         robot_room.step(factory.as_state_mut());
         factory.update(1);
 
-        robot = *factory.robot_grid.get_objects(robot.get_location()).first().unwrap();
+        robot = *factory
+            .robot_grid
+            .get_objects(robot.get_location())
+            .first()
+            .unwrap();
 
         //then
         assert_eq!(robot.charge, CHARGE_PER_STEP);
@@ -447,8 +535,16 @@ mod tests {
 
     #[test]
     fn loading_dock_starts_with_initial_products() {
-        let mut loading_dock = Station::new(0, Real2D { x: 0.0, y: 0.0 }, StationType::LoadingDock, false);
+        let mut loading_dock = Station::new(
+            0,
+            Real2D { x: 0.0, y: 0.0 },
+            StationType::LoadingDock,
+            false,
+        );
 
-        assert_eq!(loading_dock.material_management.get_products_count(), INITIAL_LOADING_DOCK_PRODUCTS);
+        assert_eq!(
+            loading_dock.material_management.get_products_count(),
+            INITIAL_LOADING_DOCK_PRODUCTS
+        );
     }
 }

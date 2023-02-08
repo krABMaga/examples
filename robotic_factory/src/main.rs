@@ -14,10 +14,10 @@ pub const JUST_IN_TIME_CHARGE: i32 = 50;
 pub const ENERGY_COST_PER_STEP: i32 = 1;
 pub const ENERGY_COST_PER_STEP_WHILE_CARRYING: i32 = 2;
 
-pub const FACTORY_WIDTH: f32 = 10.0;
-pub const FACTORY_HEIGHT: f32 = 10.0;
+pub const FACTORY_WIDTH: f32 = 27.0;
+pub const FACTORY_HEIGHT: f32 = 27.0;
 
-pub const STEP: u64 = 100;
+pub const STEP: u64 = 200;
 
 pub const ORDER_GENEREATION_CHANCE: f64 = 0.03;
 
@@ -34,20 +34,4 @@ use krabmaga::*;
 fn main() {
     let factory = RobotFactory::new();
     simulate!(factory, STEP, 1);
-}
-
-
-    factory.update(1);
-
-    let derp = factory.robot_grid.get_neighbors_within_distance(Real2D { x: 0.0, y: 0.0 }, 2.0);
-
-    for mut robot in derp {
-        robot.charge(5, &factory);
-    }
-
-    factory.update(2);
-
-    let robots = factory.get_robots();
-
-    print!("Done!")
 }

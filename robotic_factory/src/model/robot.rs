@@ -2,17 +2,21 @@ use std::cmp::min;
 use std::fmt;
 use std::hash::Hash;
 
-use krabmaga::{log, rand, Rng};
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field_2d::*;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::schedule::ScheduleOptions;
 use krabmaga::engine::state::State;
 use krabmaga::rand::seq::IteratorRandom;
+use krabmaga::{log, rand, Rng};
 
-use crate::{ENERGY_COST_PER_STEP, ENERGY_COST_PER_STEP_WHILE_CARRYING, INITIAL_CHARGE, MAX_CHARGE};
+use StationType::*;
+
 use crate::model::robot_factory::{RobotFactory, StationLocation};
 use crate::model::stations::{Station, StationType};
+use crate::{
+    ENERGY_COST_PER_STEP, ENERGY_COST_PER_STEP_WHILE_CARRYING, INITIAL_CHARGE, MAX_CHARGE,
+};
 
 //----------------Robot----------------
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -29,11 +33,11 @@ pub enum CarriedProduct {
 impl CarriedProduct {
     fn get_destination_type_of_product(&mut self) -> StationType {
         match self {
-            CarriedProduct::Nothing => StationType::LoadingDock,
-            CarriedProduct::Bolts => StationType::Cutter,
-            CarriedProduct::Cuttings => StationType::Sticher,
-            CarriedProduct::StichedStandard | CarriedProduct::StichedDeluxe => StationType::Finisher,
-            CarriedProduct::FinishedStandard | CarriedProduct::FinishedDeluxe => StationType::LoadingDock,
+            CarriedProduct::Nothing => LoadingDock,
+            CarriedProduct::Bolts => Cutter,
+            CarriedProduct::Cuttings => Sticher,
+            CarriedProduct::StichedStandard | CarriedProduct::StichedDeluxe => Finisher,
+            CarriedProduct::FinishedStandard | CarriedProduct::FinishedDeluxe => LoadingDock,
         }
     }
 }
@@ -51,13 +55,19 @@ pub struct Robot {
     order: CarriedProduct,
 }
 
-
 impl Robot {
     pub fn change_destination(&mut self, target: StationLocation) {
         self.destination = target.location;
         self.destination_type = target.station_type;
         self.update_next_location();
-        log!(LogType::Info, format!("Robot {} changed destination to a {:?}(at {})", self.id, self.destination_type ,self.destination), true);
+        log!(
+            LogType::Info,
+            format!(
+                "Robot {} changed destination to a {:?}(at {})",
+                self.id, self.destination_type, self.destination
+            ),
+            true
+        );
     }
 
     pub fn get_charge(&self) -> i32 {
@@ -99,7 +109,11 @@ impl Hash for Robot {
 
 impl fmt::Display for Robot {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Robot(id: {} at {}, dest {}, carries {:?})", self.id, self.location, self.destination, self.order)
+        write!(
+            f,
+            "Robot(id: {} at {}, dest {}, carries {:?})",
+            self.id, self.location, self.destination, self.order
+        )
     }
 }
 
@@ -112,7 +126,9 @@ impl PartialEq for Robot {
 impl Robot {
     pub fn new(id: usize, location: Real2D, state: &dyn State) -> Robot {
         let robot_factory = state.as_any().downcast_ref::<RobotFactory>().unwrap();
-        let initial_destination = robot_factory.get_random_station_location_with_type(StationType::LoadingDock).location;
+        let initial_destination = robot_factory
+            .get_random_station_location_with_type(LoadingDock)
+            .location;
         let mut robot = Robot {
             id,
             max_charge: MAX_CHARGE,
@@ -120,13 +136,12 @@ impl Robot {
             location,
             next_location: location,
             destination: initial_destination,
-            destination_type: StationType::LoadingDock,
+            destination_type: LoadingDock,
             order: CarriedProduct::Nothing,
         };
         robot.update_next_location();
         robot
     }
-
 
     pub fn charge(&mut self, amount: i32, state: &RobotFactory) {
         self.charge = min(self.max_charge as i32, self.charge + amount);
@@ -136,7 +151,7 @@ impl Robot {
             if rand::thread_rng().gen_bool(0.5) {
                 self.change_destination(state.get_random_station_location());
             } else {
-                self.change_destination(state.get_random_station_location_with_type(StationType::LoadingDock));
+                self.change_destination(state.get_random_station_location_with_type(LoadingDock));
             }
         }
     }
@@ -160,11 +175,21 @@ impl Robot {
         }
 
         //apply direction vector to current position
-        self.next_location = Real2D { x: x + dx, y: y + dy };
+        self.next_location = Real2D {
+            x: x + dx,
+            y: y + dy,
+        };
     }
 
     fn move_step_towards_destination(&mut self, state: &RobotFactory) {
-        log!(LogType::Info, format!("Robot {} moving from ({}) to ({})", self.id, self.location, self.next_location), true);
+        log!(
+            LogType::Info,
+            format!(
+                "Robot {} moving from ({}) to ({})",
+                self.id, self.location, self.next_location
+            ),
+            true
+        );
 
         self.location = self.next_location;
         self.update_next_location();
@@ -183,13 +208,35 @@ impl Robot {
         let mut dx = self.destination.x - x;
         let mut dy = self.destination.y - y;
 
-        let distance_sq = (dx * dx + dy * dy);
-        return distance_sq < 0.01;
+        let distance_sq = (dx * dx + dy * dy).abs();
+        return distance_sq == 0.0; //todo: maybe we need to check with a small epsilon
     }
 
-    fn renew_destination(&mut self, state: &RobotFactory) {
+    fn renew_destination(&mut self, factory: &RobotFactory) {
         self.destination_type = self.order.get_destination_type_of_product();
-        self.change_destination(state.get_random_station_location_with_type(self.destination_type));
+
+        if self.destination_type == Finisher {
+            let finishers = factory.get_stations_of_type(self.destination_type);
+            let finisher = finishers
+                .iter()
+                .filter(|station| {
+                    station.is_deluxe_finisher() == (self.order == CarriedProduct::StichedDeluxe)
+                })
+                .choose(&mut rand::thread_rng());
+
+            self.change_destination(
+                finisher
+                    .expect(&*format!(
+                        "No finisher found for order type {:?}!",
+                        self.order
+                    ))
+                    .to_station_location(),
+            );
+        } else {
+            self.change_destination(
+                factory.get_random_station_location_with_type(self.destination_type),
+            );
+        }
     }
 
     fn drop_off_product(&mut self, station: &mut Station) {
@@ -207,19 +254,31 @@ impl Agent for Robot {
         if !self.is_at_destination(robot_factory) {
             self.move_step_towards_destination(robot_factory);
         } else {
-            let mut neighbor_stations = robot_factory.station_grid.get_neighbors_within_distance(self.location, 0.01);
+            let mut neighbor_stations = robot_factory
+                .station_grid
+                .get_neighbors_within_distance(self.location, 0.01);
 
             //All (normal) stations write their state into the buffer beforehand.
             //Since multiple robots may manipulate the stations we need to get the write information.
-            let mut neighbours: Vec<_> = neighbor_stations.iter_mut()
-                .flat_map(|station| robot_factory.station_grid.get_objects_unbuffered(station.get_location()))
+            let mut neighbours: Vec<_> = neighbor_stations
+                .iter_mut()
+                .flat_map(|station| {
+                    robot_factory
+                        .station_grid
+                        .get_objects_unbuffered(station.get_location())
+                })
                 .filter(|station| station.get_station_type() == self.destination_type)
                 .collect();
 
             //however, the LoadingDock is executed later, so it may needs to be fetched from the read buffer
             if neighbours.is_empty() {
-                neighbours = neighbor_stations.iter_mut()
-                    .flat_map(|station| robot_factory.station_grid.get_objects(station.get_location()))
+                neighbours = neighbor_stations
+                    .iter_mut()
+                    .flat_map(|station| {
+                        robot_factory
+                            .station_grid
+                            .get_objects(station.get_location())
+                    })
                     .filter(|station| station.get_station_type() == self.destination_type)
                     .collect();
             }
@@ -227,56 +286,75 @@ impl Agent for Robot {
             let mut station_opt = neighbours.iter_mut().choose(&mut rand::thread_rng());
 
             if station_opt.is_none() {
-                panic!("Robot {} is at destination but no station of type {:?} found", self.id, self.destination_type);
+                let msg = format!(
+                    "Robot {} is at destination {} but no station of type {:?} found",
+                    self.id, self.destination, self.destination_type
+                );
+                log!(LogType::Error, msg.clone(), true);
+                panic!("{}", msg);
             }
 
             let mut station = station_opt.unwrap();
 
             match self.destination_type {
-                StationType::LoadingDock => {
+                LoadingDock => {
                     if station.has_product_available() {
                         self.order = station.take_product(&mut robot_factory);
                         self.renew_destination(robot_factory);
                     }
                 }
-                StationType::Sticher | StationType::Cutter | StationType::Finisher => {
+                Sticher | Cutter | Finisher => {
                     self.drop_off_product(&mut station);
-                    if station.has_product_available() { //todo: this should check all stations around the robot
+                    if station.has_product_available() {
+                        //todo: this should check all stations around the robot
                         self.order = station.take_product(&mut robot_factory);
                         self.renew_destination(robot_factory);
                     } else {
-                        self.change_destination(robot_factory.get_random_station_location_with_type(StationType::LoadingDock));
+                        self.change_destination(
+                            robot_factory.get_random_station_location_with_type(LoadingDock),
+                        );
                     }
                 }
-                StationType::StorageRoom => {
+                StorageRoom => {
                     self.drop_off_product(&mut station);
                     self.order = station.take_product(&mut robot_factory); //storage room returns CarriedProduct::Nothing
                     self.renew_destination(robot_factory);
                 }
-                StationType::RobotRoom => {
+                RobotRoom => {
                     //nothing to-do here
                 }
             }
 
             //update station on the grid
-            robot_factory.station_grid.remove_object_location(*station, station.get_location());
-            robot_factory.station_grid.set_object_location(*station, station.get_location());
+            robot_factory
+                .station_grid
+                .remove_object_location(*station, station.get_location());
+            robot_factory
+                .station_grid
+                .set_object_location(*station, station.get_location());
         }
 
         //return-home
-        if self.charge < 2 && self.destination_type != StationType::RobotRoom {
-            let loading_station = robot_factory.get_random_station_location_with_type(StationType::RobotRoom);
+        if self.charge < 2 && self.destination_type != RobotRoom {
+            let loading_station = robot_factory.get_random_station_location_with_type(RobotRoom);
             self.change_destination(loading_station);
         }
 
-        robot_factory.robot_grid.set_object_location(*self, self.location);
+        robot_factory
+            .robot_grid
+            .set_object_location(*self, self.location);
     }
 
-    fn before_step(&mut self, state: &mut dyn State) -> Option<Vec<(Box<dyn Agent>, ScheduleOptions)>> {
+    fn before_step(
+        &mut self,
+        state: &mut dyn State,
+    ) -> Option<Vec<(Box<dyn Agent>, ScheduleOptions)>> {
         //load self state from factory state
         let factory = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
 
-        let mut robots = factory.robot_grid.get_objects_unbuffered(self.next_location); //in the buffer, the robot is already at the new location
+        let mut robots = factory
+            .robot_grid
+            .get_objects_unbuffered(self.next_location); //in the buffer, the robot is already at the new location
         for robot in robots.iter() {
             if robot.id == self.id {
                 self.order = robot.order;
@@ -302,7 +380,6 @@ impl Agent for Robot {
         None
     }
 }
-
 
 #[cfg(test)]
 mod tests {
