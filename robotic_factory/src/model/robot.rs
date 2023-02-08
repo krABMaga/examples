@@ -133,8 +133,6 @@ impl Robot {
                 self.change_destination(state.get_random_station_location_with_type(StationType::LoadingDock));
             }
         }
-
-        state.robot_grid.set_object_location(*self, self.location);
     }
 
     pub fn is_fully_charged(&self) -> bool {
