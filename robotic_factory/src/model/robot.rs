@@ -2,9 +2,9 @@ use std::cmp::min;
 use std::fmt;
 use std::hash::Hash;
 
-use krabmaga::{rand, Rng};
+use krabmaga::{log, rand, Rng};
 use krabmaga::engine::agent::Agent;
-use krabmaga::engine::fields::field_2d::Location2D;
+use krabmaga::engine::fields::field_2d::*;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
 use krabmaga::rand::seq::IteratorRandom;
@@ -53,6 +53,7 @@ impl Robot {
     pub fn change_destination(&mut self, target: StationLocation) {
         self.destination = target.location;
         self.destination_type = target.station_type;
+        log!(LogType::Info, format!("Robot {} changed destination to {}", self.id, self.destination));
     }
 
     pub fn get_charge(&self) -> i32 {
@@ -152,7 +153,6 @@ impl Robot {
 
         //apply direction vector to current position
         self.location = Real2D { x: x + dx, y: y + dy };
-        state.robot_grid.set_object_location(*self, self.location);
 
         if self.order == CarriedProduct::Nothing {
             self.charge -= ENERGY_COST_PER_STEP;
@@ -184,6 +184,8 @@ impl Robot {
 }
 
 impl Agent for Robot {
+
+
     fn step(&mut self, state: &mut dyn State) {
         //Set robot destination
 
@@ -228,6 +230,7 @@ impl Agent for Robot {
                     //nothing to-do here
                 }
             }
+
         }
 
         //return-home
@@ -235,12 +238,16 @@ impl Agent for Robot {
             let loading_station = robot_factory.get_random_station_location_with_type(StationType::LoadingDock);
             self.change_destination(loading_station);
         }
+
+        robot_factory.robot_grid.set_object_location(*self, self.location);
     }
 }
 
 
 #[cfg(test)]
 mod tests {
+    use krabmaga::engine::fields::field::Field;
+    use krabmaga::engine::fields::field_2d::Field2D;
     use krabmaga::engine::schedule::Schedule;
     use krabmaga::thread_rng;
 
@@ -277,5 +284,48 @@ mod tests {
         robot.charge(charging_amount, &factory);
 
         assert_eq!(robot.charge as u32, robot.max_charge);
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+    struct TestData {
+        x: i32,
+        y: i32,
+    }
+
+    impl Location2D<Real2D> for TestData {
+        fn get_location(self) -> Real2D {
+            Real2D { x: self.x as f32, y: self.y as f32 }
+        }
+
+        fn set_location(&mut self, loc: Real2D) {
+            self.x = loc.x as i32;
+            self.y = loc.y as i32;
+        }
+    }
+
+    impl std::fmt::Display for TestData {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "({}, {})", self.x, self.y)
+        }
+    }
+
+    #[test]
+    fn test_field() {
+        let mut field: Field2D<TestData> = Field2D::new(10.0, 10.0, 1.0, false);
+
+        let mut x = TestData::default();
+        let mut q = &x;
+
+        field.set_object_location(x, Real2D { x: 0.0, y: 0.0 });
+
+        field.lazy_update();
+
+        let vec = field.get_objects(x.get_location());
+        for mut neighbour in vec {
+            neighbour.set_location(Real2D { x: 1.0, y: 1.0 });
+        }
+
+        println!("Hello World!");
+        println!("Hello World!2")
     }
 }

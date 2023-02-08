@@ -6,9 +6,10 @@ use krabmaga::{rand, Rng};
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::Real2D;
+use krabmaga::engine::schedule::ScheduleOptions;
 use krabmaga::engine::state::State;
 
-use crate::{CHARGE_PER_STEP, DELUXE_FINISHER_CYCLES, ORDER_GENEREATION_CHANCE, STANDARD_FINISHER_CYCLES};
+use crate::{CHARGE_PER_STEP, DELUXE_FINISHER_CYCLES, JUST_IN_TIME_CHARGE, ORDER_GENEREATION_CHANCE, STANDARD_FINISHER_CYCLES};
 use crate::model::robot::{CarriedProduct, Robot};
 use crate::model::robot_factory::RobotFactory;
 
@@ -46,7 +47,7 @@ impl Station {
             is_delux_finisher = false;
         }
 
-        Station {
+        let mut station = Station {
             id,
             location,
             material_management: MaterialManagement::default(),
@@ -57,7 +58,11 @@ impl Station {
                 is_deluxe: is_delux_finisher,
                 is_processing: false,
             },
+        };
+        if station_type == StationType::LoadingDock {
+            station.material_management.add_products(10);
         }
+        station
     }
 
     pub fn get_station_type(&self) -> StationType {
@@ -179,7 +184,13 @@ impl Agent for Station {
                 let loading_docks = factory.get_stations_of_type(StationType::LoadingDock);
 
                 if loading_docks.iter().any(|dock| { dock.material_management.has_supply() }) {
-                    todo!("set destination to random loading dock adn check jist in time")
+                    let robots = factory.get_robots();
+                    for mut robot in robots {
+                        if robot.charge >= JUST_IN_TIME_CHARGE {
+                            robot.change_destination(factory.get_random_station_location_with_type(StationType::LoadingDock));
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -231,7 +242,7 @@ impl MaterialManagement {
 mod tests {
     use krabmaga::engine::schedule::Schedule;
 
-    use crate::JUST_IN_TIME_CHARGE;
+    use crate::{INITIAL_LOADING_DOCK_PRODUCTS, JUST_IN_TIME_CHARGE};
     use crate::model::robot_factory::StationLocation;
 
     use super::*;
@@ -382,5 +393,12 @@ mod tests {
 
         //then
         assert_eq!(robot.charge, CHARGE_PER_STEP);
+    }
+
+    #[test]
+    fn loading_dock_starts_with_initial_products() {
+        let mut loading_dock = Station::new(0, Real2D { x: 0.0, y: 0.0 }, StationType::LoadingDock, false);
+
+        assert_eq!(loading_dock.material_management.get_products_count(), INITIAL_LOADING_DOCK_PRODUCTS);
     }
 }
