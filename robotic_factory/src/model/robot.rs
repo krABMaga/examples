@@ -38,7 +38,7 @@ impl CarriedProduct {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, Eq, Debug)]
 pub struct Robot {
     pub id: u32,
     pub max_charge: u32,
@@ -54,7 +54,7 @@ impl Robot {
     pub fn change_destination(&mut self, target: StationLocation) {
         self.destination = target.location;
         self.destination_type = target.station_type;
-        log!(LogType::Info, format!("Robot {} changed destination to {}", self.id, self.destination));
+        log!(LogType::Info, format!("Robot {} changed destination to a {:?}(at {})", self.id, self.destination_type ,self.destination));
     }
 
     pub fn get_charge(&self) -> i32 {
@@ -97,6 +97,12 @@ impl Hash for Robot {
 impl fmt::Display for Robot {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Robot(id: {} at {}, dest {}, carries {:?})", self.id, self.location, self.destination, self.order)
+    }
+}
+
+impl PartialEq for Robot {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
     }
 }
 
