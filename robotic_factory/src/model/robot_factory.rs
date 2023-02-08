@@ -15,6 +15,7 @@ use StationType::{RobotRoom, StorageRoom};
 
 use crate::{FACTORY_HEIGHT, FACTORY_WIDTH, ROBOT_COUNT};
 use crate::model::robot::{CarriedProduct, Robot};
+use crate::model::robot_factory;
 use crate::model::stations::*;
 use crate::model::stations::StationType::LoadingDock;
 
@@ -38,14 +39,17 @@ pub struct RobotFactory {
 
 impl RobotFactory {
     pub fn new() -> RobotFactory {
-        RobotFactory {
+        //values set here do not matter much, as `reset()` will be called immediately after anyways
+        let mut robot_factory = RobotFactory {
             station_locations: vec![],
-            robot_grid: Field2D::new(FACTORY_WIDTH, FACTORY_HEIGHT, 0.1, false),
-            station_grid: Field2D::new(FACTORY_WIDTH, FACTORY_HEIGHT, 0.1, false),
+            robot_grid: Field2D::new(FACTORY_WIDTH, FACTORY_HEIGHT, 0.5, false),
+            station_grid: Field2D::new(FACTORY_WIDTH, FACTORY_HEIGHT, 1.0, false),
             standard_order_count: 0,
             luxury_order_count: 0,
             step: 0,
-        }
+        };
+        robot_factory.reset();
+        robot_factory
     }
 
     pub fn get_random_station_location(&self) -> StationLocation {
@@ -232,8 +236,8 @@ impl State for RobotFactory {
 
         self.station_locations.clear();
 
-        self.robot_grid = Field2D::new(FACTORY_WIDTH, FACTORY_HEIGHT, 0.1, false);
-        self.station_grid = Field2D::new(FACTORY_WIDTH, FACTORY_HEIGHT, 0.1, false);
+        self.robot_grid = Field2D::new(FACTORY_WIDTH, FACTORY_HEIGHT, 0.5, false);
+        self.station_grid = Field2D::new(FACTORY_WIDTH, FACTORY_HEIGHT, 1.0, false);
     }
 
     fn update(&mut self, step: u64) {
@@ -265,19 +269,24 @@ impl State for RobotFactory {
                 String::from("Robots' Energy"),
                 format!("Robot {}", robot.get_id()),
                 self.step as f64,
-                (robot.charge / robot.max_charge as i32) as f64 * 100.0
+                (robot.charge as f64 / robot.max_charge as f64) * 100.0
             );
         }
 
         //filter out robot rooms and Storage rooms
         let types_to_ignore: HashSet<StationType> = HashSet::from_iter(
-            vec![RobotRoom, StorageRoom, LoadingDock].into_iter());
+            vec![RobotRoom, StorageRoom].into_iter());
         let mut supply_counts = HashMap::new();
         self.get_stations().iter()
             .filter(|station| !types_to_ignore.contains(&station.get_station_type()))
             .for_each(|station| {
                 let count = supply_counts.entry(station.get_station_type()).or_insert(0);
-                *count += station.material_management.get_supply_count();
+
+                *count += if station.get_station_type() == LoadingDock {
+                    station.material_management.get_products_count()
+                } else {
+                    station.material_management.get_supply_count()
+                };
             });
 
         for (station_type, supply) in supply_counts {

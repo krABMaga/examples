@@ -14,10 +14,10 @@ pub const JUST_IN_TIME_CHARGE: i32 = 50;
 pub const ENERGY_COST_PER_STEP: i32 = 1;
 pub const ENERGY_COST_PER_STEP_WHILE_CARRYING: i32 = 2;
 
-pub const FACTORY_WIDTH: f32 = 5.0;
-pub const FACTORY_HEIGHT: f32 = 5.0;
+pub const FACTORY_WIDTH: f32 = 10.0;
+pub const FACTORY_HEIGHT: f32 = 10.0;
 
-pub const STEP: u64 = 10;
+pub const STEP: u64 = 100;
 
 pub const ORDER_GENEREATION_CHANCE: f64 = 0.03;
 
