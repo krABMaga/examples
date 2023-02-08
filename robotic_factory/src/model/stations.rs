@@ -1,9 +1,10 @@
+use std::borrow::BorrowMut;
 use std::cell::RefCell;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 
-use krabmaga::{rand, Rng};
+use krabmaga::{log, rand, Rng};
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::Real2D;
@@ -182,32 +183,39 @@ impl Agent for Station {
             StationType::StorageRoom => {}
             StationType::RobotRoom => {//aka charging station
                 //recharge
-                let mut neighbors = factory.robot_grid.get_neighbors_within_distance(self.location, 2.0);
 
-                let mut updated_robots = HashSet::new();
+                let mut neighbors = factory.robot_grid.get_neighbors_within_distance(self.location, 1.4);
 
-                for mut robot in neighbors.iter_mut() {
-                    robot.charge(CHARGE_PER_STEP, factory);
-                    updated_robots.insert(*robot);
+                if neighbors.len() == 0 {
+                    return;
                 }
 
-                let loading_docks = factory.get_stations_of_type(StationType::LoadingDock);
+                let mut future_states: HashMap<usize, Robot> = HashMap::new();
+                for robot in neighbors.iter() {
+                    factory.robot_grid.get_objects_unbuffered(robot.get_next_location()).iter().for_each(|other| {
+                        future_states.insert(other.get_id(), *other);
+                    });
+                }
 
-                if loading_docks.iter().any(|dock| { dock.material_management.has_supply() }) {
-                    for mut robot in neighbors.iter_mut() {
+
+                for mut robot in future_states.values_mut() {
+                    robot.charge(CHARGE_PER_STEP, factory);
+                }
+
+
+                let loading_docks = factory.get_stations_of_type(StationType::LoadingDock);
+                if loading_docks.iter().any(|dock| { dock.material_management.has_products() }) {
+                    for mut robot in future_states.values_mut() {
                         if robot.charge >= JUST_IN_TIME_CHARGE {
+                            log!(LogType::Info, format!("Just-in-time charging for Robot {}", robot), true);
                             robot.change_destination(factory.get_random_station_location_with_type(StationType::LoadingDock));
-                            if !updated_robots.contains(robot) {
-                                updated_robots.insert(*robot);
-                            }
-                            break;
                         }
                     }
                 }
 
-                for robot in updated_robots {
-                    factory.robot_grid.remove_object_location(robot, robot.get_location());
-                    factory.robot_grid.set_object_location(robot, robot.get_location());
+                for robot in future_states.values() {
+                    factory.robot_grid.remove_object_location(*robot, robot.get_location());
+                    factory.robot_grid.set_object_location(*robot, robot.get_location());
                 }
             }
         }

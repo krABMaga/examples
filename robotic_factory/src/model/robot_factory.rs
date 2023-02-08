@@ -187,7 +187,7 @@ impl State for RobotFactory {
 
         //spawn robots
         for i in 0..ROBOT_COUNT {
-            let robot = Robot::new((station_count + i) as u32, Real2D { x: 0.0, y: 0.0 }, self);
+            let robot = Robot::new(station_count + i, Real2D { x: 0.0, y: 0.0 }, self);
             self.robot_grid.set_object_location(robot, robot.get_location());
             schedule.schedule_repeating(Box::new(robot), 0.0, 3);
         }
@@ -241,6 +241,8 @@ impl State for RobotFactory {
     }
 
     fn update(&mut self, step: u64) {
+        log!(LogType::Info, format!("Step #{}", step), true);
+
         self.step = step;
 
         self.station_grid.lazy_update();
@@ -290,7 +292,7 @@ impl State for RobotFactory {
             });
 
         for (station_type, supply) in supply_counts {
-            log!(LogType::Info, format!("{:?}s supply: {}", station_type, supply));
+            log!(LogType::Info, format!("{:?}s supply: {}", station_type, supply), true);
             plot!(
                 String::from("Machine Supply"),
                 format!("{:?}s", station_type),

@@ -40,10 +40,12 @@ impl CarriedProduct {
 
 #[derive(Clone, Copy, Eq, Debug)]
 pub struct Robot {
-    pub id: u32,
+    id: usize,
     pub max_charge: u32,
     pub charge: i32,
     location: Real2D,
+    next_location: Real2D,
+    // marks where to find the robot in the next step
     destination: Real2D,
     destination_type: StationType,
     order: CarriedProduct,
@@ -54,7 +56,8 @@ impl Robot {
     pub fn change_destination(&mut self, target: StationLocation) {
         self.destination = target.location;
         self.destination_type = target.station_type;
-        log!(LogType::Info, format!("Robot {} changed destination to a {:?}(at {})", self.id, self.destination_type ,self.destination));
+        self.update_next_location();
+        log!(LogType::Info, format!("Robot {} changed destination to a {:?}(at {})", self.id, self.destination_type ,self.destination), true);
     }
 
     pub fn get_charge(&self) -> i32 {
@@ -69,12 +72,12 @@ impl Robot {
         self.order = order;
     }
 
-    pub fn get_id(&self) -> u32 {
+    pub fn get_id(&self) -> usize {
         self.id
     }
 
-    pub fn get_id_mut(&mut self) -> u32 {
-        self.id
+    pub fn get_next_location(&self) -> Real2D {
+        self.next_location
     }
 }
 
@@ -107,18 +110,21 @@ impl PartialEq for Robot {
 }
 
 impl Robot {
-    pub fn new(id: u32, location: Real2D, state: &dyn State) -> Robot {
+    pub fn new(id: usize, location: Real2D, state: &dyn State) -> Robot {
         let robot_factory = state.as_any().downcast_ref::<RobotFactory>().unwrap();
         let initial_destination = robot_factory.get_random_station_location_with_type(StationType::LoadingDock).location;
-        Robot {
+        let mut robot = Robot {
             id,
             max_charge: MAX_CHARGE,
             charge: INITIAL_CHARGE,
             location,
+            next_location: location,
             destination: initial_destination,
             destination_type: StationType::LoadingDock,
             order: CarriedProduct::Nothing,
-        }
+        };
+        robot.update_next_location();
+        robot
     }
 
 
@@ -139,17 +145,14 @@ impl Robot {
         self.charge == self.max_charge as i32
     }
 
-
-    fn move_step_towards_destination(&mut self, state: &RobotFactory) {
+    fn update_next_location(&mut self) {
         let x = self.location.x;
         let y = self.location.y;
         //get direction vector
         let mut dx = self.destination.x - x;
         let mut dy = self.destination.y - y;
 
-        //get length of direction vector
-
-        //ensure max step disatance is 1 by normalization
+        //ensure max step distance is 1 by normalization
         let distance = (dx * dx + dy * dy).sqrt();
         if distance > 1.0 {
             dx /= distance;
@@ -157,7 +160,14 @@ impl Robot {
         }
 
         //apply direction vector to current position
-        self.location = Real2D { x: x + dx, y: y + dy };
+        self.next_location = Real2D { x: x + dx, y: y + dy };
+    }
+
+    fn move_step_towards_destination(&mut self, state: &RobotFactory) {
+        log!(LogType::Info, format!("Robot {} moving from ({}) to ({})", self.id, self.location, self.next_location), true);
+
+        self.location = self.next_location;
+        self.update_next_location();
 
         if self.order == CarriedProduct::Nothing {
             self.charge -= ENERGY_COST_PER_STEP;
@@ -254,7 +264,7 @@ impl Agent for Robot {
         }
 
         //return-home
-        if self.charge < 2 {
+        if self.charge < 2 && self.destination_type != StationType::RobotRoom {
             let loading_station = robot_factory.get_random_station_location_with_type(StationType::RobotRoom);
             self.change_destination(loading_station);
         }
@@ -262,18 +272,19 @@ impl Agent for Robot {
         robot_factory.robot_grid.set_object_location(*self, self.location);
     }
 
-    fn before_step(&mut self, _state: &mut dyn State) -> Option<Vec<(Box<dyn Agent>, ScheduleOptions)>> {
+    fn before_step(&mut self, state: &mut dyn State) -> Option<Vec<(Box<dyn Agent>, ScheduleOptions)>> {
         //load self state from factory state
-        let factory = _state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
+        let factory = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
 
-        let mut robots = factory.robot_grid.get_objects_unbuffered(self.location);
+        let mut robots = factory.robot_grid.get_objects_unbuffered(self.next_location); //in the buffer, the robot is already at the new location
         for robot in robots.iter() {
             if robot.id == self.id {
                 self.order = robot.order;
                 self.destination = robot.destination;
                 self.destination_type = robot.destination_type;
                 self.charge = robot.charge;
-                return None; //if we find an updated state of the station, we update ourselves
+                self.next_location = robot.next_location;
+                return None; //if we find an updated state of the robot, we update ourselves
             }
         }
 
@@ -284,10 +295,10 @@ impl Agent for Robot {
                 self.destination = robot.destination;
                 self.destination_type = robot.destination_type;
                 self.charge = robot.charge;
+                self.next_location = robot.next_location;
                 break;
             }
         }
-
         None
     }
 }
