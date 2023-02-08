@@ -6,6 +6,7 @@ use krabmaga::{log, rand, Rng};
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field_2d::*;
 use krabmaga::engine::location::Real2D;
+use krabmaga::engine::schedule::ScheduleOptions;
 use krabmaga::engine::state::State;
 use krabmaga::rand::seq::IteratorRandom;
 
@@ -196,13 +197,13 @@ impl Agent for Robot {
 
             //All (normal) stations write their state into the buffer beforehand.
             //Since multiple robots may manipulate the stations we need to get the write information.
-            let mut neighbours: Vec<_>= neighbor_stations.iter_mut()
+            let mut neighbours: Vec<_> = neighbor_stations.iter_mut()
                 .flat_map(|station| robot_factory.station_grid.get_objects_unbuffered(station.get_location()))
                 .filter(|station| station.get_station_type() == self.destination_type)
                 .collect();
 
             //however, the LoadingDock is executed later, so it may needs to be fetched from the read buffer
-            if neighbours.is_empty(){
+            if neighbours.is_empty() {
                 neighbours = neighbor_stations.iter_mut()
                     .flat_map(|station| robot_factory.station_grid.get_objects(station.get_location()))
                     .filter(|station| station.get_station_type() == self.destination_type)
@@ -250,11 +251,40 @@ impl Agent for Robot {
 
         //return-home
         if self.charge < 2 {
-            let loading_station = robot_factory.get_random_station_location_with_type(StationType::LoadingDock);
+            let loading_station = robot_factory.get_random_station_location_with_type(StationType::RobotRoom);
             self.change_destination(loading_station);
         }
 
         robot_factory.robot_grid.set_object_location(*self, self.location);
+    }
+
+    fn before_step(&mut self, _state: &mut dyn State) -> Option<Vec<(Box<dyn Agent>, ScheduleOptions)>> {
+        //load self state from factory state
+        let factory = _state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
+
+        let mut robots = factory.robot_grid.get_objects_unbuffered(self.location);
+        for robot in robots.iter() {
+            if robot.id == self.id {
+                self.order = robot.order;
+                self.destination = robot.destination;
+                self.destination_type = robot.destination_type;
+                self.charge = robot.charge;
+                return None; //if we find an updated state of the station, we update ourselves
+            }
+        }
+
+        robots = factory.robot_grid.get_objects(self.location);
+        for robot in robots.iter() {
+            if robot.id == self.id {
+                self.order = robot.order;
+                self.destination = robot.destination;
+                self.destination_type = robot.destination_type;
+                self.charge = robot.charge;
+                break;
+            }
+        }
+
+        None
     }
 }
 

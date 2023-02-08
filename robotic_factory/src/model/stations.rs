@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::collections::HashSet;
 use std::fmt;
 use std::hash::{Hash, Hasher};
 
@@ -181,22 +182,32 @@ impl Agent for Station {
             StationType::StorageRoom => {}
             StationType::RobotRoom => {//aka charging station
                 //recharge
-                let neighbors = factory.robot_grid.get_neighbors_within_distance(self.location, 2.0);
+                let mut neighbors = factory.robot_grid.get_neighbors_within_distance(self.location, 2.0);
 
-                for mut neighbor_robot in neighbors {
-                    neighbor_robot.charge(CHARGE_PER_STEP, factory);
+                let mut updated_robots = HashSet::new();
+
+                for mut robot in neighbors.iter_mut() {
+                    robot.charge(CHARGE_PER_STEP, factory);
+                    updated_robots.insert(*robot);
                 }
 
                 let loading_docks = factory.get_stations_of_type(StationType::LoadingDock);
 
                 if loading_docks.iter().any(|dock| { dock.material_management.has_supply() }) {
-                    let robots = factory.get_robots();
-                    for mut robot in robots {
+                    for mut robot in neighbors.iter_mut() {
                         if robot.charge >= JUST_IN_TIME_CHARGE {
                             robot.change_destination(factory.get_random_station_location_with_type(StationType::LoadingDock));
+                            if !updated_robots.contains(robot) {
+                                updated_robots.insert(*robot);
+                            }
                             break;
                         }
                     }
+                }
+
+                for robot in updated_robots {
+                    factory.robot_grid.remove_object_location(robot, robot.get_location());
+                    factory.robot_grid.set_object_location(robot, robot.get_location());
                 }
             }
         }
