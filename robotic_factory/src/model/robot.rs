@@ -184,8 +184,6 @@ impl Robot {
 }
 
 impl Agent for Robot {
-
-
     fn step(&mut self, state: &mut dyn State) {
         //Set robot destination
 
@@ -195,9 +193,23 @@ impl Agent for Robot {
             self.move_step_towards_destination(robot_factory);
         } else {
             let mut neighbor_stations = robot_factory.station_grid.get_neighbors_within_distance(self.location, 0.01);
-            let mut station_opt = neighbor_stations.iter_mut()
+
+            //All (normal) stations write their state into the buffer beforehand.
+            //Since multiple robots may manipulate the stations we need to get the write information.
+            let mut neighbours: Vec<_>= neighbor_stations.iter_mut()
+                .flat_map(|station| robot_factory.station_grid.get_objects_unbuffered(station.get_location()))
                 .filter(|station| station.get_station_type() == self.destination_type)
-                .choose(&mut rand::thread_rng());
+                .collect();
+
+            //however, the LoadingDock is executed later, so it may needs to be fetched from the read buffer
+            if neighbours.is_empty(){
+                neighbours = neighbor_stations.iter_mut()
+                    .flat_map(|station| robot_factory.station_grid.get_objects(station.get_location()))
+                    .filter(|station| station.get_station_type() == self.destination_type)
+                    .collect();
+            }
+
+            let mut station_opt = neighbours.iter_mut().choose(&mut rand::thread_rng());
 
             if station_opt.is_none() {
                 panic!("Robot {} is at destination but no station of type {:?} found", self.id, self.destination_type);
@@ -231,6 +243,9 @@ impl Agent for Robot {
                 }
             }
 
+            //update station on the grid
+            robot_factory.station_grid.remove_object_location(*station, station.get_location());
+            robot_factory.station_grid.set_object_location(*station, station.get_location());
         }
 
         //return-home
@@ -284,48 +299,5 @@ mod tests {
         robot.charge(charging_amount, &factory);
 
         assert_eq!(robot.charge as u32, robot.max_charge);
-    }
-
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-    struct TestData {
-        x: i32,
-        y: i32,
-    }
-
-    impl Location2D<Real2D> for TestData {
-        fn get_location(self) -> Real2D {
-            Real2D { x: self.x as f32, y: self.y as f32 }
-        }
-
-        fn set_location(&mut self, loc: Real2D) {
-            self.x = loc.x as i32;
-            self.y = loc.y as i32;
-        }
-    }
-
-    impl std::fmt::Display for TestData {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "({}, {})", self.x, self.y)
-        }
-    }
-
-    #[test]
-    fn test_field() {
-        let mut field: Field2D<TestData> = Field2D::new(10.0, 10.0, 1.0, false);
-
-        let mut x = TestData::default();
-        let mut q = &x;
-
-        field.set_object_location(x, Real2D { x: 0.0, y: 0.0 });
-
-        field.lazy_update();
-
-        let vec = field.get_objects(x.get_location());
-        for mut neighbour in vec {
-            neighbour.set_location(Real2D { x: 1.0, y: 1.0 });
-        }
-
-        println!("Hello World!");
-        println!("Hello World!2")
     }
 }

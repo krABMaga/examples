@@ -31,7 +31,7 @@ pub struct FinisherInformation {
     is_processing: bool,
 }
 
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq)]
 pub struct Station {
     id: u32,
     location: Real2D,
@@ -126,6 +126,12 @@ impl Hash for Station {
     }
 }
 
+impl PartialEq for Station {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
 impl fmt::Display for Station {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}({})", self.station_type, self.id)
@@ -196,6 +202,31 @@ impl Agent for Station {
         }
 
         factory.station_grid.set_object_location(*self, self.location);
+    }
+
+    fn before_step(&mut self, _state: &mut dyn State) -> Option<Vec<(Box<dyn Agent>, ScheduleOptions)>> {
+        //load self state from factory state
+        let factory = _state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
+
+        let mut stations = factory.station_grid.get_objects_unbuffered(self.location);
+        for station in stations.iter() {
+            if station.id == self.id {
+                self.material_management = station.material_management;
+                self.finisher_information = station.finisher_information;
+                return None; //if we find an updated state of the station, we update ourselves
+            }
+        }
+
+        stations = factory.station_grid.get_objects(self.location);
+        for station in stations.iter() {
+            if station.id == self.id {
+                self.material_management = station.material_management;
+                self.finisher_information = station.finisher_information;
+                break;
+            }
+        }
+
+        None
     }
 }
 
