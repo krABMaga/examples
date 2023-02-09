@@ -1,7 +1,7 @@
 use std::any::Any;
-use std::cmp::{max, min};
 use std::collections::HashSet;
 
+use krabmaga::*;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field::Field;
 use krabmaga::engine::fields::field_2d::{Field2D, Location2D};
@@ -9,15 +9,13 @@ use krabmaga::engine::location::Real2D;
 use krabmaga::engine::schedule::Schedule;
 use krabmaga::engine::state::State;
 use krabmaga::rand::seq::{IteratorRandom, SliceRandom};
-use krabmaga::*;
 
 use StationType::{RobotRoom, StorageRoom};
 
-use crate::model::robot::{CarriedProduct, Robot};
-use crate::model::robot_factory;
-use crate::model::stations::StationType::*;
-use crate::model::stations::*;
 use crate::{FACTORY_HEIGHT, FACTORY_WIDTH, ROBOT_COUNT};
+use crate::model::robot::Robot;
+use crate::model::stations::*;
+use crate::model::stations::StationType::*;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct StationLocation {
@@ -34,7 +32,7 @@ pub struct RobotFactory {
     standard_order_count: u32,
     luxury_order_count: u32,
 
-    step: u64,
+    pub step: u64,
 }
 
 impl RobotFactory {
@@ -76,10 +74,11 @@ impl RobotFactory {
     }
 
     pub fn get_robots(&mut self) -> Vec<Robot> {
-        let mut too_many_robots = self.robot_grid.get_neighbors_within_distance(
-            Real2D { x: 0.0, y: 0.0 },
-            f32::max(FACTORY_WIDTH, FACTORY_HEIGHT),
+        let too_many_robots = self.robot_grid.get_neighbors_within_distance(
+            Real2D { x: (FACTORY_WIDTH / 2.0), y: (FACTORY_HEIGHT / 2.0) },
+            ((FACTORY_WIDTH / 2.0).powi(2) * (FACTORY_HEIGHT / 2.0).powi(2)).sqrt(),
         );
+
 
         let mut found = HashSet::new();
         let mut reduced_robots = vec![];
@@ -102,7 +101,7 @@ impl RobotFactory {
     pub fn get_stations(&self) -> HashSet<Station> {
         let mut stations = HashSet::new();
         for station_location in &self.station_locations {
-            let mut stations_at_location = self.station_grid.get_objects(station_location.location);
+            let stations_at_location = self.station_grid.get_objects(station_location.location);
             for s in stations_at_location {
                 stations.insert(s);
             }
@@ -114,8 +113,7 @@ impl RobotFactory {
         let mut stations = HashSet::new();
         for station_location in &self.station_locations {
             if station_location.station_type == station_type {
-                let mut stations_at_location =
-                    self.station_grid.get_objects(station_location.location);
+                let stations_at_location = self.station_grid.get_objects(station_location.location);
                 for s in stations_at_location {
                     stations.insert(s);
                 }
@@ -250,6 +248,13 @@ impl State for RobotFactory {
             String::from("Supply"),
             true
         );
+
+        addplot!(
+            String::from("Products Ready for Van"),
+            String::from("Time"),
+            String::from("Count"),
+            true
+        );
     }
 
     fn as_any(&self) -> &dyn Any {
@@ -287,7 +292,7 @@ impl State for RobotFactory {
         self.robot_grid.lazy_update();
     }
 
-    fn after_step(&mut self, schedule: &mut Schedule) {
+    fn after_step(&mut self, _schedule: &mut Schedule) {
         plot!(
             String::from("Outstanding Orders"),
             String::from("Standard Orders"),
@@ -302,15 +307,12 @@ impl State for RobotFactory {
             self.luxury_order_count as f64
         );
 
-        let robots = self.get_robots();
-        for robot in robots {
-            plot!(
-                String::from("Robots' Energy"),
-                format!("Robot {}", robot.get_id()),
-                self.step as f64,
-                (robot.charge as f64 / robot.max_charge as f64) * 100.0
-            );
-        }
+        plot!(
+            String::from("Outstanding Orders"),
+            String::from("Total Orders"),
+            self.step as f64,
+            self.luxury_order_count as f64 + self.standard_order_count as f64
+        );
 
         //filter out robot rooms and Storage rooms
         let types_to_ignore: HashSet<StationType> =
@@ -342,6 +344,42 @@ impl State for RobotFactory {
                 supply as f64
             );
         }
+
+        //Report Storage Rooms
+        let storage_rooms = self.get_stations_of_type(StorageRoom);
+        let sum = storage_rooms.iter()
+            .fold(0, |sum, station| {
+                sum + station.material_management.get_supply_count()
+            });
+        for station in storage_rooms {
+            log!(
+                LogType::Info,
+                format!(
+                    "Storage Room #{} has {} products",
+                    station.get_id(),
+                    station.material_management.get_supply_count()
+                ),
+                true
+            );
+            plot!(
+                String::from("Products Ready for Van"),
+                format!("Storage Room ({})", station.get_id()),
+                self.step as f64,
+                station.material_management.get_supply_count() as f64
+            );
+        }
+
+        log!(
+            LogType::Info,
+            format!("Total products ready for van: {}", sum),
+            true
+        );
+        plot!(
+            String::from("Products Ready for Van"),
+            String::from("Total"),
+            self.step as f64,
+            sum as f64
+        );
     }
 }
 
@@ -351,12 +389,12 @@ struct ShiftControl {}
 impl Agent for ShiftControl {
     fn step(&mut self, state: &mut dyn State) {
         if thread_rng().gen_bool(0.02) {
-            let mut factory = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
+            let factory = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
 
             let mut robots = factory.get_robots();
-            let mut robots_to_reschedule = robots.iter_mut().choose_multiple(&mut thread_rng(), 3);
+            let robots_to_reschedule = robots.iter_mut().choose_multiple(&mut thread_rng(), 3);
 
-            for mut robot in robots_to_reschedule {
+            for robot in robots_to_reschedule {
                 let loading_dock = factory.get_random_station_location_with_type(LoadingDock);
                 robot.change_destination(loading_dock);
             }
@@ -479,6 +517,7 @@ mod tests {
         schedule.step(&mut factory);
 
         let mut stations = factory.get_stations();
+        println!("Stations: {}", stations.len());
         assert_eq!(factory.station_locations.len(), stations.len());
     }
 

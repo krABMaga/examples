@@ -8,7 +8,7 @@ use krabmaga::engine::location::Real2D;
 use krabmaga::engine::schedule::ScheduleOptions;
 use krabmaga::engine::state::State;
 use krabmaga::rand::seq::IteratorRandom;
-use krabmaga::{log, rand, Rng};
+use krabmaga::*;
 
 use StationType::*;
 
@@ -68,18 +68,6 @@ impl Robot {
             ),
             true
         );
-    }
-
-    pub fn get_charge(&self) -> i32 {
-        self.charge
-    }
-
-    pub fn get_max_charge(&self) -> u32 {
-        self.max_charge
-    }
-
-    pub fn set_order(&mut self, order: CarriedProduct) {
-        self.order = order;
     }
 
     pub fn get_id(&self) -> usize {
@@ -181,7 +169,7 @@ impl Robot {
         };
     }
 
-    fn move_step_towards_destination(&mut self, state: &RobotFactory) {
+    fn move_step_towards_destination(&mut self) {
         log!(
             LogType::Info,
             format!(
@@ -201,12 +189,12 @@ impl Robot {
         }
     }
 
-    fn is_at_destination(&self, state: &RobotFactory) -> bool {
+    fn is_at_destination(&self) -> bool {
         let x = self.location.x;
         let y = self.location.y;
         //get direction vector
-        let mut dx = self.destination.x - x;
-        let mut dy = self.destination.y - y;
+        let dx = self.destination.x - x;
+        let dy = self.destination.y - y;
 
         let distance_sq = (dx * dx + dy * dy).abs();
         return distance_sq == 0.0; //todo: maybe we need to check with a small epsilon
@@ -251,8 +239,8 @@ impl Agent for Robot {
 
         let mut robot_factory = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
 
-        if !self.is_at_destination(robot_factory) {
-            self.move_step_towards_destination(robot_factory);
+        if !self.is_at_destination() {
+            self.move_step_towards_destination();
         } else {
             let mut neighbor_stations = robot_factory
                 .station_grid
@@ -283,7 +271,7 @@ impl Agent for Robot {
                     .collect();
             }
 
-            let mut station_opt = neighbours.iter_mut().choose(&mut rand::thread_rng());
+            let station_opt = neighbours.iter_mut().choose(&mut rand::thread_rng());
 
             if station_opt.is_none() {
                 let msg = format!(
@@ -377,6 +365,18 @@ impl Agent for Robot {
                 break;
             }
         }
+        None
+    }
+
+    fn after_step(&mut self, state: &mut dyn State) -> Option<Vec<(Box<dyn Agent>, ScheduleOptions)>> {
+        let factory = state.as_any_mut().downcast_mut::<RobotFactory>().unwrap();
+        plot!(
+                String::from("Robots' Energy"),
+                format!("Robot {}", self.get_id()),
+                factory.step as f64,
+                (self.charge as f64 / self.max_charge as f64) * 100.0
+            );
+
         None
     }
 }
