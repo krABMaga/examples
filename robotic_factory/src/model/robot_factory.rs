@@ -1,4 +1,5 @@
 use std::any::Any;
+use std::cell::RefCell;
 use std::collections::HashSet;
 
 use krabmaga::*;
@@ -291,6 +292,34 @@ impl State for RobotFactory {
         self.station_grid.lazy_update();
         self.robot_grid.lazy_update();
     }
+
+    fn before_step(&mut self, schedule: &mut Schedule) {
+        #[cfg(debug_assertions)]{
+            let bags = self.robot_grid.bags.clone();
+            let mut bag1: &RefCell<Vec<Vec<Robot>>> = bags.get(0).unwrap();
+            let mut bag2: &RefCell<Vec<Vec<Robot>>> = bags.get(1).unwrap();
+
+            let bag1_borrow = bag1.borrow();
+            let bag2_borrow = bag2.borrow();
+            let bag1_filtered = bag1_borrow.iter()
+                .filter(|bag| bag.len() > 0)
+                .map(|bag| bag.iter().collect::<Vec<&Robot>>())
+                .collect::<Vec<Vec<&Robot>>>();
+
+            let bag2_filtered = bag2_borrow.iter()
+                .filter(|bag| bag.len() > 0)
+                .map(|bag| bag.iter().collect::<Vec<&Robot>>())
+                .collect::<Vec<Vec<&Robot>>>();
+
+
+            let count1 = bag1_filtered.iter().map(|bag| bag.len()).sum::<usize>();
+            let count2 = bag2_filtered.iter().map(|bag| bag.len()).sum::<usize>();
+
+
+            assert!(count1 == ROBOT_COUNT || count2 == ROBOT_COUNT);
+        }
+    }
+
 
     fn after_step(&mut self, _schedule: &mut Schedule) {
         plot!(
