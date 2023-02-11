@@ -394,9 +394,31 @@ impl Agent for ShiftControl {
             let mut robots = factory.get_robots();
             let robots_to_reschedule = robots.iter_mut().choose_multiple(&mut thread_rng(), 3);
 
-            for robot in robots_to_reschedule {
+            let ids: HashSet<usize> = robots_to_reschedule.iter().map(|robot| robot.get_id()).collect();
+
+            let robot_future_state: HashSet<Robot> = robots_to_reschedule.iter()
+                .flat_map(|robot| factory.robot_grid.get_objects_unbuffered(robot.get_next_location()))
+                .filter(|robot| ids.contains(&robot.get_id()))
+                .fold(HashSet::new(), |mut set, robot| {
+                    set.insert(robot);
+                    set
+                });
+
+
+            for mut robot in robot_future_state {
+                let old_location = robot.clone().get_location();
+
                 let loading_dock = factory.get_random_station_location_with_type(LoadingDock);
-                robot.change_destination(loading_dock);
+                robot.change_destination(loading_dock); //this will update the next location
+
+                log!(
+                    LogType::Info,
+                    format!("Robot {} starts a new shift.", robot.get_id()),
+                    true
+                );
+
+                factory.robot_grid.remove_object_location(robot, old_location);
+                factory.robot_grid.set_object_location(robot, robot.get_location());
             }
         }
     }
