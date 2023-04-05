@@ -1,6 +1,8 @@
 use crate::model::eater::Eater;
 use crate::model::state::Environment;
 use crate::visualization::eater_vis::EaterVis;
+use krabmaga::bevy::ecs as bevy_ecs;
+use krabmaga::bevy::ecs::system::Resource;
 use krabmaga::bevy::prelude::Commands;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::location::Int2D;
@@ -13,7 +15,7 @@ use krabmaga::visualization::simulation_descriptor::SimulationDescriptor;
 use krabmaga::visualization::visualization_state::VisualizationState;
 use krabmaga::Rng;
 
-#[derive(Clone)]
+#[derive(Clone, Resource)]
 pub struct EnvironmentVis;
 
 /// Define how the simulation should be bootstrapped. Agents should be created here.

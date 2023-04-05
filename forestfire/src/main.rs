@@ -11,7 +11,6 @@ use krabmaga::simulate;
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
     crate::visualization::forest_vis::ForestVis, krabmaga::bevy::prelude::Color,
-    krabmaga::bevy::prelude::IntoSystem,
     krabmaga::engine::fields::dense_object_grid_2d::DenseGrid2D,
     krabmaga::visualization::fields::object_grid_2d::RenderObjectGrid2D,
     krabmaga::visualization::visualization::Visualization,
@@ -49,6 +48,6 @@ fn main() {
         .with_background_color(Color::BLACK)
         .with_name("Forest Fire Model")
         .setup::<ForestVis, Forest>(ForestVis, state);
-    app.add_system(DenseGrid2D::<Tree>::render.system());
+    app.add_system(DenseGrid2D::<Tree>::render);
     app.run();
 }

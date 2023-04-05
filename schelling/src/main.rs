@@ -10,7 +10,6 @@ use krabmaga::*;
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
     crate::visualization::world_vis::WorldVis, krabmaga::bevy::prelude::Color,
-    krabmaga::bevy::prelude::IntoSystem,
     krabmaga::engine::fields::sparse_object_grid_2d::SparseGrid2D,
     krabmaga::visualization::fields::object_grid_2d::RenderObjectGrid2D,
     krabmaga::visualization::visualization::Visualization,
@@ -52,6 +51,6 @@ fn main() {
         .with_background_color(Color::WHITE)
         .with_name("Schelling Model")
         .setup::<WorldVis, World>(WorldVis, world);
-    app.add_system(SparseGrid2D::<Patch>::render.system());
+    app.add_system(SparseGrid2D::<Patch>::render);
     app.run();
 }

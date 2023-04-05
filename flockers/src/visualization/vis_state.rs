@@ -11,8 +11,10 @@ use krabmaga::visualization::visualization_state::VisualizationState;
 use crate::model::bird::Bird;
 use crate::model::state::Flocker;
 use crate::visualization::bird_vis::BirdVis;
+use krabmaga::bevy::ecs as bevy_ecs;
+use krabmaga::bevy::ecs::system::Resource;
 
-#[derive(Clone)]
+#[derive(Clone, Resource)]
 pub struct VisState;
 
 impl VisualizationState<Flocker> for VisState {

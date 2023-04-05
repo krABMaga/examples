@@ -3,6 +3,8 @@ use crate::model::state::WsgState;
 use crate::model::wolf::Wolf;
 use crate::visualization::sheep_vis::SheepVis;
 use crate::visualization::wolf_vis::WolfVis;
+use krabmaga::bevy::ecs as bevy_ecs;
+use krabmaga::bevy::ecs::system::Resource;
 use krabmaga::bevy::prelude::Commands;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::location::Int2D;
@@ -14,7 +16,7 @@ use krabmaga::visualization::fields::number_grid_2d::BatchRender;
 use krabmaga::visualization::simulation_descriptor::SimulationDescriptor;
 use krabmaga::visualization::visualization_state::VisualizationState;
 
-#[derive(Clone)]
+#[derive(Clone, Resource)]
 pub struct VisState;
 
 impl VisualizationState<WsgState> for VisState {

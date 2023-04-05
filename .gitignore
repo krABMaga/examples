@@ -2,3 +2,4 @@
 /Cargo.lock
 /.idea/
 /output
+.DS_Store

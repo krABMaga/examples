@@ -1,5 +1,7 @@
 use crate::model::{node::*, state::EpidemicNetworkState};
 use crate::visualization::node::NetNodeVis;
+use krabmaga::bevy::ecs as bevy_ecs;
+use krabmaga::bevy::ecs::system::Resource;
 use krabmaga::bevy::prelude::Commands;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::schedule::*;
@@ -10,7 +12,7 @@ use krabmaga::visualization::fields::network::NetworkRender;
 use krabmaga::visualization::simulation_descriptor::SimulationDescriptor;
 use krabmaga::visualization::visualization_state::VisualizationState;
 
-#[derive(Clone)]
+#[derive(Clone, Resource)]
 pub struct VisState;
 
 impl VisualizationState<EpidemicNetworkState> for VisState {

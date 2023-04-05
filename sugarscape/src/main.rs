@@ -45,6 +45,6 @@ fn main() {
         .with_background_color(Color::WHITE)
         .with_name("Sugarscape")
         .setup::<EnvironmentVis, Environment>(EnvironmentVis, state);
-    app.add_system(DenseNumberGrid2D::batch_render.system());
+    app.add_system(DenseNumberGrid2D::batch_render);
     app.run()
 }

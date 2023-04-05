@@ -30,8 +30,8 @@ pub static TOROIDAL: bool = true;
 fn main() {
     let step = 500;
 
-    let dim = (200., 200.);
-    let num_agents = 100;
+    let dim = (1000., 1000.);
+    let num_agents = 10000;
 
     let state = Flocker::new(dim, num_agents);
     let _ = simulate!(state, step, 10);
