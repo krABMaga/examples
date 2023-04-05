@@ -14,8 +14,8 @@ use krabmaga::visualization::visualization_state::VisualizationState;
 use crate::model::ant::Ant;
 use crate::model::state::*;
 use crate::visualization::ant::AntVis;
-use krabmaga::bevy::ecs::system::Resource;
 use krabmaga::bevy::ecs as bevy_ecs;
+use krabmaga::bevy::ecs::system::Resource;
 
 #[derive(Clone, Resource)]
 pub struct VisState;

@@ -1,6 +1,8 @@
 use crate::model::crab::Crab;
 use crate::model::sea::Sea;
 use crate::visualization::crab_vis::CrabVis;
+use krabmaga::bevy::ecs as bevy_ecs;
+use krabmaga::bevy::ecs::system::Resource;
 use krabmaga::bevy::prelude::Commands;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::location::Real2D;
@@ -10,8 +12,6 @@ use krabmaga::visualization::agent_render::AgentRender;
 use krabmaga::visualization::asset_handle_factory::AssetHandleFactoryResource;
 use krabmaga::visualization::simulation_descriptor::SimulationDescriptor;
 use krabmaga::visualization::visualization_state::VisualizationState;
-use krabmaga::bevy::ecs::system::Resource;
-use krabmaga::bevy::ecs as bevy_ecs;
 
 #[derive(Clone, Resource)]
 pub struct SeaVis;
