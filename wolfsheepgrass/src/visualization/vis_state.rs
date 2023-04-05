@@ -13,8 +13,10 @@ use krabmaga::visualization::asset_handle_factory::AssetHandleFactoryResource;
 use krabmaga::visualization::fields::number_grid_2d::BatchRender;
 use krabmaga::visualization::simulation_descriptor::SimulationDescriptor;
 use krabmaga::visualization::visualization_state::VisualizationState;
+use krabmaga::bevy::ecs::system::Resource;
+use krabmaga::bevy::ecs as bevy_ecs;
 
-#[derive(Clone)]
+#[derive(Clone, Resource)]
 pub struct VisState;
 
 impl VisualizationState<WsgState> for VisState {

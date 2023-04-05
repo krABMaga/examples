@@ -11,8 +11,10 @@ use krabmaga::visualization::asset_handle_factory::AssetHandleFactoryResource;
 use krabmaga::visualization::fields::object_grid_2d::RenderObjectGrid2D;
 use krabmaga::visualization::simulation_descriptor::SimulationDescriptor;
 use krabmaga::visualization::visualization_state::VisualizationState;
+use krabmaga::bevy::ecs::system::Resource;
+use krabmaga::bevy::ecs as bevy_ecs;
 
-#[derive(Clone)]
+#[derive(Clone, Resource)]
 pub struct WorldVis;
 
 impl VisualizationState<World> for WorldVis {

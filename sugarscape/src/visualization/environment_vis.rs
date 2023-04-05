@@ -12,8 +12,10 @@ use krabmaga::visualization::fields::number_grid_2d::BatchRender;
 use krabmaga::visualization::simulation_descriptor::SimulationDescriptor;
 use krabmaga::visualization::visualization_state::VisualizationState;
 use krabmaga::Rng;
+use krabmaga::bevy::ecs::system::Resource;
+use krabmaga::bevy::ecs as bevy_ecs;
 
-#[derive(Clone)]
+#[derive(Clone, Resource)]
 pub struct EnvironmentVis;
 
 /// Define how the simulation should be bootstrapped. Agents should be created here.

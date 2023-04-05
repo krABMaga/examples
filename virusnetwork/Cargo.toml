@@ -1,6 +1,6 @@
 [package]
 name = "virusnetwork"
-version = "0.2.0"
+version = "0.3.0"
 authors = [
     "Carmine Spagnuolo <spagnuolocarmine@gmail.com>", 
     "Alessia Antelmi <aantelmi@unisa.it>", 
@@ -18,7 +18,7 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-krabmaga = {git = "https://github.com/krABMaga/krABMaga"}
+krabmaga = "0.3.*"
 
 [features]
 visualization = ["krabmaga/visualization"]
