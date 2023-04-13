@@ -1,15 +1,17 @@
+#![allow(warnings)]
 use crate::model::state::Flocker;
+use krabmaga::universe;
 
 mod model;
 
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::simulate,
-    krabmaga::Info, krabmaga::ProgressBar, krabmaga::*, std::time::Duration,
+    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::simulate_old_mpi,
+    krabmaga::Info, /* krabmaga::ProgressBar, */ krabmaga::*, std::time::Duration,
 };
 
-use krabmaga::*;
+//use krabmaga::*;
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
@@ -33,13 +35,28 @@ pub static TOROIDAL: bool = true;
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    let step = 50;
+    /* let world = universe.world();
+    if world.rank() == 0{
+        let step = 200;
 
-    let dim = (32., 32.);
-    let num_agents = 100;
+        let dim = (400., 400.);
+        let num_agents = 16000;
+    
+        let state = Flocker::new(dim, num_agents);
+        println!("Lancio la simulazione");
+        let _ = simulate_old!(state, step, 1, Info::Normal);
+    }
+    else {
+        println!("Totally not master process :P");
+    } */
 
+    let step = 200;
+
+    let dim = (400., 400.);
+    let num_agents = 16000;
+    
     let state = Flocker::new(dim, num_agents);
-    let _ = simulate_old!(state, step, 1, Info::Normal);
+    let _ = simulate_old_mpi!(state, step, 1, Info::Normal);
 }
 
 // Main used when a visualization feature is applied.

@@ -1,7 +1,20 @@
+#![allow(warnings)]
 use crate::model::bird::Bird;
-use crate::{DISCRETIZATION, TOROIDAL};
+//use crate::{DISCRETIZATION, TOROIDAL};
 use krabmaga::engine::fields::field::Field;
 use krabmaga::engine::fields::kdtree_mpi::Kdtree;
+use krabmaga::universe;
+use crate::mpi::topology::Communicator;
+use crate::mpi::point_to_point::Destination;
+use crate::lazy_static;
+use crate::mpi::datatype::UserDatatype;
+use crate::mpi::traits::*;
+use crate::mpi::Address;
+use crate::mpi::environment::Universe;
+use crate::mpi::topology::SystemCommunicator;
+use crate::mpi::point_to_point::Source;
+use crate::mpi::Threading;
+use crate::mpi::ffi::MPI_Finalize;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::schedule::Schedule;
 use krabmaga::engine::state::State;
@@ -21,7 +34,7 @@ impl Flocker {
     pub fn new(dim: (f32, f32), initial_flockers: u32) -> Self {
         Flocker {
             step: 0,
-            field1: Kdtree::new("0".to_string(), 0.0, 0.0, dim.0, dim.1, 8),
+            field1: Kdtree::create_tree(0, 0.0, 0.0, dim.0, dim.1),
             initial_flockers,
             dim,
         }
@@ -31,30 +44,60 @@ impl Flocker {
 impl State for Flocker {
     fn reset(&mut self) {
         self.step = 0;
-        self.field1 = Kdtree::new("0".to_string(), 0.0, 0.0, self.dim.0, self.dim.1, 8);
+        self.field1 = Kdtree::create_tree(0, 0.0, 0.0, self.dim.0, self.dim.1)
     }
 
     fn init(&mut self, schedule: &mut Schedule) {
+        let world = universe.world();
         let mut rng = rand::thread_rng();
-        self.field1.first_subdivision();
+
+        
         // Should be moved in the init method on the model exploration changes
-        for bird_id in 0..self.initial_flockers {
-            let r1: f32 = rng.gen();
-            let r2: f32 = rng.gen();
-            let last_d = Real2D { x: 0., y: 0. };
-            let loc = Real2D {
-                x: self.dim.0 * r1,
-                y: self.dim.1 * r2,
-            };
-            let bird = Bird::new(bird_id, loc, last_d);
-            self.field1.insert(bird, loc.x, loc.y);
-            schedule.schedule_repeating(Box::new(bird), 0., 0);
+        if world.rank() == 0{
+            let mut vec: Vec<Vec<Bird>> = Vec::new();
+            for _ in 1..world.size(){
+                vec.push(vec![])
+            }
+            for bird_id in 0..self.initial_flockers {
+                let r1: f32 = rng.gen();
+                let r2: f32 = rng.gen();
+                let last_d = Real2D { x: 0., y: 0. };
+                let loc = Real2D {
+                    x: self.dim.0 * r1,
+                    y: self.dim.1 * r2,
+                };
+                let mut bird = Bird::new(bird_id, loc, last_d);
+                let mut id=5;
+                id = self.field1.get_block_by_location(loc.x, loc.y);
+                bird = Bird::new(bird_id, loc, last_d);
+                //println!("Trovato blocco: {} per l'agente {};{}", id, loc.x, loc.y); 
+                if id > 0{
+                    vec[(id-1) as usize].push(bird);
+                }
+                else {
+                    self.field1.insert(bird, loc.x, loc.y);
+                    schedule.schedule_repeating(Box::new(bird), 0., 0);
+                }
+                if bird_id == self.initial_flockers - 1{
+                    for i in 1..world.size(){
+                        world.process_at_rank(i).send(&vec[(i-1) as usize]);
+                    }
+                    //println!("Sono il proc {} e ho un vec di {} elementi", world.rank(), 400 - vec[0].len()- vec[1].len()- vec[2].len());
+                }  
+            }
+        }
+        else{
+            let (vec, _)=world.process_at_rank(0).receive_vec::<Bird>();
+            //println!("Sono il proc {} e ho ricevuto un vec di {} elementi", world.rank(), vec.len());
+            for bird in vec.iter(){
+                self.field1.insert(*bird, bird.loc.x, bird.loc.y);
+                schedule.schedule_repeating(Box::new(*bird), 0., 0);
+            }
         }
     }
 
     fn update(&mut self, _step: u64) {
         self.field1.lazy_update();
-        //self.field1.print_leaves();
     }
 
     fn as_any(&self) -> &dyn Any {

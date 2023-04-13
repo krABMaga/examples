@@ -141,7 +141,7 @@ impl Agent for Bird {
             .field1
             .set_object_location(*self, Real2D { x: loc_x, y: loc_y });
             if self.id==0{
-                println!("agente con id {} si è mosso in {};{} ", self.id, loc_x, loc_y );}
+                }
     }
 }
 
