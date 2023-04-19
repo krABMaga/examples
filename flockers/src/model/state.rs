@@ -1,4 +1,5 @@
 #![allow(warnings)]
+use crate::DISCRETIZATION;
 use crate::model::bird::Bird;
 //use crate::{DISCRETIZATION, TOROIDAL};
 use krabmaga::engine::fields::field::Field;
@@ -34,7 +35,7 @@ impl Flocker {
     pub fn new(dim: (f32, f32), initial_flockers: u32) -> Self {
         Flocker {
             step: 0,
-            field1: Kdtree::create_tree(0, 0.0, 0.0, dim.0, dim.1),
+            field1: Kdtree::create_tree(0, 0.0, 0.0, dim.0, dim.1, DISCRETIZATION),
             initial_flockers,
             dim,
         }
@@ -44,7 +45,7 @@ impl Flocker {
 impl State for Flocker {
     fn reset(&mut self) {
         self.step = 0;
-        self.field1 = Kdtree::create_tree(0, 0.0, 0.0, self.dim.0, self.dim.1)
+        self.field1 = Kdtree::create_tree(0, 0.0, 0.0, self.dim.0, self.dim.1, DISCRETIZATION)
     }
 
     fn init(&mut self, schedule: &mut Schedule) {
@@ -75,7 +76,7 @@ impl State for Flocker {
                     vec[(id-1) as usize].push(bird);
                 }
                 else {
-                    self.field1.insert(bird, loc.x, loc.y);
+                    self.field1.insert(bird, loc);
                     schedule.schedule_repeating(Box::new(bird), 0., 0);
                 }
                 if bird_id == self.initial_flockers - 1{
@@ -90,7 +91,7 @@ impl State for Flocker {
             let (vec, _)=world.process_at_rank(0).receive_vec::<Bird>();
             //println!("Sono il proc {} e ho ricevuto un vec di {} elementi", world.rank(), vec.len());
             for bird in vec.iter(){
-                self.field1.insert(*bird, bird.loc.x, bird.loc.y);
+                self.field1.insert(*bird, bird.loc);
                 schedule.schedule_repeating(Box::new(*bird), 0., 0);
             }
         }

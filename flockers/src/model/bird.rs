@@ -1,7 +1,7 @@
 #![allow(warnings)]
 use core::fmt;
 use krabmaga::engine::agent::Agent;
-use krabmaga::engine::fields::field_2d::{toroidal_distance, toroidal_transform, Location2D};
+use krabmaga::engine::fields::kdtree_mpi::{toroidal_distance, toroidal_transform, Location2D};
 use krabmaga::universe;
 use krabmaga::engine::location::Real2D;
 use crate::mpi::topology::Communicator;
@@ -61,7 +61,6 @@ impl Bird {
 
 impl Agent for Bird {
     fn step(&mut self, state: &mut dyn State) {
-        //log!(LogType::Info, format!("hello" ));
         let state = state.as_any_mut().downcast_mut::<Flocker>().unwrap();
         
         let world = universe.world();
@@ -71,11 +70,10 @@ impl Agent for Bird {
             Some(e) => {
                 //println!("Sono il processo {} e ho ricevuto {:?}", world.rank(), e);
                 let (bird, _) = world.any_process().receive::<Bird>();
-                state.field1.insert(bird, bird.loc.x, bird.loc.y);
+                state.field1.insert(bird, bird.loc);
                 //println!("{}",msg);
             },
             None => {
-                //println!("è none");
             }
         }
 
@@ -102,9 +100,9 @@ impl Agent for Bird {
 
             for elem in vec.iter() {
                 let elem= *elem;
-                if self.id != elem.0.id {
-                    let dx = toroidal_distance(self.loc.x, elem.0.loc.x, width);
-                    let dy = toroidal_distance(self.loc.y, elem.0.loc.y, height);
+                if self.id != elem.id {
+                    let dx = toroidal_distance(self.loc.x, elem.loc.x, width);
+                    let dy = toroidal_distance(self.loc.y, elem.loc.y, height);
                     count += 1;
 
                     //avoidance calculation
@@ -117,8 +115,8 @@ impl Agent for Bird {
                     y_cohe += dy;
 
                     //consistency calculation
-                    x_cons += elem.0.last_d.x;
-                    y_cons += elem.0.last_d.y;
+                    x_cons += elem.last_d.x;
+                    y_cons += elem.last_d.y;
                 }
             }
 
@@ -195,7 +193,7 @@ impl Agent for Bird {
         if id as i32 == world.rank(){
             state
             .field1
-            .insert(*self, self.loc.x, self.loc.y); 
+            .insert(*self, self.loc); 
         }
         else {
             //println!("Sono {} ed invio perché {};{} ha id {}", world.rank(), self.loc.x, self.loc.y, id);

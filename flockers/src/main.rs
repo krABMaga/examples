@@ -52,8 +52,8 @@ fn main() {
 
     let step = 200;
 
-    let dim = (400., 400.);
-    let num_agents = 16000;
+    let dim = (565., 565.);
+    let num_agents = 128000;
     
     let state = Flocker::new(dim, num_agents);
     let _ = simulate_old_mpi!(state, step, 1, Info::Normal);
