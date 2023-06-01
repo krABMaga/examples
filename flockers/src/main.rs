@@ -7,8 +7,9 @@ mod model;
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::simulate_old_mpi,
-    krabmaga::Info, /* krabmaga::ProgressBar, */ krabmaga::*, std::time::Duration,
+    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State,
+    krabmaga::simulate_old_mpi, krabmaga::Info, /* krabmaga::ProgressBar, */ krabmaga::*,
+    std::time::Duration,
 };
 
 //use krabmaga::*;
@@ -41,7 +42,7 @@ fn main() {
 
         let dim = (400., 400.);
         let num_agents = 16000;
-    
+
         let state = Flocker::new(dim, num_agents);
         println!("Lancio la simulazione");
         let _ = simulate_old!(state, step, 1, Info::Normal);
@@ -52,9 +53,9 @@ fn main() {
 
     let step = 200;
 
-    let dim = (565., 565.);
-    let num_agents = 128000;
-    
+    let dim = (800., 800.);
+    let num_agents = 64000;
+
     let state = Flocker::new(dim, num_agents);
     let _ = simulate_old_mpi!(state, step, 1, Info::Normal);
 }

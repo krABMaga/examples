@@ -140,8 +140,6 @@ impl Agent for Bird {
         state
             .field1
             .set_object_location(*self, Real2D { x: loc_x, y: loc_y });
-            if self.id==0{
-                }
     }
 }
 

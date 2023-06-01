@@ -1,25 +1,25 @@
 #![allow(warnings)]
-use core::fmt;
-use krabmaga::engine::agent::Agent;
-use krabmaga::engine::fields::kdtree_mpi::{toroidal_distance, toroidal_transform, Location2D};
-use krabmaga::universe;
-use krabmaga::engine::location::Real2D;
-use crate::mpi::topology::Communicator;
-use crate::mpi::point_to_point::Destination;
-use crate::mpi::datatype::UncommittedDatatypeRef;
-use crate::UserDatatype;
-use core::mem::size_of;
 use crate::lazy_static;
-use crate::p2p::ReceiveFuture;
+use crate::mpi::datatype::UncommittedDatatypeRef;
+use crate::mpi::environment::Universe;
+use crate::mpi::ffi::MPI_Finalize;
+use crate::mpi::point_to_point::Destination;
+use crate::mpi::point_to_point::Source;
+use crate::mpi::topology::Communicator;
+use crate::mpi::topology::SystemCommunicator;
 use crate::mpi::traits::*;
 use crate::mpi::Address;
-use crate::mpi::environment::Universe;
-use crate::mpi::topology::SystemCommunicator;
-use crate::mpi::point_to_point::Source;
 use crate::mpi::Threading;
-use crate::mpi::ffi::MPI_Finalize;
+use crate::p2p::ReceiveFuture;
+use crate::UserDatatype;
+use core::fmt;
+use core::mem::size_of;
+use krabmaga::engine::agent::Agent;
+use krabmaga::engine::fields::kdtree_mpi::{toroidal_distance, toroidal_transform, Location2D};
+use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
 use krabmaga::rand;
+use krabmaga::universe;
 //use krabmaga::log;
 use krabmaga::rand::Rng;
 use std::hash::{Hash, Hasher};
@@ -47,8 +47,8 @@ unsafe impl Equivalence for Bird {
             &[
                 Real2D::equivalent_datatype(),
                 Real2D::equivalent_datatype(),
-                u32::equivalent_datatype()
-            ]
+                u32::equivalent_datatype(),
+            ],
         )
     }
 }
@@ -62,23 +62,26 @@ impl Bird {
 impl Agent for Bird {
     fn step(&mut self, state: &mut dyn State) {
         let state = state.as_any_mut().downcast_mut::<Flocker>().unwrap();
-        
+
         let world = universe.world();
 
-        let status = world.any_process().immediate_probe_with_tag(world.rank());
+        let status = world
+            .any_process()
+            .immediate_probe_with_tag(world.rank() + 90);
         match status {
             Some(e) => {
                 //println!("Sono il processo {} e ho ricevuto {:?}", world.rank(), e);
-                let (bird, _) = world.any_process().receive::<Bird>();
+                let (bird, _) = world.process_at_rank(e.source_rank()).receive::<Bird>();
                 state.field1.insert(bird, bird.loc);
                 //println!("{}",msg);
-            },
-            None => {
             }
+            None => {}
         }
 
-        let vec = state.field1.get_neighbors_within_distance(self.loc, 10.0);
-        
+        let vec = state
+            .field1
+            .get_distributed_neighbors_within_distance(self.loc, 10.0);
+
         let width = state.dim.0;
         let height = state.dim.1;
 
@@ -99,7 +102,7 @@ impl Agent for Bird {
             let mut count = 0;
 
             for elem in vec.iter() {
-                let elem= *elem;
+                let elem = *elem;
                 if self.id != elem.id {
                     let dx = toroidal_distance(self.loc.x, elem.loc.x, width);
                     let dy = toroidal_distance(self.loc.y, elem.loc.y, height);
@@ -190,42 +193,40 @@ impl Agent for Bird {
         self.loc = Real2D { x: loc_x, y: loc_y };
         drop(vec);
         let id = state.field1.get_block_by_location(self.loc.x, self.loc.y);
-        if id as i32 == world.rank(){
-            state
-            .field1
-            .insert(*self, self.loc); 
-        }
-        else {
+        if id as i32 == world.rank() {
+            state.field1.insert(*self, self.loc);
+        } else {
             //println!("Sono {} ed invio perché {};{} ha id {}", world.rank(), self.loc.x, self.loc.y, id);
-            world.process_at_rank(id as i32).send_with_tag(self, id as i32);
-        } 
+            world
+                .process_at_rank(id as i32)
+                .send_with_tag(self, (id as i32) + 90);
+        }
     }
 }
 
-
 /* if world.rank()!=0{
-            let future: ReceiveFuture<Bird> = world.process_at_rank(0).immediate_receive();
-            match future.r#try() {
-                Ok((bird, _)) => {
-                    println!("Arrivato");
-                }
-                Err(e) =>{
-                    println!("Errore");
-                }
-            }
-        } 
-        
-        let id = state.field1.get_block_by_location(loc_x, loc_y);
-        if id as i32== world.rank(){
-            state
-            .field1
-            .insert(*self, loc_x, loc_y);
+    let future: ReceiveFuture<Bird> = world.process_at_rank(0).immediate_receive();
+    match future.r#try() {
+        Ok((bird, _)) => {
+            println!("Arrivato");
         }
-        else{
-            world.process_at_rank(id as i32).send(self);
-        } 
-        
-        */
+        Err(e) =>{
+            println!("Errore");
+        }
+    }
+}
+
+let id = state.field1.get_block_by_location(loc_x, loc_y);
+if id as i32== world.rank(){
+    state
+    .field1
+    .insert(*self, loc_x, loc_y);
+}
+else{
+    world.process_at_rank(id as i32).send(self);
+}
+
+*/
 
 impl Hash for Bird {
     fn hash<H>(&self, state: &mut H)
