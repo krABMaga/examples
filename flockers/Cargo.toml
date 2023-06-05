@@ -21,6 +21,7 @@ readme = "README.md"
 # krabmaga = "0.1.*"
 # krabmaga = {git = "https://github.com/krABMaga/krABMaga"}
 krabmaga = {path="/Users/ddevin/Documents/krABMaga"}
+#krabmaga = {path="/home/andrea/Distributed_KdTree/krABMaga"}
 
 [features]
 distributed_mpi = ["krabmaga/distributed_mpi"]
