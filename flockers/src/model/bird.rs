@@ -80,7 +80,7 @@ impl Agent for Bird {
 
         let vec = state
             .field1
-            .get_distributed_neighbors_within_distance(self.loc, 10.0);
+            .get_distributed_neighbors_within_relax_distance(self.loc, 10.0);
 
         let width = state.dim.0;
         let height = state.dim.1;
