@@ -51,10 +51,10 @@ fn main() {
         println!("Totally not master process :P");
     } */
 
-    let step = 200;
+    let step = 100;
 
-    let dim = (800., 800.);
-    let num_agents = 32000;
+    let dim = (20., 20.);
+    let num_agents = 100;
 
     let state = Flocker::new(dim, num_agents);
     let _ = simulate_old_mpi!(state, step, 1, Info::Normal);

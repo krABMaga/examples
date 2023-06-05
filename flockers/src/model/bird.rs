@@ -61,6 +61,7 @@ impl Bird {
 
 impl Agent for Bird {
     fn step(&mut self, state: &mut dyn State) {
+        println!(" agente {}", self);
         let state = state.as_any_mut().downcast_mut::<Flocker>().unwrap();
 
         let world = universe.world();

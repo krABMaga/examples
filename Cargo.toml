@@ -3,6 +3,4 @@ resolver = "2"
 
 members = [
     "flockers",
-    "flockers_original",
-    "sir_ga_exploration",
 ]
