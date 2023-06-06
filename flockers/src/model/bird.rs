@@ -1,15 +1,19 @@
 #![allow(warnings)]
 use crate::lazy_static;
-use crate::mpi::datatype::UncommittedDatatypeRef;
-use crate::mpi::environment::Universe;
-use crate::mpi::ffi::MPI_Finalize;
-use crate::mpi::point_to_point::Destination;
-use crate::mpi::point_to_point::Source;
-use crate::mpi::topology::Communicator;
-use crate::mpi::topology::SystemCommunicator;
-use crate::mpi::traits::*;
-use crate::mpi::Address;
-use crate::mpi::Threading;
+
+extern crate mpi;
+use mpi::datatype::UncommittedDatatypeRef;
+use mpi::datatype::UncommittedUserDatatype;
+use mpi::environment::Universe;
+use mpi::ffi::MPI_Finalize;
+use mpi::point_to_point::Destination;
+use mpi::point_to_point::Source;
+use mpi::topology::Communicator;
+use mpi::topology::SystemCommunicator;
+use mpi::traits::*;
+use mpi::Address;
+use mpi::internal::memoffset::{offset_of, span_of};
+use mpi::Threading;
 use crate::p2p::ReceiveFuture;
 use crate::UserDatatype;
 use core::fmt;
@@ -22,36 +26,69 @@ use krabmaga::rand;
 use krabmaga::universe;
 //use krabmaga::log;
 use krabmaga::rand::Rng;
+use mpi::traits::Equivalence;
 use std::hash::{Hash, Hasher};
 
 use crate::model::state::Flocker;
 use crate::{AVOIDANCE, COHESION, CONSISTENCY, JUMP, MOMENTUM, RANDOMNESS};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Equivalence)]
 pub struct Bird {
     pub id: u32,
     pub loc: Real2D,
     pub last_d: Real2D,
 }
 
-unsafe impl Equivalence for Bird {
-    type Out = UserDatatype;
-    fn equivalent_datatype() -> Self::Out {
-        UserDatatype::structured(
-            &[1, 1, 1],
-            &[
-                (size_of::<Real2D>() * 2) as crate::mpi::Address,
-                (size_of::<Real2D>()) as crate::mpi::Address,
-                size_of::<u32>() as crate::mpi::Address,
-            ],
-            &[
-                Real2D::equivalent_datatype(),
-                Real2D::equivalent_datatype(),
-                u32::equivalent_datatype(),
-            ],
-        )
-    }
-}
+// unsafe impl Equivalence for Bird {
+//     type Out = UserDatatype;
+//     fn equivalent_datatype() -> Self::Out {
+//         UserDatatype::structured(
+//             &[1, 1, 1],
+//             &[
+//                 (size_of::<Real2D>()*2) as crate::mpi::Address,
+//                 (size_of::<Real2D>()) as crate::mpi::Address,
+//                 size_of::<u32>() as crate::mpi::Address,
+//             ],
+//             &[
+//                 Real2D::equivalent_datatype(),
+//                 Real2D::equivalent_datatype(),
+//                 u32::equivalent_datatype(),
+//             ],
+//         )
+//     }
+// }
+// unsafe impl Equivalence for Bird {
+//     type Out = UserDatatype;
+//     fn equivalent_datatype() -> Self::Out {
+//         UserDatatype::structured(
+//             &[1, 1, 1],
+//             &[
+//                 size_of::<u32>() as crate::mpi::Address,
+//                 offset_of!(Bird, loc) as Address,
+//                 offset_of!(Bird, last_d) as Address,
+//             ],
+//             &[
+//                 u32::equivalent_datatype(),
+//                 UserDatatype::structured(
+//                     &[1, 1],
+//                     &[
+//                         size_of::<f32>() as crate::mpi::Address,
+//                         size_of::<f32>() as crate::mpi::Address,
+//                     ],
+//                     &[f32::equivalent_datatype(), f32::equivalent_datatype()],
+//                 ).as_ref(),
+//                 UserDatatype::structured(
+//                     &[1, 1],
+//                     &[
+//                         size_of::<f32>() as crate::mpi::Address,
+//                         size_of::<f32>() as crate::mpi::Address,
+//                     ],
+//                     &[f32::equivalent_datatype(), f32::equivalent_datatype()],
+//                 ).as_ref(),
+//             ],
+//         )
+//     }
+// }
 
 impl Bird {
     pub fn new(id: u32, loc: Real2D, last_d: Real2D) -> Self {
@@ -61,7 +98,7 @@ impl Bird {
 
 impl Agent for Bird {
     fn step(&mut self, state: &mut dyn State) {
-        println!(" agente {}", self);
+        // println!(" agente {}", self);
         let state = state.as_any_mut().downcast_mut::<Flocker>().unwrap();
 
         let world = universe.world();
@@ -79,10 +116,20 @@ impl Agent for Bird {
             None => {}
         }
 
-        let vec = state
+        let mut vec = state
             .field1
             .get_distributed_neighbors_within_relax_distance(self.loc, 10.0, self.clone());
 
+
+        // println!("Sono il processo {} agente {} e ho {} vicini", world.rank(), self, vec.len());
+        // // print the neighbors
+        // dedup the neighbors
+        // vec.dedup_by(|a, b| a.id == b.id);
+        // println!("Sono il processo {} agente {} e ho {} vicini", world.rank(), self, vec.len());
+        // for elem in vec.iter() {
+        //     print!("{}-", elem);
+        // }
+        // println!();
         let width = state.dim.0;
         let height = state.dim.1;
 

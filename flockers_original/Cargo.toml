@@ -20,7 +20,7 @@ readme = "README.md"
 [dependencies]
 # krabmaga = "0.1.*"
 # krabmaga = {git = "https://github.com/krABMaga/krABMaga"}
-krabmaga = {path="/home/andrea/Distributed_KdTree/krABMaga"}
+krabmaga = {path="/Users/ddevin/Documents/krABMaga"}
 
 [features]
 parallel = ["krabmaga/parallel"]
