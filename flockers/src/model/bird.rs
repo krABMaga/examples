@@ -104,7 +104,7 @@ impl Agent for Bird {
         let world = universe.world();
 
         let status = world
-            .any_process()
+            .process_at_rank(world.rank())
             .immediate_probe_with_tag(world.rank() + 90);
         match status {
             Some(e) => {
@@ -121,7 +121,7 @@ impl Agent for Bird {
             .get_distributed_neighbors_within_relax_distance(self.loc, 10.0, self.clone());
 
 
-        // println!("Sono il processo {} agente {} e ho {} vicini", world.rank(), self, vec.len());
+        //println!("Sono il processo {} agente {} e ho {} vicini", world.rank(), self, vec.len());
         // // print the neighbors
         // dedup the neighbors
         // vec.dedup_by(|a, b| a.id == b.id);
