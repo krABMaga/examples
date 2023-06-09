@@ -74,7 +74,8 @@ impl State for Flocker {
                     vec[(id - 1) as usize].push(bird);
                 } else {
                     self.field1.insert(bird, loc);
-                    schedule.schedule_repeating(Box::new(bird), 0., 0);
+                    let (counting, _) = schedule.distributed_schedule_repeating(Box::new(bird), 0., 0);
+                    self.field1.scheduled_agent.insert(bird.id, counting);
                 }
                 if bird_id == self.initial_flockers - 1 {
                     for i in 1..world.size() {
@@ -88,13 +89,140 @@ impl State for Flocker {
             //println!("Sono il proc {} e ho ricevuto un vec di {} elementi", world.rank(), vec.len());
             for bird in vec.iter() {
                 self.field1.insert(*bird, bird.loc);
-                schedule.schedule_repeating(Box::new(*bird), 0., 0);
+                let (counting, _) = schedule.distributed_schedule_repeating(Box::new(*bird), 0., 0);
+                self.field1.scheduled_agent.insert(bird.id, counting);
             }
         }
     }
 
     fn update(&mut self, _step: u64) {
         self.field1.lazy_update();
+         let mut vec = Vec::new();
+        for loc in &self.field1.locs{
+            for l in loc.borrow().iter(){
+                for bird in l{
+                    vec.push(bird.clone());
+                }
+            }
+        }
+
+        //println!("Sono {} e nello step {} ho {} agenti", universe.world().rank(), _step, vec.len());
+       
+    }
+
+    fn before_step(&mut self,schedule: &mut Schedule) {
+
+        /*for (i, agent) in self.field1.agents_to_send.iter().enumerate(){
+            mpi::request::scope(|scope| {
+                println!("a");
+                let _sreq: WaitGuard<_,_> = world.process_at_rank(agent.1).immediate_synchronous_send_with_tag(scope, &agent.0, agent.1 + 90).into();
+                println!("b");
+                loop {
+                    let mut agent: Bird = Bird { id: 0, loc: Real2D { x: 0., y: 0. }, last_d: Real2D { x: 0., y: 0. } };
+                    println!("c");
+                    let status = world
+                    .any_process()
+                    .immediate_probe_with_tag(world.rank() + 90);
+                    println!("d");
+                    match status {
+                        Some(e) => {
+                            let smthng: WaitGuard<_,_> = world.process_at_rank(e.source_rank()).immediate_receive_into(scope, &mut agent).into();
+                        }
+                        None => {break;}
+                    }
+                };
+                println!("e");
+                
+                println!("f");
+            });
+        } */
+
+        
+        /* for bird in &self.field1.agents_to_schedule{
+            let (counting, _) = schedule.distributed_schedule_repeating(Box::new(*bird), 0., 0);
+            self.field1.scheduled_agent.insert(bird.id, counting);
+        }
+        self.field1.agents_to_schedule.clear(); */
+
+
+        let mut vec = Vec::new();
+        for loc in &self.field1.locs{
+            for l in loc.borrow().iter(){
+                for bird in l{
+                    vec.push(bird.clone());
+                }
+            }
+        }
+
+        println!("Sono {} e nello step {} ho {} agenti", universe.world().rank(), schedule.step, vec.len());
+    } 
+    
+    fn after_step(&mut self,schedule: &mut Schedule) {
+        let world=universe.world();
+        let mut i = 0;
+
+        for vec in &self.field1.agents_to_send{
+            if vec.len()!=0{
+                for agent in vec{
+                    println!("Sono il proc {} e Agente {} è uscito dal campo perché ha id {}",world.rank(),agent, i );
+                }
+                world
+                .process_at_rank(i as i32)
+                .send_with_tag(vec, (i as i32) + 90); 
+            } 
+            i+=1;
+        }
+
+        let status = world
+            .any_process()
+            .immediate_probe_with_tag(world.rank() + 90);
+            match status {
+                Some(e) => {
+                    let (birds, _) = world.process_at_rank(e.source_rank()).receive_vec::<Bird>();
+                    //println!("Sono il processo {} e ho ricevuto {} tag {:?}", world.rank(), bird, e);
+                    println!("Ricevuto array di size {}", birds.len());
+                    //state.field1.insert_read(bird, bird.loc);
+                    for bird in birds{
+                        self.field1.insert(bird, bird.loc);
+                        let (counting, _) = schedule.distributed_schedule_repeating(Box::new(bird), 0., 0);
+                        self.field1.scheduled_agent.insert(bird.id, counting);
+                    } 
+                    //println!("{}",msg);
+                }
+                None => {}
+            }
+
+        /* for vec in self.field1.agents_to_send.iter(){
+            mpi::request::scope(|scope| {
+                let _sreq: WaitGuard<_,_> = world.process_at_rank(agent.1).immediate_synchronous_send_with_tag(scope, &agent.0, agent.1 + 90).into();
+                loop {
+                    let mut agent: Bird = Bird { id: 0, loc: Real2D { x: 0., y: 0. }, last_d: Real2D { x: 0., y: 0. } };
+                    let status = world
+                    .any_process()
+                    .immediate_probe_with_tag(world.rank() + 90);
+                    match status {
+                        Some(e) => {
+                            let smthng: WaitGuard<_,_> = world.process_at_rank(e.source_rank()).immediate_receive_into(scope, &mut agent).into();
+                        }
+                        None => {break;}
+                    }
+                };
+            });
+        }  */
+
+
+        for bird in &self.field1.killed_agent{
+            match self.field1.scheduled_agent.get(&bird.id){
+                Some(id) => {
+                    //println!("Agente {} ha id {}", bird.id, id);
+                    schedule.dequeue(Box::new(*bird), *id);
+                },
+                None => {},
+            }
+            
+        }
+        self.field1.killed_agent.clear();
+        self.field1.scheduled_agent.clear();
     }
 
     fn as_any(&self) -> &dyn Any {

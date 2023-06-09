@@ -18,6 +18,7 @@ use crate::p2p::ReceiveFuture;
 use crate::UserDatatype;
 use core::fmt;
 use core::mem::size_of;
+use std::borrow::Borrow;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::kdtree_mpi::{toroidal_distance, toroidal_transform, Location2D};
 use krabmaga::engine::location::Real2D;
@@ -98,30 +99,39 @@ impl Bird {
 
 impl Agent for Bird {
     fn step(&mut self, state: &mut dyn State) {
-        // println!(" agente {}", self);
         let state = state.as_any_mut().downcast_mut::<Flocker>().unwrap();
 
         let world = universe.world();
 
-        let status = world
-            .process_at_rank(world.rank())
-            .immediate_probe_with_tag(world.rank() + 90);
-        match status {
-            Some(e) => {
-                //println!("Sono il processo {} e ho ricevuto {:?}", world.rank(), e);
-                let (bird, _) = world.process_at_rank(e.source_rank()).receive::<Bird>();
-                state.field1.insert(bird, bird.loc);
-                //println!("{}",msg);
-            }
-            None => {}
-        }
+        // println!(" Sono  {} e sto gestendo agente {}",world.rank(), self);
 
+
+        /* loop {
+            let status = world
+            .any_process()
+            .immediate_probe_with_tag(world.rank() + 90);
+            match status {
+                Some(e) => {
+                    let (bird, _) = world.process_at_rank(e.source_rank()).receive::<Bird>();
+                    //println!("Sono il processo {} e ho ricevuto {} tag {:?}", world.rank(), bird, e);
+                    state.field1.insert_read(bird, bird.loc);
+                    //state.field1.insert(bird, bird.loc);
+                    state.field1.agents_to_schedule.insert(bird);
+                    //println!("{}",msg);
+                }
+                None => {break;}
+            }
+        } */
+        
         let mut vec = state
             .field1
-            .get_distributed_neighbors_within_relax_distance(self.loc, 10.0, self.clone());
+            .get_neighbors_within_distance(self.loc, 10.0);
 
 
         //println!("Sono il processo {} agente {} e ho {} vicini", world.rank(), self, vec.len());
+        for neighbor in vec.iter(){
+            //println!("{}", neighbor.loc);
+        }
         // // print the neighbors
         // dedup the neighbors
         // vec.dedup_by(|a, b| a.id == b.id);
@@ -242,39 +252,21 @@ impl Agent for Bird {
         drop(vec);
         let id = state.field1.get_block_by_location(self.loc.x, self.loc.y);
         if id as i32 == world.rank() {
+            //println!("Sono {} agente {} aggiorna loc", world.rank(), self);
+
             state.field1.insert(*self, self.loc);
         } else {
-            //println!("Sono {} ed invio perché {};{} ha id {}", world.rank(), self.loc.x, self.loc.y, id);
-            world
+            //println!("Sono {} ed invio perché {} ha id {}", world.rank(), self, id);
+            /* world
                 .process_at_rank(id as i32)
-                .send_with_tag(self, (id as i32) + 90);
+                .send_with_tag(self, (id as i32) + 90); */
+            state.field1.killed_agent.insert(self.clone());
+            state.field1.agents_to_send[id as usize].push(self.clone());
+
         }
     }
 }
 
-/* if world.rank()!=0{
-    let future: ReceiveFuture<Bird> = world.process_at_rank(0).immediate_receive();
-    match future.r#try() {
-        Ok((bird, _)) => {
-            println!("Arrivato");
-        }
-        Err(e) =>{
-            println!("Errore");
-        }
-    }
-}
-
-let id = state.field1.get_block_by_location(loc_x, loc_y);
-if id as i32== world.rank(){
-    state
-    .field1
-    .insert(*self, loc_x, loc_y);
-}
-else{
-    world.process_at_rank(id as i32).send(self);
-}
-
-*/
 
 impl Hash for Bird {
     fn hash<H>(&self, state: &mut H)
