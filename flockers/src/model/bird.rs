@@ -99,6 +99,7 @@ impl Bird {
 
 impl Agent for Bird {
     fn step(&mut self, state: &mut dyn State) {
+        //println!("inizio step  ");
         let state = state.as_any_mut().downcast_mut::<Flocker>().unwrap();
 
         let world = universe.world();
@@ -129,9 +130,9 @@ impl Agent for Bird {
 
 
         //println!("Sono il processo {} agente {} e ho {} vicini", world.rank(), self, vec.len());
-        for neighbor in vec.iter(){
-            //println!("{}", neighbor.loc);
-        }
+        /* for neighbor in vec.iter(){
+            println!("{}", neighbor.loc);
+        } */
         // // print the neighbors
         // dedup the neighbors
         // vec.dedup_by(|a, b| a.id == b.id);
@@ -143,7 +144,7 @@ impl Agent for Bird {
         let width = state.dim.0;
         let height = state.dim.1;
 
-        let mut avoidance = Real2D { x: 0.0, y: 0.0 };
+        /*let mut avoidance = Real2D { x: 0.0, y: 0.0 };
 
         let mut cohesion = Real2D { x: 0.0, y: 0.0 };
         let mut randomness = Real2D { x: 0.0, y: 0.0 };
@@ -246,23 +247,26 @@ impl Agent for Bird {
         self.last_d = Real2D { x: dx, y: dy };
 
         let loc_x = toroidal_transform(self.loc.x + dx, width);
-        let loc_y = toroidal_transform(self.loc.y + dy, height);
+        let loc_y = toroidal_transform(self.loc.y + dy, height); */
 
+        //self.loc = Real2D { x: loc_x, y: loc_y };
+
+        let loc_x = toroidal_transform(self.loc.x + 1., width);
+        let loc_y = toroidal_transform(self.loc.y, height); 
         self.loc = Real2D { x: loc_x, y: loc_y };
         drop(vec);
         let id = state.field1.get_block_by_location(self.loc.x, self.loc.y);
+        //println!("Per bird {} ho trovato id {}", self, id);
         if id as i32 == world.rank() {
             //println!("Sono {} agente {} aggiorna loc", world.rank(), self);
-
             state.field1.insert(*self, self.loc);
         } else {
             //println!("Sono {} ed invio perché {} ha id {}", world.rank(), self, id);
             /* world
                 .process_at_rank(id as i32)
                 .send_with_tag(self, (id as i32) + 90); */
-            state.field1.killed_agent.insert(self.clone());
+            //state.field1.killed_agent.insert(self.clone());
             state.field1.agents_to_send[id as usize].push(self.clone());
-
         }
     }
 }
