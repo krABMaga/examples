@@ -40,57 +40,6 @@ pub struct Bird {
     pub last_d: Real2D,
 }
 
-// unsafe impl Equivalence for Bird {
-//     type Out = UserDatatype;
-//     fn equivalent_datatype() -> Self::Out {
-//         UserDatatype::structured(
-//             &[1, 1, 1],
-//             &[
-//                 (size_of::<Real2D>()*2) as crate::mpi::Address,
-//                 (size_of::<Real2D>()) as crate::mpi::Address,
-//                 size_of::<u32>() as crate::mpi::Address,
-//             ],
-//             &[
-//                 Real2D::equivalent_datatype(),
-//                 Real2D::equivalent_datatype(),
-//                 u32::equivalent_datatype(),
-//             ],
-//         )
-//     }
-// }
-// unsafe impl Equivalence for Bird {
-//     type Out = UserDatatype;
-//     fn equivalent_datatype() -> Self::Out {
-//         UserDatatype::structured(
-//             &[1, 1, 1],
-//             &[
-//                 size_of::<u32>() as crate::mpi::Address,
-//                 offset_of!(Bird, loc) as Address,
-//                 offset_of!(Bird, last_d) as Address,
-//             ],
-//             &[
-//                 u32::equivalent_datatype(),
-//                 UserDatatype::structured(
-//                     &[1, 1],
-//                     &[
-//                         size_of::<f32>() as crate::mpi::Address,
-//                         size_of::<f32>() as crate::mpi::Address,
-//                     ],
-//                     &[f32::equivalent_datatype(), f32::equivalent_datatype()],
-//                 ).as_ref(),
-//                 UserDatatype::structured(
-//                     &[1, 1],
-//                     &[
-//                         size_of::<f32>() as crate::mpi::Address,
-//                         size_of::<f32>() as crate::mpi::Address,
-//                     ],
-//                     &[f32::equivalent_datatype(), f32::equivalent_datatype()],
-//                 ).as_ref(),
-//             ],
-//         )
-//     }
-// }
-
 impl Bird {
     pub fn new(id: u32, loc: Real2D, last_d: Real2D) -> Self {
         Bird { id, loc, last_d }
@@ -105,46 +54,15 @@ impl Agent for Bird {
         let world = universe.world();
 
         // println!(" Sono  {} e sto gestendo agente {}",world.rank(), self);
-
-
-        /* loop {
-            let status = world
-            .any_process()
-            .immediate_probe_with_tag(world.rank() + 90);
-            match status {
-                Some(e) => {
-                    let (bird, _) = world.process_at_rank(e.source_rank()).receive::<Bird>();
-                    //println!("Sono il processo {} e ho ricevuto {} tag {:?}", world.rank(), bird, e);
-                    state.field1.insert_read(bird, bird.loc);
-                    //state.field1.insert(bird, bird.loc);
-                    state.field1.agents_to_schedule.insert(bird);
-                    //println!("{}",msg);
-                }
-                None => {break;}
-            }
-        } */
         
         let mut vec = state
             .field1
-            .get_neighbors_within_distance(self.loc, 10.0);
+            .get_distributed_neighbors_within_relax_distance(self.loc, 10.0, self.clone());
 
-
-        //println!("Sono il processo {} agente {} e ho {} vicini", world.rank(), self, vec.len());
-        /* for neighbor in vec.iter(){
-            println!("{}", neighbor.loc);
-        } */
-        // // print the neighbors
-        // dedup the neighbors
-        // vec.dedup_by(|a, b| a.id == b.id);
-        // println!("Sono il processo {} agente {} e ho {} vicini", world.rank(), self, vec.len());
-        // for elem in vec.iter() {
-        //     print!("{}-", elem);
-        // }
-        // println!();
         let width = state.dim.0;
         let height = state.dim.1;
 
-        /*let mut avoidance = Real2D { x: 0.0, y: 0.0 };
+        let mut avoidance = Real2D { x: 0.0, y: 0.0 };
 
         let mut cohesion = Real2D { x: 0.0, y: 0.0 };
         let mut randomness = Real2D { x: 0.0, y: 0.0 };
@@ -247,13 +165,10 @@ impl Agent for Bird {
         self.last_d = Real2D { x: dx, y: dy };
 
         let loc_x = toroidal_transform(self.loc.x + dx, width);
-        let loc_y = toroidal_transform(self.loc.y + dy, height); */
+        let loc_y = toroidal_transform(self.loc.y + dy, height); 
 
-        //self.loc = Real2D { x: loc_x, y: loc_y };
-
-        let loc_x = toroidal_transform(self.loc.x + 1., width);
-        let loc_y = toroidal_transform(self.loc.y, height); 
         self.loc = Real2D { x: loc_x, y: loc_y };
+
         drop(vec);
         let id = state.field1.get_block_by_location(self.loc.x, self.loc.y);
         //println!("Per bird {} ho trovato id {}", self, id);
@@ -262,10 +177,6 @@ impl Agent for Bird {
             state.field1.insert(*self, self.loc);
         } else {
             //println!("Sono {} ed invio perché {} ha id {}", world.rank(), self, id);
-            /* world
-                .process_at_rank(id as i32)
-                .send_with_tag(self, (id as i32) + 90); */
-            //state.field1.killed_agent.insert(self.clone());
             state.field1.agents_to_send[id as usize].push(self.clone());
         }
     }
