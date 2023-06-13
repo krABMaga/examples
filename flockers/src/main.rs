@@ -1,4 +1,3 @@
-#![allow(warnings)]
 use crate::model::state::Flocker;
 use krabmaga::universe;
 
@@ -36,24 +35,9 @@ pub static TOROIDAL: bool = true;
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    /* let world = universe.world();
-    if world.rank() == 0{
-        let step = 200;
-
-        let dim = (400., 400.);
-        let num_agents = 16000;
-
-        let state = Flocker::new(dim, num_agents);
-        println!("Lancio la simulazione");
-        let _ = simulate_old!(state, step, 1, Info::Normal);
-    }
-    else {
-        println!("Totally not master process :P");
-    } */
-
     let step = 200;
 
-    let dim = (1565., 1565.);
+    let dim = (1131., 1131.);
     let num_agents = 128000;
 
     let state = Flocker::new(dim, num_agents);

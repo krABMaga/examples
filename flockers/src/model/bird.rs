@@ -1,31 +1,12 @@
-#![allow(warnings)]
-use crate::lazy_static;
-
 extern crate mpi;
-use mpi::datatype::UncommittedDatatypeRef;
-use mpi::datatype::UncommittedUserDatatype;
-use mpi::environment::Universe;
-use mpi::ffi::MPI_Finalize;
-use mpi::point_to_point::Destination;
-use mpi::point_to_point::Source;
-use mpi::topology::Communicator;
-use mpi::topology::SystemCommunicator;
-use mpi::traits::*;
-use mpi::Address;
-use mpi::internal::memoffset::{offset_of, span_of};
-use mpi::Threading;
-use crate::p2p::ReceiveFuture;
-use crate::UserDatatype;
 use core::fmt;
-use core::mem::size_of;
-use std::borrow::Borrow;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::kdtree_mpi::{toroidal_distance, toroidal_transform, Location2D};
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
 use krabmaga::rand;
 use krabmaga::universe;
-//use krabmaga::log;
+use mpi::topology::Communicator;
 use krabmaga::rand::Rng;
 use mpi::traits::Equivalence;
 use std::hash::{Hash, Hasher};
@@ -48,14 +29,11 @@ impl Bird {
 
 impl Agent for Bird {
     fn step(&mut self, state: &mut dyn State) {
-        //println!("inizio step  ");
         let state = state.as_any_mut().downcast_mut::<Flocker>().unwrap();
 
         let world = universe.world();
 
-        // println!(" Sono  {} e sto gestendo agente {}",world.rank(), self);
-        
-        let mut vec = state
+        let vec = state
             .field1
             .get_distributed_neighbors_within_relax_distance(self.loc, 10.0, self.clone());
 
@@ -165,23 +143,19 @@ impl Agent for Bird {
         self.last_d = Real2D { x: dx, y: dy };
 
         let loc_x = toroidal_transform(self.loc.x + dx, width);
-        let loc_y = toroidal_transform(self.loc.y + dy, height); 
+        let loc_y = toroidal_transform(self.loc.y + dy, height);
 
         self.loc = Real2D { x: loc_x, y: loc_y };
 
         drop(vec);
         let id = state.field1.get_block_by_location(self.loc.x, self.loc.y);
-        //println!("Per bird {} ho trovato id {}", self, id);
         if id as i32 == world.rank() {
-            //println!("Sono {} agente {} aggiorna loc", world.rank(), self);
             state.field1.insert(*self, self.loc);
         } else {
-            //println!("Sono {} ed invio perché {} ha id {}", world.rank(), self, id);
             state.field1.agents_to_send[id as usize].push(self.clone());
         }
     }
 }
-
 
 impl Hash for Bird {
     fn hash<H>(&self, state: &mut H)

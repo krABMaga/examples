@@ -5,11 +5,9 @@ mod model;
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::simulate,
-    krabmaga::Info, krabmaga::ProgressBar, krabmaga::*, std::time::Duration,
+    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State,
+    krabmaga::Info, krabmaga::*, std::time::Duration,
 };
-
-use krabmaga::*;
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
@@ -35,9 +33,8 @@ pub static TOROIDAL: bool = true;
 fn main() {
     let step = 200;
 
-    let dim = (400., 400.);
-    let num_agents = 16000;
-
+    let dim = (1131., 1131.);
+    let num_agents = 128000;
     let state = Flocker::new(dim, num_agents);
     let _ = simulate_old!(state, step, 1, Info::Normal);
 }
