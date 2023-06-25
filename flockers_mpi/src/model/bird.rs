@@ -1,16 +1,20 @@
+extern crate mpi;
 use core::fmt;
 use krabmaga::engine::agent::Agent;
-use krabmaga::engine::fields::field_2d::{toroidal_distance, toroidal_transform, Location2D};
+use krabmaga::engine::fields::kdtree_mpi::{toroidal_distance, toroidal_transform, Location2D};
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
 use krabmaga::rand;
 use krabmaga::rand::Rng;
+use krabmaga::universe;
+use mpi::topology::Communicator;
+use mpi::traits::Equivalence;
 use std::hash::{Hash, Hasher};
 
 use crate::model::state::Flocker;
 use crate::{AVOIDANCE, COHESION, CONSISTENCY, JUMP, MOMENTUM, RANDOMNESS};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Equivalence)]
 pub struct Bird {
     pub id: u32,
     pub loc: Real2D,
@@ -25,8 +29,13 @@ impl Bird {
 
 impl Agent for Bird {
     fn step(&mut self, state: &mut dyn State) {
-        let mut state = state.as_any_mut().downcast_mut::<Flocker>().unwrap();
-        let vec = state.field1.get_neighbors_within_distance(self.loc, 10.0);
+        let state = state.as_any_mut().downcast_mut::<Flocker>().unwrap();
+
+        let world = universe.world();
+
+        let vec = state
+            .field1
+            .get_distributed_neighbors_within_relax_distance(self.loc, 10.0, self.clone());
 
         let width = state.dim.0;
         let height = state.dim.1;
@@ -47,10 +56,11 @@ impl Agent for Bird {
             let mut y_cons = 0.0;
             let mut count = 0;
 
-            for elem in &vec {
-                if self.id != elem.0.id {
-                    let dx = toroidal_distance(self.loc.x, elem.0.loc.x, width);
-                    let dy = toroidal_distance(self.loc.y, elem.0.loc.y, height);
+            for elem in vec.iter() {
+                let elem = *elem;
+                if self.id != elem.id {
+                    let dx = toroidal_distance(self.loc.x, elem.loc.x, width);
+                    let dy = toroidal_distance(self.loc.y, elem.loc.y, height);
                     count += 1;
 
                     //avoidance calculation
@@ -63,8 +73,8 @@ impl Agent for Bird {
                     y_cohe += dy;
 
                     //consistency calculation
-                    x_cons += elem.0.last_d.x;
-                    y_cons += elem.0.last_d.y;
+                    x_cons += elem.last_d.x;
+                    y_cons += elem.last_d.y;
                 }
             }
 
@@ -136,12 +146,14 @@ impl Agent for Bird {
         let loc_y = toroidal_transform(self.loc.y + dy, height);
 
         self.loc = Real2D { x: loc_x, y: loc_y };
+
         drop(vec);
-        state
-            .field1
-            .insert(*self, loc_x, loc_y );
-            if self.id==0{
-                }
+        let id = state.field1.get_block_by_location(self.loc.x, self.loc.y);
+        if id as i32 == world.rank() {
+            state.field1.insert(*self, self.loc);
+        } else {
+            state.field1.agents_to_send[id as usize].push(self.clone());
+        }
     }
 }
 

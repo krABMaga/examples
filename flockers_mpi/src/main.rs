@@ -1,4 +1,5 @@
 use crate::model::state::Flocker;
+use krabmaga::universe;
 
 mod model;
 
@@ -6,8 +7,11 @@ mod model;
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
     krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State,
-    krabmaga::Info, krabmaga::*, std::time::Duration,
+    krabmaga::simulate_old_mpi, krabmaga::Info, /* krabmaga::ProgressBar, */ krabmaga::*,
+    std::time::Duration,
 };
+
+//use krabmaga::*;
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
@@ -35,8 +39,9 @@ fn main() {
 
     let dim = (1131., 1131.);
     let num_agents = 128000;
+
     let state = Flocker::new(dim, num_agents);
-    let _ = simulate_old!(state, step, 1, Info::Normal);
+    let _ = simulate_old_mpi!(state, step, 1, Info::Normal);
 }
 
 // Main used when a visualization feature is applied.

@@ -2,6 +2,6 @@
 resolver = "2"
 
 members = [
-    "flockers",
-    "flockers_original"
+    "flockers_mpi",
+    "flockers"
 ]

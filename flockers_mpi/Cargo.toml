@@ -1,5 +1,5 @@
 [package]
-name = "flockers_original"
+name = "flockers_mpi"
 version = "0.2.0"
 authors = [
     "Carmine Spagnuolo <spagnuolocarmine@gmail.com>", 
@@ -20,10 +20,14 @@ readme = "README.md"
 [dependencies]
 # krabmaga = "0.1.*"
 # krabmaga = {git = "https://github.com/krABMaga/krABMaga"}
+#krabmaga = {path="/Users/ddevin/Documents/krABMaga"}
 krabmaga = {path="/home/andrea/Distributed_KdTree/krABMaga"}
 
+
+mpi = { version = "0.6", features = ["user-operations", "derive"] }
+
 [features]
-parallel = ["krabmaga/parallel"]
 distributed_mpi = ["krabmaga/distributed_mpi"]
+parallel = ["krabmaga/parallel"]
 visualization = ["krabmaga/visualization"]
 visualization_wasm = ["krabmaga/visualization_wasm"]
