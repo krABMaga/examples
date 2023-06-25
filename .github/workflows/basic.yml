@@ -3,64 +3,70 @@ on: [push, pull_request]
 name: Continuous integration
 
 jobs:
-  check:
+
+  checknormal:
     name: Check normal examples
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo check --release
+
+  checkmpi:
+    name: Check mpi examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2    
+      - uses: mpi4py/setup-mpi@v1
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --release --features bayesian
+          mpi: openmpi
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo check --release --features distributed_mpi
 
   checkvis:
     name: Check visualization examples
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --release --features "visualization, bayesian"
+      - uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
+      - uses: dtolnay/rust-toolchain@stable
+      - run: |
+          sudo apt update
+          sudo apt install pkg-config libx11-dev libasound2-dev libudev-dev
+          sudo apt install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev
+          sudo apt install libxcb-render0-dev libxcb-xfixes0-dev libxcb1-dev
+          sudo apt install libudev-dev libasound2-dev portaudio19-dev build-essential libpulse-dev libdbus-1-dev
+          sudo apt install libfontconfig libfontconfig1-dev
+      - run: cargo check --release --features visualization
 
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+          components: rustfmt
+      - run: cargo fmt --all -- --check
 
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - run: rustup component add clippy
-      - uses: actions-rs/cargo@v1
+          components: clippy
+      - run: cargo clippy
+
+  clippyvis:
+    name: Clippy visualization
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
         with:
           command: clippy
           args: --features bayesian
@@ -80,3 +86,12 @@ jobs:
         with:
           command: clippy
           args: --features distributed_mpi
+          components: rustfmt
+      - run: |
+          sudo apt update
+          sudo apt install pkg-config libx11-dev libasound2-dev libudev-dev
+          sudo apt install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev
+          sudo apt install libxcb-render0-dev libxcb-xfixes0-dev libxcb1-dev
+          sudo apt install libudev-dev libasound2-dev portaudio19-dev build-essential libpulse-dev libdbus-1-dev
+          sudo apt install libfontconfig libfontconfig1-dev
+      - run: cargo clippy --features "visualization, bayesian"

@@ -3,10 +3,7 @@ use crate::model::sea::Sea;
 mod model;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-use {
-    krabmaga::engine::schedule::*, krabmaga::engine::state::State, krabmaga::simulate_old,
-    krabmaga::Info, krabmaga::ProgressBar, krabmaga::*, std::time::Duration,
-};
+use krabmaga::*;
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

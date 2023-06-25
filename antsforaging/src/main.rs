@@ -39,10 +39,7 @@ use {
 };
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-use {
-    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::simulate,
-    krabmaga::Info, krabmaga::ProgressBar, krabmaga::*, std::time::Duration,
-};
+use krabmaga::simulate;
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 pub mod visualization;
@@ -57,8 +54,8 @@ fn main() {
         .with_window_dimensions(1280., 720.)
         .with_name("Ants foraging")
         .setup::<VisState, ModelState>(VisState, state);
-    app.add_system(ToHomeGrid::batch_render.system())
-        .add_system(ToFoodGrid::batch_render.system());
+    app.add_system(ToHomeGrid::batch_render)
+        .add_system(ToFoodGrid::batch_render);
     app.run()
 }
 

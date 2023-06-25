@@ -2,4 +2,4 @@
 /Cargo.lock
 /.idea/
 /output
-test.txt
+.DS_Store

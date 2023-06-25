@@ -1,5 +1,7 @@
 use crate::model::forest::Forest;
 use crate::Tree;
+use krabmaga::bevy::ecs as bevy_ecs;
+use krabmaga::bevy::ecs::system::Resource;
 use krabmaga::bevy::prelude::Commands;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::dense_object_grid_2d::DenseGrid2D;
@@ -12,7 +14,7 @@ use krabmaga::visualization::fields::object_grid_2d::RenderObjectGrid2D;
 use krabmaga::visualization::simulation_descriptor::SimulationDescriptor;
 use krabmaga::visualization::visualization_state::VisualizationState;
 
-#[derive(Clone)]
+#[derive(Clone, Resource)]
 pub struct ForestVis;
 
 impl VisualizationState<Forest> for ForestVis {

@@ -1,10 +1,6 @@
 mod model;
 use crate::model::state::Environment;
-use krabmaga::cfg_if::cfg_if;
-use {
-    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::*,
-    std::time::Duration,
-};
+use krabmaga::*;
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 mod visualization;
@@ -49,6 +45,6 @@ fn main() {
         .with_background_color(Color::WHITE)
         .with_name("Sugarscape")
         .setup::<EnvironmentVis, Environment>(EnvironmentVis, state);
-    app.add_system(DenseNumberGrid2D::batch_render.system());
+    app.add_system(DenseNumberGrid2D::batch_render);
     app.run()
 }
