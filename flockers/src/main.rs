@@ -31,10 +31,10 @@ pub static TOROIDAL: bool = true;
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    let step = 500;
+    let step = 200;
 
-    let dim = (1000., 1000.);
-    let num_agents = 10000;
+    let dim = (800., 800.);
+    let num_agents = 64000;
     let state = Flocker::new(dim, num_agents);
     let _ = simulate_old!(state, step, 1, Info::Normal);
 }
