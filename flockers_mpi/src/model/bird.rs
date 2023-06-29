@@ -11,7 +11,7 @@ cfg_if! {
         use krabmaga::engine::state::State;
         use krabmaga::rand;
         use krabmaga::rand::Rng;
-        use krabmaga::universe;
+        use krabmaga::UNIVERSE;
         use mpi::topology::Communicator;
         use mpi::traits::Equivalence;
         use std::hash::{Hash, Hasher};
@@ -36,11 +36,11 @@ cfg_if! {
             fn step(&mut self, state: &mut dyn State) {
                 let state = state.as_any_mut().downcast_mut::<Flocker>().unwrap();
 
-                let world = universe.world();
+                let world = UNIVERSE.world();
 
                 let vec = state
                     .field1
-                    .get_distributed_neighbors_within_relax_distance(self.loc, 10.0, self.clone());
+                    .get_distributed_neighbors_within_relax_distance(self.loc, 10.0);
 
                 let width = state.dim.0;
                 let height = state.dim.1;

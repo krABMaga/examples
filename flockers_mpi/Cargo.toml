@@ -19,7 +19,9 @@ readme = "README.md"
 
 [dependencies]
 # krabmaga = "0.1.*"
-krabmaga = {git = "https://github.com/krABMaga/krABMaga"}
+#krabmaga = {git = "https://github.com/krABMaga/krABMaga"}
+krabmaga = {path = "/home/andrea/Distributed_KdTree/krABMaga"}
+
 
 mpi = { version = "0.6", features = ["user-operations", "derive"] }
 

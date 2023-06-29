@@ -4,7 +4,7 @@ cfg_if! {
     if #[cfg(any(feature = "distributed_mpi"))]
     {
         use crate::model::state::Flocker;
-        use krabmaga::universe;
+        use krabmaga::UNIVERSE;
 
         mod model;
 
@@ -12,7 +12,7 @@ cfg_if! {
         #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
         use {
             krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State,
-            krabmaga::simulate_old_mpi, krabmaga::Info, /* krabmaga::ProgressBar, */ krabmaga::*,
+            krabmaga::simulate_mpi, krabmaga::Info, /* krabmaga::ProgressBar, */ krabmaga::*,
             std::time::Duration,
         };
 
@@ -46,7 +46,7 @@ cfg_if! {
             let num_agents = 128000;
 
             let state = Flocker::new(dim, num_agents);
-            let _ = simulate_old_mpi!(state, step, 1, Info::Normal);
+            let _ = simulate_mpi!(state, step, 1, Info::Normal);
         }
 
         // Main used when a visualization feature is applied.

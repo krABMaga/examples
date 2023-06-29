@@ -15,7 +15,7 @@ cfg_if! {
         use krabmaga::mpi::topology::Communicator;
         use krabmaga::rand;
         use krabmaga::rand::Rng;
-        use krabmaga::universe;
+        use krabmaga::UNIVERSE;
         use std::any::Any;
 
         pub struct Flocker {
@@ -44,7 +44,7 @@ cfg_if! {
             }
 
             fn init(&mut self, schedule: &mut Schedule) {
-                let world = universe.world();
+                let world = UNIVERSE.world();
                 let mut rng = rand::thread_rng();
 
                 if world.rank() == 0 {
