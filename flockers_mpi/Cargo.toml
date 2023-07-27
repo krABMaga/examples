@@ -1,6 +1,6 @@
 [package]
 name = "flockers_mpi"
-version = "0.2.0"
+version = "0.4.1"
 authors = [
     "Carmine Spagnuolo <spagnuolocarmine@gmail.com>", 
     "Alessia Antelmi <aantelmi@unisa.it>", 
@@ -18,10 +18,7 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# krabmaga = "0.1.*"
-#krabmaga = {git = "https://github.com/krABMaga/krABMaga"}
-krabmaga = {path = "/home/andrea/Distributed_KdTree/krABMaga"}
-
+krabmaga = "0.4.*"
 
 mpi = { version = "0.6", features = ["user-operations", "derive"] }
 
