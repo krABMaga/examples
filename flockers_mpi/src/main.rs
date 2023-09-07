@@ -38,7 +38,12 @@ cfg_if! {
         pub static TOROIDAL: bool = true;
 
         // Main used when only the simulation should run, without any visualization.
-        #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
+        #[cfg(not(any(feature = "visualization", feature = "visualization_wasm", feature = "distributed_mpi")))]
+        fn main() {
+            println!("Exiting");
+        }
+
+        #[cfg(any(feature = "distributed_mpi"))]
         fn main() {
             let step = 200;
 
