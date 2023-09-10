@@ -1,5 +1,6 @@
 mod model;
 use crate::model::state::Environment;
+use krabmaga::*;
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 mod visualization;
@@ -8,9 +9,13 @@ mod visualization;
 use crate::visualization::environment_vis::EnvironmentVis;
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
+use crate::visualization::eater_vis::EaterVis;
+
+#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    krabmaga::bevy::prelude::Color,
+    krabmaga::bevy::prelude::Color, krabmaga::bevy::prelude::IntoSystem,
     krabmaga::engine::fields::dense_number_grid_2d::DenseNumberGrid2D,
+    krabmaga::engine::fields::dense_object_grid_2d::DenseGrid2D,
     krabmaga::visualization::fields::number_grid_2d::BatchRender,
     krabmaga::visualization::visualization::Visualization,
 };
