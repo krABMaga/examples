@@ -1,6 +1,6 @@
 use crate::model::{eater::Eater, state::Environment};
 use krabmaga::bevy::ecs as bevy_ecs;
-use krabmaga::bevy::prelude::{Component, Quat, Transform, Visibility};
+use krabmaga::bevy::prelude::{Component, Transform, Visibility};
 use krabmaga::{
     engine::{agent::Agent, state::State},
     visualization::agent_render::{AgentRender, SpriteType},
@@ -38,7 +38,7 @@ impl AgentRender for EaterVis {
     }
 
     /// Define the degrees in radians to rotate the texture by.
-    fn rotation(&self, agent: &Box<dyn Agent>, _state: &Box<&dyn State>) -> f32 {
+    fn rotation(&self, _agent: &Box<dyn Agent>, _state: &Box<&dyn State>) -> f32 {
         /*let concrete_agent = agent.downcast_ref::<Eater>().unwrap();
         let rotation = if (concrete_agent.position.x as f32) == 0. || (concrete_agent.position.y as f32) == 0. {
             0.
@@ -57,11 +57,11 @@ impl AgentRender for EaterVis {
         state: &Box<&dyn State>,
         _visible: &mut Visibility,
     ) {
-        let concrete_agent = agent.downcast_ref::<Eater>().unwrap();
+        let _concrete_agent = agent.downcast_ref::<Eater>().unwrap();
         //if concrete_agent.wealth>0{
         // This snippet updates the agent location, scale and rotation for each frame.
         let (loc_x, loc_y, z) = self.location(agent, state);
-        let rotation = self.rotation(agent, state);
+        let _rotation = self.rotation(agent, state);
         let (scale_x, scale_y) = self.scale(agent, state);
 
         let translation = &mut transform.translation;

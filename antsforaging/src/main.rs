@@ -33,7 +33,6 @@ pub const UPDATE_CUTDOWN: f32 = 0.9;
 use {
     crate::model::to_food_grid::ToFoodGrid, crate::model::to_home_grid::ToHomeGrid,
     crate::visualization::vis_state::VisState, krabmaga::bevy::prelude::Color,
-    krabmaga::bevy::prelude::IntoSystem,
     krabmaga::visualization::fields::number_grid_2d::BatchRender,
     krabmaga::visualization::visualization::Visualization,
 };
