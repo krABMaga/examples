@@ -1,5 +1,4 @@
-﻿-#Test
-[package]
+﻿[package]
 name = "antsforaging"
 version = "0.3.0"
 authors = [
