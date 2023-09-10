@@ -155,7 +155,7 @@ impl Ant {
             }
         }
 
-        if max == 0. && self.last != None {
+        if max == 0. && self.last.is_some() {
             // No tips from pheromones, consider stepping in the same direction
             if let Some(last_loc) = self.last {
                 if rng.gen_bool(MOMENTUM_PROBABILITY) {
