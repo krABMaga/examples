@@ -195,7 +195,7 @@ impl State for EpidemicNetworkState {
         if value == 0 {
             self.rt = 0.;
         } else {
-            self.rt = (value as f32 / counter as f32) as f32;
+            self.rt = value as f32 / counter as f32;
         }
 
         // count the daily infection
@@ -212,7 +212,7 @@ impl State for EpidemicNetworkState {
         for i in 3..(self.daily_infected.len() - 3) {
             let mut media_mobile = 0.;
             for j in -3..=3 {
-                media_mobile += self.daily_infected[((i as i32) - (j as i32)) as usize] as f32;
+                media_mobile += self.daily_infected[((i as i32) - (j)) as usize] as f32;
             }
             self.weekly_infected[i - 3] = media_mobile / 7.0;
         }

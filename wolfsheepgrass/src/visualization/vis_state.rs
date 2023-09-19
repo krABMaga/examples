@@ -28,7 +28,7 @@ impl VisualizationState<WsgState> for VisState {
         _schedule: &mut Schedule,
         sim: &mut SimulationDescriptor,
     ) {
-        Self::generate_grass(&state, sprite_render_factory, commands, sim);
+        Self::generate_grass(state, sprite_render_factory, commands, sim);
     }
 
     fn get_agent_render(

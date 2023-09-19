@@ -162,10 +162,8 @@ impl Ant {
                     let xm = x + (x - last_loc.x);
                     let ym = y + (y - last_loc.y);
                     // Don't go outside the field or in an obstacle
-                    if xm >= 0
-                        && xm < WIDTH
-                        && ym >= 0
-                        && ym < HEIGHT
+                    if (0..WIDTH).contains(&xm)
+                        && (0..HEIGHT).contains(&ym)
                         && state.get_obstacle(&Int2D { x: xm, y: ym }).is_none()
                     {
                         max_x = xm;
@@ -181,10 +179,8 @@ impl Ant {
             let ym = y + yd;
             // Don't go outside the field, in an obstacle and do not stay still
             if !(xd == 0 && yd == 0)
-                && xm >= 0
-                && xm < WIDTH
-                && ym >= 0
-                && ym < HEIGHT
+                && (0..WIDTH).contains(&xm)
+                && (0..HEIGHT).contains(&ym)
                 && state.get_obstacle(&Int2D { x: xm, y: ym }).is_none()
             {
                 max_x = xm;

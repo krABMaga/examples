@@ -72,30 +72,27 @@ impl Agent for Eater {
                 let pos = Int2D { x: i, y: j };
                 let obj = state.field.get_value(&pos);
 
-                match obj {
-                    Some(patch) => {
-                        let obj = state.eaters.get_objects_unbuffered(&pos);
+                if let Some(patch) = obj {
+                    let obj = state.eaters.get_objects_unbuffered(&pos);
 
-                        //Takes the same patch where the agent is actually in
-                        if obj != None
-                            && obj.unwrap()[0].id == self.id
-                            && patch.sugar_amount >= max_sugar
-                        {
-                            max_sugar = patch.sugar_amount;
-                            near_patches.retain(|&p| p.0.sugar_amount == patch.sugar_amount);
-                            near_patches.push((patch, pos));
-                        }
-                        //Otherwise it check the others free patches
-                        else if state.eaters.get_objects_unbuffered(&pos) == None
-                            && patch.sugar_amount > 0
-                            && patch.sugar_amount >= max_sugar
-                        {
-                            max_sugar = patch.sugar_amount;
-                            near_patches.retain(|&p| p.0.sugar_amount == patch.sugar_amount);
-                            near_patches.push((patch, pos));
-                        }
+                    //Takes the same patch where the agent is actually in
+                    if obj.is_some()
+                        && obj.unwrap()[0].id == self.id
+                        && patch.sugar_amount >= max_sugar
+                    {
+                        max_sugar = patch.sugar_amount;
+                        near_patches.retain(|&p| p.0.sugar_amount == patch.sugar_amount);
+                        near_patches.push((patch, pos));
                     }
-                    None => {}
+                    //Otherwise it check the others free patches
+                    else if state.eaters.get_objects_unbuffered(&pos).is_none()
+                        && patch.sugar_amount > 0
+                        && patch.sugar_amount >= max_sugar
+                    {
+                        max_sugar = patch.sugar_amount;
+                        near_patches.retain(|&p| p.0.sugar_amount == patch.sugar_amount);
+                        near_patches.push((patch, pos));
+                    }
                 }
             }
         }

@@ -1,6 +1,6 @@
 mod model;
 use crate::model::state::Environment;
-use krabmaga::*;
+//use krabmaga::*;
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 mod visualization;
