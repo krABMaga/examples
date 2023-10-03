@@ -3,8 +3,11 @@ use krabmaga::cfg_if;
 cfg_if! {
     if #[cfg(any(feature = "distributed_mpi"))]
     {
-        extern crate mpi;
         use core::fmt;
+        use krabmaga::mpi;
+        use krabmaga::offset_of;
+        use mpi::{datatype::{UncommittedUserDatatype, UserDatatype}, Address};
+        use krabmaga::Equivalence;
         use krabmaga::engine::agent::Agent;
         use krabmaga::engine::fields::kdtree_mpi::{toroidal_distance, toroidal_transform, Location2D};
         use krabmaga::engine::location::Real2D;
@@ -13,17 +16,44 @@ cfg_if! {
         use krabmaga::rand::Rng;
         use krabmaga::UNIVERSE;
         use mpi::topology::Communicator;
-        use mpi::traits::Equivalence;
         use std::hash::{Hash, Hasher};
 
         use crate::model::state::Flocker;
         use crate::{AVOIDANCE, COHESION, CONSISTENCY, JUMP, MOMENTUM, RANDOMNESS};
 
-        #[derive(Clone, Copy, Equivalence)]
+        #[derive(Clone, Copy)]
         pub struct Bird {
             pub id: u32,
             pub loc: Real2D,
             pub last_d: Real2D,
+        }
+
+        unsafe impl Equivalence for Bird{
+            type Out = UserDatatype;
+            fn equivalent_datatype() -> Self::Out{
+                let real_2d = UncommittedUserDatatype::structured(
+                    &[1,1],
+                    &[
+                        offset_of!(Real2D,x) as Address,
+                        offset_of!(Real2D,y) as Address,
+                    ],
+                    &[f32::equivalent_datatype(),f32::equivalent_datatype()]
+                );
+
+                UserDatatype::structured(
+                    &[1,1,1],
+                    &[
+                        offset_of!(Bird,id) as Address,
+                        offset_of!(Bird,loc) as Address,
+                        offset_of!(Bird,last_d) as Address
+                    ],
+                    &[
+                        u32::equivalent_datatype().into(),
+                        real_2d.as_ref(),
+                        real_2d.as_ref()
+                    ]
+                )
+            }
         }
 
         impl Bird {

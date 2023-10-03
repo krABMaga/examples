@@ -19,10 +19,9 @@ readme = "README.md"
 
 [dependencies]
 krabmaga = "0.4.*"
-mpi = { version = "0.6", features = ["user-operations", "derive"], optional = true }
 
 [features]
-distributed_mpi = ["krabmaga/distributed_mpi", "mpi"]
+distributed_mpi = ["krabmaga/distributed_mpi"]
 parallel = ["krabmaga/parallel"]
 visualization = ["krabmaga/visualization"]
 visualization_wasm = ["krabmaga/visualization_wasm"]
