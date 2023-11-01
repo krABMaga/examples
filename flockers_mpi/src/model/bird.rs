@@ -183,6 +183,10 @@ cfg_if! {
                 self.loc = Real2D { x: loc_x, y: loc_y };
 
                 drop(vec);
+
+                //Get the block id of the agent: if id is equal to the process handling this agent, insert it into the field
+                //else, put the agent in the array of agents that need to be sent to their respecive process
+                //Example: if this instance is executed on process 3 and the id is also 3, then put the agent into the field.
                 let id = state.field1.get_block_by_location(self.loc.x, self.loc.y);
                 if id as i32 == world.rank() {
                     state.field1.insert(*self, self.loc);

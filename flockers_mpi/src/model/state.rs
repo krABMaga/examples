@@ -43,17 +43,25 @@ cfg_if! {
                 self.field1 = Kdtree::create_tree(0, 0.0, 0.0, self.dim.0, self.dim.1, DISCRETIZATION, 25.)
             }
 
+            ///This function creates the initial agents of the simulation.
+            ///The init function is executed by all processes, but only the process 0 creates the agents.
+            ///For each new agent, their id will be calculated: if the id is not equal to 0, then the agent will be put into an array 'vec'.
+            ///When all agents have been created, all the agents in 'vec' will be sent to their respective process.
+            ///The other processes, instead, will be waiting to receive the agents from process 0.
             fn init(&mut self, schedule: &mut Schedule) {
                 let world = UNIVERSE.world();
                 let mut rng = rand::thread_rng();
 
+                //Process 0 creates the agents
                 if world.rank() == 0 {
                     let mut vec: Vec<Vec<Bird>> = Vec::new();
 
+                    //Create 'vec' with size equal to the number of processes
                     for _ in 0..world.size() {
                         vec.push(vec![])
                     }
 
+                    //For each initial agent...
                     for bird_id in 0..self.initial_flockers {
                         let r1: f32 = rng.gen();
                         let r2: f32 = rng.gen();
@@ -63,8 +71,11 @@ cfg_if! {
                             y: self.dim.1 * r2,
                         };
                         let bird = Bird::new(bird_id, loc, last_d);
+                        //Calculate its 'id'...
                         let id = self.field1.get_block_by_location(loc.x, loc.y);
 
+                        //If 'id' is not 0, push the agent into 'vec' at position 'id'
+                        //else, schedule the agent
                         if id > 0 {
                             vec[(id) as usize].push(bird);
                         } else {
@@ -73,6 +84,7 @@ cfg_if! {
                                 schedule.distributed_schedule_repeating(Box::new(bird), 0., 0);
                             self.field1.scheduled_agent.insert(bird.id, counting);
                         }
+                        //Once all agents have been created, send them to their respective process.
                         if bird_id == self.initial_flockers - 1 {
                             for i in 1..world.size() {
                                 world.process_at_rank(i).send(&vec[(i) as usize]);
@@ -80,6 +92,7 @@ cfg_if! {
                         }
                     }
                 } else {
+                    //All other processes receive the agents
                     let (vec, _) = world.process_at_rank(0).receive_vec::<Bird>();
                     for bird in vec.iter() {
                         self.field1.insert(*bird, bird.loc);
@@ -93,6 +106,10 @@ cfg_if! {
                 self.field1.lazy_update();
             }
 
+            ///The before_step function takes action before the start of the step.
+            ///In this function, the agents sent from the other processes, for neighborhood calculation, will be received.
+            ///These agent will be inserted into the field in 'read' mode.
+            ///This will make them visible to the other agents in the field in order to calculate their neighborhood.
             fn before_step(&mut self, _: &mut Schedule) {
                 let dummy = Bird {
                     id: 0,
@@ -100,6 +117,7 @@ cfg_if! {
                     last_d: Real2D { x: 0., y: 0. },
                 };
 
+                //Get the sent agents and read-insert them into the field.
                 if self.field1.received_neighbors.len() == 0 {
                     let neighbors: Vec<Bird> = self
                         .field1
@@ -114,6 +132,10 @@ cfg_if! {
                 }
             }
 
+            ///The after_step function takes action after the end of the step.
+            ///In this function, the agents that must be sent to their respective processes are sent.
+            ///Also, the agents that must be sent will be removed from the field and descheduled.
+            ///Then, the agents received in the message_exchange phase will be inserted into the field and scheduled.
             fn after_step(&mut self, schedule: &mut Schedule) {
                 let dummy = Bird {
                     id: 0,
@@ -124,6 +146,7 @@ cfg_if! {
                     .field1
                     .message_exchange(&self.field1.agents_to_send, dummy, false);
 
+                //All the agents that have to be sent are removed from the field and descheduled
                 for vec in &self.field1.agents_to_send {
                     if vec.len() != 0 {
                         for agent in vec {
@@ -140,6 +163,7 @@ cfg_if! {
                     }
                 }
 
+                //All the agents that have been received must be inserted into the field and scheduled
                 for v in &vec {
                     for bird in v {
                         let (counting, _) =
