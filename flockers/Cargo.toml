@@ -18,9 +18,10 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-krabmaga = "0.3.*"
+krabmaga = "0.4.*"
 
 [features]
 parallel = ["krabmaga/parallel"]
+distributed_mpi = ["krabmaga/distributed_mpi"]
 visualization = ["krabmaga/visualization"]
 visualization_wasm = ["krabmaga/visualization_wasm"]

@@ -76,9 +76,9 @@ impl State for WsgState {
 
     fn init(&mut self, schedule: &mut Schedule) {
         self.reset();
-        let s = format!("Also known as Wolf Sheep predation, it is the simulation implemented to introduce \"dynamic scheduling\"
+        let s = "Also known as Wolf Sheep predation, it is the simulation implemented to introduce \"dynamic scheduling\"
                         feature into the krabmaga framework, because it was the first model with the concepts of \"death\" and \"birth\":
-                        there is an ecosystem that involves animals into their life-cycle.");
+                        there is an ecosystem that involves animals into their life-cycle.".to_string();
         description!(s);
 
         generate_grass(self);

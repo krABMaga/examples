@@ -19,11 +19,11 @@ impl RenderObjectGrid2D<Forest, Tree> for DenseGrid2D<Tree> {
     }
     fn fetch_emoji(state: &Forest, obj: &Tree) -> String {
         let obj_real = state.field.get(obj).unwrap();
-        return match obj_real.status {
+        match obj_real.status {
             Status::Green => "evergreen_tree".to_string(),
             Status::Burning => "fire".to_string(),
             Status::Burned => "dust".to_string(),
-        };
+        }
     }
     fn fetch_loc(state: &Forest, obj: &Tree) -> Option<Int2D> {
         state.field.get_location(*obj)

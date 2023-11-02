@@ -52,7 +52,7 @@ impl Agent for Wolf {
         }
 
         let mut moved = false;
-        if self.last != None && rng.gen_bool(MOMENTUM_PROBABILITY) {
+        if self.last.is_some() && rng.gen_bool(MOMENTUM_PROBABILITY) {
             if let Some(last_loc) = self.last {
                 let xm = x + (x - last_loc.x);
                 let ym = y + (y - last_loc.y);
@@ -67,9 +67,9 @@ impl Agent for Wolf {
         }
         if !moved {
             let xmin = if x > 0 { -1 } else { 0 };
-            let xmax = if x < state.dim.0 - 1 { 1 } else { 0 };
+            let xmax = i32::from(x < state.dim.0 - 1);
             let ymin = if y > 0 { -1 } else { 0 };
-            let ymax = if y < state.dim.1 - 1 { 1 } else { 0 };
+            let ymax = i32::from(y < state.dim.1 - 1);
 
             let nx = rng.gen_range(xmin..=xmax);
             let ny = rng.gen_range(ymin..=ymax);

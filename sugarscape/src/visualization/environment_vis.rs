@@ -29,7 +29,7 @@ impl VisualizationState<Environment> for EnvironmentVis {
         _schedule: &mut Schedule,
         _sim: &mut SimulationDescriptor,
     ) {
-        Self::generate_patches(&_state, _sprite_render_factory, _commands, _sim);
+        Self::generate_patches(_state, _sprite_render_factory, _commands, _sim);
     }
 
     fn get_agent_render(

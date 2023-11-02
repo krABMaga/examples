@@ -230,15 +230,8 @@ impl ModelState {
 
     // Check if a particular grid cell has an obstacle or not. Will return None if the grid cell holds no obstacle.
     pub fn get_obstacle(&self, loc: &Int2D) -> Option<Vec<Item>> {
-        match self.obstacles_grid.get_objects(loc) {
-            Some(vec) => {
-                if vec.first().unwrap().value == ItemType::Obstacle {
-                    Some(vec)
-                } else {
-                    None
-                }
-            }
-            None => None,
-        }
+        self.obstacles_grid
+            .get_objects(loc)
+            .filter(|vec| vec.first().unwrap().value == ItemType::Obstacle)
     }
 }

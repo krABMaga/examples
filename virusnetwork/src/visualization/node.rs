@@ -43,8 +43,8 @@ impl AgentRender for NetNodeVis {
         let agent = agent.downcast_ref::<NetNode>().unwrap();
         let loc = state.field1.get_location(*agent);
         match loc {
-            Some(loc) => (loc.x as f32, loc.y as f32, 0.),
-            None => (agent.loc.x as f32, agent.loc.y as f32, 0.),
+            Some(loc) => (loc.x, loc.y, 0.),
+            None => (agent.loc.x, agent.loc.y, 0.),
         }
     }
 

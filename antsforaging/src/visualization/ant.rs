@@ -38,12 +38,11 @@ impl AgentRender for AntVis {
 
     fn rotation(&self, agent: &Box<dyn Agent>, _state: &Box<&dyn State>) -> f32 {
         let agent = agent.downcast_ref::<Ant>().unwrap();
-        let rotation = if let Some(Int2D { x, y }) = agent.last {
+        if let Some(Int2D { x, y }) = agent.last {
             ((y - agent.loc.y) as f32).atan2((x - agent.loc.x) as f32)
         } else {
             0.
-        };
-        rotation
+        }
     }
 
     /// Simply update the transform based on the location chosen
