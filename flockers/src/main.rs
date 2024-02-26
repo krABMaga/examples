@@ -25,7 +25,7 @@ pub static TOROIDAL: bool = true;
 pub static STEPS: u32 = 200;
 pub static DIM_X: f32 = 800.;
 pub static DIM_Y: f32 = 800.;
-pub static NUM_AGENTS: u32 = 200000;
+pub static NUM_AGENTS: u32 = 200;
 pub static SEED: u64 = 1337;
 
 
@@ -170,12 +170,12 @@ fn step_system(mut query: Query<(Entity, &Bird, &DBRead<Real2DTranslation>, &DBR
 
         let loc_x = toroidal_transform(cur_pos.x + dx, DIM_X);
         let loc_y = toroidal_transform(cur_pos.y + dy, DIM_Y);
-        // if config.current_step == 1 || config.current_step == 2 || config.current_step == 200 {
-        //     println!("Bird {} - Step {}: - cohesion {:?}, avoidance {:?}, consistency {:?}, randomness {:?}, mom {:?}, loc {:?}",
-        //              bird.id, config.current_step, (x_cohesion, y_cohesion), (x_avoidance,y_avoidance), (x_consistency,y_consistency), (x_randomness, y_randomness),
-        //              (x_momentum, y_momentum), (loc_x, loc_y));
-        // }
-        //
+        if config.current_step == 200 {
+            println!("Bird {} - Step {}: - cohesion {:?}, avoidance {:?}, consistency {:?}, randomness {:?}, mom {:?}, loc {:?}",
+                     bird.id, config.current_step, (x_cohesion, y_cohesion), (x_avoidance,y_avoidance), (x_consistency,y_consistency), (x_randomness, y_randomness),
+                     (x_momentum, y_momentum), (loc_x, loc_y));
+        }
+
 
         // TODO this is ugly, but if we unify read and write buffers we'll end up querying both all the time even when it's not needed
         // TODO perhaps give the user a way to query only read or both read and write, and proxy methods accordingly
