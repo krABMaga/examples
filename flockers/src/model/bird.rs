@@ -3,12 +3,15 @@ use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field_2d::{toroidal_distance, toroidal_transform, Location2D};
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::state::State;
-use krabmaga::rand;
+use krabmaga::{rand, Uniform};
 use krabmaga::rand::Rng;
 use std::hash::{Hash, Hasher};
+use rand_chacha::ChaCha8Rng;
+use rand_chacha::rand_core::SeedableRng;
 
 use crate::model::state::Flocker;
-use crate::{AVOIDANCE, COHESION, CONSISTENCY, JUMP, MOMENTUM, RANDOMNESS};
+use crate::{AVOIDANCE, COHESION, CONSISTENCY, JUMP, MOMENTUM, RANDOMNESS, SEED};
+use krabmaga::Distribution;
 
 #[derive(Clone, Copy)]
 pub struct Bird {
@@ -99,12 +102,19 @@ impl Agent for Bird {
                 y: -y_cohe / 10.0,
             };
 
-            //randomness
-            let mut rng = rand::thread_rng();
-            let r1: f32 = rng.gen();
-            let x_rand = r1 * 2.0 - 1.0;
-            let r2: f32 = rng.gen();
-            let y_rand = r2 * 2.0 - 1.0;
+            //randomness - uses the same rng of the ecs-experiment branch
+            let mut rng = ChaCha8Rng::seed_from_u64(SEED);
+            rng.set_stream(self.id as u64 + state.step);
+            let mut range = Uniform::new(0.0f32, 1.0);
+            let r1: f32 = range.sample(&mut rng);
+            let x_rand = r1 * 2. - 1.;
+            let r2: f32 = range.sample(&mut rng);
+            let y_rand = r2 * 2. - 1.;
+            // let mut rng = rand::thread_rng();
+            // let r1: f32 = rng.gen();
+            // let x_rand = r1 * 2.0 - 1.0;
+            // let r2: f32 = rng.gen();
+            // let y_rand = r2 * 2.0 - 1.0;
 
             let square = (x_rand * x_rand + y_rand * y_rand).sqrt();
             randomness = Real2D {
@@ -138,6 +148,9 @@ impl Agent for Bird {
         let loc_y = toroidal_transform(self.loc.y + dy, height);
 
         self.loc = Real2D { x: loc_x, y: loc_y };
+        if state.step == 200 {
+            println!("bird {} step {} - cohesion {}, avoidance {}, consistency {}, randomness {}, mom {}, loc_x {} loc_y {}", self.id, state.step, cohesion, avoidance, consistency, randomness, mom, loc_x, loc_y);
+        }
         drop(vec);
         state
             .field1
@@ -147,8 +160,8 @@ impl Agent for Bird {
 
 impl Hash for Bird {
     fn hash<H>(&self, state: &mut H)
-    where
-        H: Hasher,
+        where
+            H: Hasher,
     {
         self.id.hash(state);
     }
