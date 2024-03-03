@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use krabmaga::engine::{Entity, Query, Res};
-use krabmaga::engine::agent::Agent;
+use krabmaga::engine::agent::AgentFactory;
 use krabmaga::engine::components::double_buffer::{DBRead, DBWrite};
 use krabmaga::engine::components::position::Real2DTranslation;
 use krabmaga::engine::fields::field_2d::{Field2D, toroidal_distance, toroidal_transform};
@@ -46,6 +46,7 @@ fn build_simulation(simulation: Simulation) -> Simulation {
         .register_double_buffer::<Real2DTranslation>()
         .register_double_buffer::<LastReal2D>()
         .register_step_handler(step_system)
+        //.with_num_threads(20)
         // .with_rng(SEED) // We cannot use this during parallel iteration due to mutable access being required for RNG.
         .with_engine_configuration(EngineConfiguration::new(Real2D { x: DIM_X, y: DIM_Y }, SEED)); // TODO abstract
     // TODO figure out how configs should work. Either split engine config and simulation config, requiring the latter to be registered, or...?
@@ -67,7 +68,7 @@ fn init_world(simulation: &mut Simulation, field: Field2D<Entity>) {
         let position = Real2D { x: DIM_X * r1, y: DIM_Y * r2 };
         let current_pos = Real2DTranslation(position);
 
-        let mut agent = Agent::new(simulation);
+        let mut agent = AgentFactory::new(simulation);
 
         agent
             .insert_data(Bird { id: bird_id })
@@ -170,11 +171,11 @@ fn step_system(mut query: Query<(Entity, &Bird, &DBRead<Real2DTranslation>, &DBR
 
         let loc_x = toroidal_transform(cur_pos.x + dx, DIM_X);
         let loc_y = toroidal_transform(cur_pos.y + dy, DIM_Y);
-        if config.current_step == 200 {
+        /* if config.current_step == 200 {
             println!("Bird {} - Step {}: - cohesion {:?}, avoidance {:?}, consistency {:?}, randomness {:?}, mom {:?}, loc {:?}",
                      bird.id, config.current_step, (x_cohesion, y_cohesion), (x_avoidance,y_avoidance), (x_consistency,y_consistency), (x_randomness, y_randomness),
                      (x_momentum, y_momentum), (loc_x, loc_y));
-        }
+        } */
 
 
         // TODO this is ugly, but if we unify read and write buffers we'll end up querying both all the time even when it's not needed
@@ -183,7 +184,7 @@ fn step_system(mut query: Query<(Entity, &Bird, &DBRead<Real2DTranslation>, &DBR
         w_cur_pos.0 = Real2DTranslation(Real2D { x: loc_x, y: loc_y });
         //println!("Elapsed 4 agent {}: {:?}", bird.id, now.elapsed());
     });
-    println!("Elapsed: {:?}", now.elapsed());
+    //println!("Elapsed: {:?}", now.elapsed());
 }
 //
 // // Main used when a visualization feature is applied.
