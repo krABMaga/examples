@@ -148,9 +148,9 @@ impl Agent for Bird {
         let loc_y = toroidal_transform(self.loc.y + dy, height);
 
         self.loc = Real2D { x: loc_x, y: loc_y };
-        if state.step == 200 {
-            println!("bird {} step {} - cohesion {}, avoidance {}, consistency {}, randomness {}, mom {}, loc_x {} loc_y {}", self.id, state.step, cohesion, avoidance, consistency, randomness, mom, loc_x, loc_y);
-        }
+        // if state.step == 200 {
+        //     println!("bird {} step {} - cohesion {}, avoidance {}, consistency {}, randomness {}, mom {}, loc_x {} loc_y {}", self.id, state.step, cohesion, avoidance, consistency, randomness, mom, loc_x, loc_y);
+        // }
         drop(vec);
         state
             .field1
