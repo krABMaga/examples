@@ -1,6 +1,5 @@
 extern crate krabmaga;
 
-use krabmaga::bevy::prelude::FixedUpdate;
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use krabmaga::*;
 
@@ -8,7 +7,7 @@ use model::state::EpidemicNetworkState;
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
     crate::visualization::vis_state::VisState, krabmaga::bevy::prelude::Color,
-    krabmaga::visualization::fields::network::NetworkRender,
+    krabmaga::bevy::prelude::FixedUpdate, krabmaga::visualization::fields::network::NetworkRender,
     krabmaga::visualization::visualization::Visualization,
 };
 

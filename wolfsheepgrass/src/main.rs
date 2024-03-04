@@ -1,11 +1,10 @@
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use krabmaga::*;
-// No visualization specific imports
-use krabmaga::bevy::prelude::FixedUpdate;
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
     crate::visualization::vis_state::VisState, krabmaga::bevy::prelude::Color,
+    krabmaga::bevy::prelude::FixedUpdate,
     krabmaga::engine::fields::dense_number_grid_2d::DenseNumberGrid2D,
     krabmaga::visualization::fields::number_grid_2d::BatchRender,
     krabmaga::visualization::visualization::Visualization,

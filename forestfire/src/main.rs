@@ -1,12 +1,11 @@
-use krabmaga::bevy::app::FixedUpdate;
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use krabmaga::simulate;
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    crate::visualization::forest_vis::ForestVis, krabmaga::bevy::prelude::Color,
-    krabmaga::engine::fields::dense_object_grid_2d::DenseGrid2D,
+    crate::visualization::forest_vis::ForestVis, krabmaga::bevy::app::FixedUpdate,
+    krabmaga::bevy::prelude::Color, krabmaga::engine::fields::dense_object_grid_2d::DenseGrid2D,
     krabmaga::visualization::fields::object_grid_2d::RenderObjectGrid2D,
     krabmaga::visualization::visualization::Visualization,
 };
