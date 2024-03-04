@@ -1,7 +1,3 @@
-// Global imports (needed for the simulation to run)
-use crate::model::sea::Sea;
-mod model;
-
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use krabmaga::*;
 
@@ -11,6 +7,11 @@ use {
     crate::visualization::sea_vis::SeaVis, krabmaga::bevy::prelude::Color,
     krabmaga::visualization::visualization::Visualization,
 };
+
+// Global imports (needed for the simulation to run)
+use crate::model::sea::Sea;
+
+mod model;
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 mod visualization;

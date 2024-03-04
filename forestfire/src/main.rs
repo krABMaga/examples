@@ -1,20 +1,20 @@
-// Global imports (needed for the simulation to run)
-use crate::model::forest::Forest;
-use crate::model::forest::Tree;
-
-mod model;
-
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use krabmaga::simulate;
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    crate::visualization::forest_vis::ForestVis, krabmaga::bevy::prelude::Color,
-    krabmaga::engine::fields::dense_object_grid_2d::DenseGrid2D,
+    crate::visualization::forest_vis::ForestVis, krabmaga::bevy::app::FixedUpdate,
+    krabmaga::bevy::prelude::Color, krabmaga::engine::fields::dense_object_grid_2d::DenseGrid2D,
     krabmaga::visualization::fields::object_grid_2d::RenderObjectGrid2D,
     krabmaga::visualization::visualization::Visualization,
 };
+
+// Global imports (needed for the simulation to run)
+use crate::model::forest::Forest;
+use crate::model::forest::Tree;
+
+mod model;
 
 /* pub static STEP: u64 = 10;
 pub static WIDTH: i32 = 6400;
@@ -48,6 +48,6 @@ fn main() {
         .with_background_color(Color::BLACK)
         .with_name("Forest Fire Model")
         .setup::<ForestVis, Forest>(ForestVis, state);
-    app.add_system(DenseGrid2D::<Tree>::render);
+    app.add_systems(FixedUpdate, DenseGrid2D::<Tree>::render);
     app.run();
 }

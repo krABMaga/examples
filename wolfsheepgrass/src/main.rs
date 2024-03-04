@@ -1,4 +1,17 @@
+#[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
+use krabmaga::*;
+
+#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
+use {
+    crate::visualization::vis_state::VisState, krabmaga::bevy::prelude::Color,
+    krabmaga::bevy::prelude::FixedUpdate,
+    krabmaga::engine::fields::dense_number_grid_2d::DenseNumberGrid2D,
+    krabmaga::visualization::fields::number_grid_2d::BatchRender,
+    krabmaga::visualization::visualization::Visualization,
+};
+
 use crate::model::state::WsgState;
+
 mod model;
 
 pub const ENERGY_CONSUME: f64 = 1.0;
@@ -12,10 +25,6 @@ pub const SHEEP_REPR: f64 = 0.2;
 pub const WOLF_REPR: f64 = 0.1;
 
 pub const MOMENTUM_PROBABILITY: f64 = 0.8;
-
-// No visualization specific imports
-#[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-use krabmaga::*;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
@@ -31,14 +40,6 @@ fn main() {
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 mod visualization;
 
-#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
-use {
-    crate::visualization::vis_state::VisState, krabmaga::bevy::prelude::Color,
-    krabmaga::engine::fields::dense_number_grid_2d::DenseNumberGrid2D,
-    krabmaga::visualization::fields::number_grid_2d::BatchRender,
-    krabmaga::visualization::visualization::Visualization,
-};
-
 // Main used when a visualization feature is applied
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 fn main() {
@@ -52,6 +53,6 @@ fn main() {
         .with_simulation_dimensions(dim.0 as f32, dim.1 as f32)
         .with_window_dimensions(1000., 700.)
         .setup::<VisState, WsgState>(VisState, state);
-    app.add_system(DenseNumberGrid2D::batch_render);
+    app.add_systems(FixedUpdate, DenseNumberGrid2D::batch_render);
     app.run()
 }

@@ -1,20 +1,20 @@
-mod model;
-use crate::model::state::Environment;
 use krabmaga::*;
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
-mod visualization;
-
-#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
-use crate::visualization::environment_vis::EnvironmentVis;
-
-#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    krabmaga::bevy::prelude::Color,
+    krabmaga::bevy::prelude::Color, krabmaga::bevy::prelude::FixedUpdate,
     krabmaga::engine::fields::dense_number_grid_2d::DenseNumberGrid2D,
     krabmaga::visualization::fields::number_grid_2d::BatchRender,
     krabmaga::visualization::visualization::Visualization,
 };
+
+use crate::model::state::Environment;
+#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
+use crate::visualization::environment_vis::EnvironmentVis;
+
+mod model;
+#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
+mod visualization;
 
 pub const MAX_SUGAR: u32 = 3;
 
@@ -41,6 +41,6 @@ fn main() {
         .with_background_color(Color::WHITE)
         .with_name("Sugarscape")
         .setup::<EnvironmentVis, Environment>(EnvironmentVis, state);
-    app.add_system(DenseNumberGrid2D::batch_render);
+    app.add_systems(FixedUpdate, DenseNumberGrid2D::batch_render);
     app.run()
 }
