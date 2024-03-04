@@ -2,6 +2,7 @@ extern crate krabmaga;
 
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use krabmaga::*;
+use krabmaga::bevy::prelude::FixedUpdate;
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
@@ -10,8 +11,8 @@ use {
     krabmaga::visualization::fields::network::NetworkRender,
     krabmaga::visualization::visualization::Visualization,
 };
-
 use model::state::EpidemicNetworkState;
+
 mod model;
 
 static DISCRETIZATION: f32 = 10.0 / 1.5;
@@ -50,6 +51,6 @@ fn main() {
         .with_simulation_dimensions(dim.0, dim.1)
         .with_background_color(Color::rgb(255., 255., 255.))
         .setup::<VisState, EpidemicNetworkState>(VisState, epidemic_network);
-    app.add_system(EpidemicNetworkState::render);
+    app.add_systems(FixedUpdate, EpidemicNetworkState::render);
     app.run();
 }

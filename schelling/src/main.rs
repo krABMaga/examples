@@ -1,10 +1,6 @@
-// Global imports (needed for the simulation to run)
-use crate::model::world::Patch;
-use crate::model::world::World;
-mod model;
-
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use krabmaga::*;
+use krabmaga::bevy::app::FixedUpdate;
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
@@ -14,6 +10,12 @@ use {
     krabmaga::visualization::fields::object_grid_2d::RenderObjectGrid2D,
     krabmaga::visualization::visualization::Visualization,
 };
+
+// Global imports (needed for the simulation to run)
+use crate::model::world::Patch;
+use crate::model::world::World;
+
+mod model;
 
 pub const PERC: f32 = 0.5;
 pub const SIMILAR_WANTED: u32 = 3;
@@ -51,6 +53,6 @@ fn main() {
         .with_background_color(Color::WHITE)
         .with_name("Schelling Model")
         .setup::<WorldVis, World>(WorldVis, world);
-    app.add_system(SparseGrid2D::<Patch>::render);
+    app.add_systems(FixedUpdate, SparseGrid2D::<Patch>::render);
     app.run();
 }

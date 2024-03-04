@@ -1,3 +1,16 @@
+use krabmaga::bevy::app::{FixedPostUpdate, FixedUpdate};
+#[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
+use krabmaga::simulate;
+
+// Visualization specific imports
+#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
+use {
+    crate::model::to_food_grid::ToFoodGrid, crate::model::to_home_grid::ToHomeGrid,
+    crate::visualization::vis_state::VisState, krabmaga::bevy::prelude::Color,
+    krabmaga::visualization::fields::number_grid_2d::BatchRender,
+    krabmaga::visualization::visualization::Visualization,
+};
+
 // Global imports, required in all cases
 use crate::model::state::ModelState;
 
@@ -28,18 +41,6 @@ pub const MOMENTUM_PROBABILITY: f64 = 0.8;
 pub const RANDOM_ACTION_PROBABILITY: f64 = 0.1;
 pub const UPDATE_CUTDOWN: f32 = 0.9;
 
-// Visualization specific imports
-#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
-use {
-    crate::model::to_food_grid::ToFoodGrid, crate::model::to_home_grid::ToHomeGrid,
-    crate::visualization::vis_state::VisState, krabmaga::bevy::prelude::Color,
-    krabmaga::visualization::fields::number_grid_2d::BatchRender,
-    krabmaga::visualization::visualization::Visualization,
-};
-
-#[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-use krabmaga::simulate;
-
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 pub mod visualization;
 
@@ -53,8 +54,7 @@ fn main() {
         .with_window_dimensions(1280., 720.)
         .with_name("Ants foraging")
         .setup::<VisState, ModelState>(VisState, state);
-    app.add_system(ToHomeGrid::batch_render)
-        .add_system(ToFoodGrid::batch_render);
+    app.add_systems(FixedUpdate, (ToHomeGrid::batch_render, ToFoodGrid::batch_render));
     app.run()
 }
 
