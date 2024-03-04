@@ -1,4 +1,4 @@
-use krabmaga::bevy::app::{FixedPostUpdate, FixedUpdate};
+use krabmaga::bevy::app::FixedUpdate;
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use krabmaga::simulate;
 
@@ -54,7 +54,10 @@ fn main() {
         .with_window_dimensions(1280., 720.)
         .with_name("Ants foraging")
         .setup::<VisState, ModelState>(VisState, state);
-    app.add_systems(FixedUpdate, (ToHomeGrid::batch_render, ToFoodGrid::batch_render));
+    app.add_systems(
+        FixedUpdate,
+        (ToHomeGrid::batch_render, ToFoodGrid::batch_render),
+    );
     app.run()
 }
 

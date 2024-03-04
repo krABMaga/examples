@@ -1,20 +1,19 @@
-use crate::model::state::Flocker;
-
-mod model;
-
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
     krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::Info,
     krabmaga::*, std::time::Duration,
 };
-
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
     crate::visualization::vis_state::VisState, krabmaga::bevy::prelude::Color,
     krabmaga::visualization::visualization::Visualization,
 };
+
+use crate::model::state::Flocker;
+
+mod model;
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 mod visualization;

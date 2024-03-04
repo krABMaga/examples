@@ -1,6 +1,6 @@
+use krabmaga::bevy::app::FixedUpdate;
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use krabmaga::*;
-use krabmaga::bevy::app::FixedUpdate;
 
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

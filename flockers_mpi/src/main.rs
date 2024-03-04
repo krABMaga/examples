@@ -1,5 +1,6 @@
 use cfg_if::cfg_if;
 use krabmaga::cfg_if;
+
 cfg_if! {
     if #[cfg(any(feature = "distributed_mpi"))]
     {

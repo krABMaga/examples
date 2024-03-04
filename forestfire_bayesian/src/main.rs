@@ -1,13 +1,12 @@
+#[cfg(any(feature = "bayesian"))]
+use krabmaga::{engine::schedule::Schedule, engine::state::State, explore::bayesian::*};
+use krabmaga::{rand::prelude::*, *};
+
 // Global imports (needed for the simulation to run)
 use crate::model::forest::Forest;
 use crate::model::forest::Tree;
 
 mod model;
-
-#[cfg(any(feature = "bayesian"))]
-use krabmaga::{engine::schedule::Schedule, engine::state::State, explore::bayesian::*};
-
-use krabmaga::{rand::prelude::*, *};
 
 pub const ITERATIONS: usize = 10;
 pub const INIT_ELEMENTS: usize = 4;

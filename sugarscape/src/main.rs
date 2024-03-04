@@ -1,5 +1,5 @@
-use krabmaga::*;
 use krabmaga::bevy::prelude::FixedUpdate;
+use krabmaga::*;
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
