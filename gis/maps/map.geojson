@@ -1,0 +1,73 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            0.2717266103028919,
+            23.719256114054062
+          ],
+          [
+            28.912889334367378,
+            24.005122774762825
+          ]
+        ],
+        "type": "LineString"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            28.33285787739456,
+            23.989100126953318
+          ],
+          [
+            29.23641715476103,
+            0.1329339011088848
+          ]
+        ],
+        "type": "LineString"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            29.10866173200887,
+            0.36682206957736696
+          ],
+          [
+            3.3976994887509875,
+            0.3714554190081145
+          ]
+        ],
+        "type": "LineString"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            3.67130675551266,
+            0.3712397532143825
+          ],
+          [
+            1.38106762594918564,
+            23.759071404593442
+          ]
+        ],
+        "type": "LineString"
+      }
+    }
+  ]
+}
