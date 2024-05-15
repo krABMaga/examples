@@ -41,28 +41,6 @@ impl State for Map {
 
     fn init(&mut self, schedule: &mut Schedule) {
         self.step = 0;
-
-        let mut rng = rand::thread_rng();
-
-        for i in 0..self.num_agents {
-            let r1: f32 = rng.gen();
-            let r2: f32 = rng.gen();
-            let last_d = Real2D { x: 0., y: 0. };
-            let loc = Real2D {
-                x: (self.dim.0 * r1) as f32,
-                y: (self.dim.1 * r2) as f32,
-            };
-            let agent = Person {
-                id: i,
-                loc,
-                last_d,
-                dir_x: 1.0,
-                dir_y: 1.0,
-            };
-            // Put the agent in your state
-            self.field.set_object_location(agent, loc);
-            schedule.schedule_repeating(Box::new(agent), 0., 0);
-        }
     }
 
     fn as_any(&self) -> &dyn std::any::Any {
@@ -86,16 +64,37 @@ impl State for Map {
     }
 
     fn set_gis(&mut self, vec: Vec<i32>) {
+        let mut done = true;
+
         for (index, i) in vec.iter().enumerate() {
+            let x = index as f32 / 30 as f32;
+            let y = index as f32 % 30 as f32;
             self.gis_field.set_value_location(
                 *i,
                 &Int2D {
-                    x: index as i32 % self.dim.0 as i32,
-                    y: index as i32 / self.dim.0 as i32,
+                    x: x as i32,
+                    y: y as i32,
                 },
             );
-        }
 
-        //volendo posso mettere qua la generazione dell'agente
+            if *i == 1 {
+                println!("{:?} {:?}", x, y);
+            }
+
+            if *i == 1 && done {
+                let last_d = Real2D { x, y };
+                let loc = Real2D { x, y };
+                let agent = Person {
+                    id: 0 as u32,
+                    loc,
+                    last_d,
+                    dir_x: 1.0,
+                    dir_y: 1.0,
+                };
+                // Put the agent in your state
+                self.field.set_object_location(agent, loc);
+                done = false;
+            }
+        }
     }
 }
