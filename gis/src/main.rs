@@ -29,7 +29,7 @@ fn main() {
     // Initialize the simulation and its visualization here.
 
     let num_agents = 0;
-    let dim: (f32, f32) = (50., 50.);
+    let dim: (f32, f32) = (30., 30.);
 
     let state = Map::new(dim, num_agents);
     Visualization::default()

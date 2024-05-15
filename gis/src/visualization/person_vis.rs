@@ -25,12 +25,11 @@ impl AgentRender for PersonVis {
     fn location(&self, agent: &Box<dyn Agent>, state: &Box<&dyn State>) -> (f32, f32, f32) {
         let state = state.as_any().downcast_ref::<Map>().unwrap();
         let agent = agent.downcast_ref::<Person>().unwrap();
-        //let loc = state.field.get_location(*agent);
-        /*  match loc {
+        let loc = state.field.get_location(*agent);
+        match loc {
             Some(loc) => (loc.x, loc.y, 0.),
             None => (agent.loc.x, agent.loc.y, 0.),
-        } */
-        (0., 0., 0.)
+        }
     }
 
     /// Specify how much the texture should be scaled by. A common scale is (0.1, 0.1).

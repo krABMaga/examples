@@ -18,95 +18,26 @@ pub struct Person {
     pub dir_y: f32,
 }
 
+impl Person {
+    #[allow(dead_code)]
+    pub fn as_agent(self) -> Box<dyn Agent> {
+        Box::new(self)
+    }
+}
+
 impl Agent for Person {
     /// Put the code that should happen for each step, for each agent here.
     fn step(&mut self, state: &mut dyn State) {
         let state = state.as_any().downcast_ref::<Map>().unwrap();
         let gis_field = &state.gis_field;
-        let field = &state.field;
         let last_d = self.last_d;
-        /* let mut rng = rand::thread_rng();
-        let generated = rng.gen_range(0..3);
-        let next_x = last_d.x as i32 + 1;
-        let next_y = last_d.y as i32 + 1;
-        let prev_x = last_d.x as i32 - 1;
-        let prev_y = last_d.y as i32 - 1;
 
-        match generated {
-            0 => {
-                //in this case we do a simple check for the next cell in x-axis
-                if gis_field
-                    .get_value(&Int2D {
-                        x: next_x,
-                        y: last_d.y,
-                    })
-                    .eq(&Some(0))
-                {
-                    field.set_object_location(
-                        curr_agent,
-                        Real2D {
-                            x: next_x as f32,
-                            y: last_d.y as f32,
-                        },
-                    );
-                }
-            }
-            1 => {
-                //in this case we do a simple check for the next cell in y-axis
-                if gis_field
-                    .get_value(&Int2D {
-                        x: next_y,
-                        y: last_d.x,
-                    })
-                    .eq(&Some(0))
-                {
-                    field.set_object_location(
-                        curr_agent,
-                        Real2D {
-                            x: next_y as f32,
-                            y: last_d.x as f32,
-                        },
-                    );
-                }
-            }
-            2 => {
-                //in this case we do a simple check for the prev cell in x-axis
-                if gis_field
-                    .get_value(&Int2D {
-                        x: prev_x,
-                        y: last_d.y,
-                    })
-                    .eq(&Some(0))
-                {
-                    field.set_object_location(
-                        curr_agent,
-                        Real2D {
-                            x: prev_x as f32,
-                            y: last_d.y as f32,
-                        },
-                    );
-                }
-            }
-            3 => {
-                //in this case we do a simple check for the prev cell in y-axis
-                if gis_field
-                    .get_value(&Int2D {
-                        x: prev_y,
-                        y: last_d.x,
-                    })
-                    .eq(&Some(0))
-                {
-                    field.set_object_location(
-                        curr_agent,
-                        Real2D {
-                            x: prev_y as f32,
-                            y: last_d.x as f32,
-                        },
-                    );
-                }
-            }
-            _ => todo!(),
-        } */
+        //check dei vicini e movimento in base alla priorità
+
+        /* self.loc.x += 1.;
+        self.loc.y += 1.;
+
+        state.field.set_object_location(*self, self.loc); */
     }
 
     /// Put the code that decides if an agent should be removed or not

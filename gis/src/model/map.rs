@@ -14,6 +14,7 @@ pub struct Map {
     pub gis_field: DenseNumberGrid2D<i32>,
     pub dim: (f32, f32),
     pub num_agents: u32,
+    pub people: Vec<Person>,
 }
 
 impl Map {
@@ -24,6 +25,7 @@ impl Map {
             gis_field: DenseNumberGrid2D::new(dim.0 as i32, dim.1 as i32),
             dim,
             num_agents,
+            people: Vec::new(),
         }
     }
 }
@@ -31,7 +33,6 @@ impl Map {
 impl State for Map {
     fn update(&mut self, _step: u64) {
         self.field.lazy_update();
-        println!("{:?}", self.gis_field.locs.is_empty());
     }
 
     fn reset(&mut self) {
@@ -63,11 +64,22 @@ impl State for Map {
         self.step += 1
     }
 
-    fn set_gis(&mut self, vec: Vec<i32>) {
-        let mut done = true;
+    fn set_gis(&mut self, vec: Vec<i32>, schedule: &mut Schedule) {
+        let last_d = Real2D { x: 5., y: 5. };
+        let loc = Real2D { x: 5., y: 5. };
+        let agent = Person {
+            id: 0 as u32,
+            loc,
+            last_d,
+            dir_x: 1.0,
+            dir_y: 1.0,
+        };
+        self.people.push(agent.clone());
+        self.field.set_object_location(agent, loc);
+        schedule.schedule_repeating(Box::new(agent), 0., 0);
 
         for (index, i) in vec.iter().enumerate() {
-            let x = index as f32 / 30 as f32;
+            let x = (index as f32 / 30 as f32).floor();
             let y = index as f32 % 30 as f32;
             self.gis_field.set_value_location(
                 *i,
@@ -76,25 +88,6 @@ impl State for Map {
                     y: y as i32,
                 },
             );
-
-            if *i == 1 {
-                println!("{:?} {:?}", x, y);
-            }
-
-            if *i == 1 && done {
-                let last_d = Real2D { x, y };
-                let loc = Real2D { x, y };
-                let agent = Person {
-                    id: 0 as u32,
-                    loc,
-                    last_d,
-                    dir_x: 1.0,
-                    dir_y: 1.0,
-                };
-                // Put the agent in your state
-                self.field.set_object_location(agent, loc);
-                done = false;
-            }
         }
     }
 }
