@@ -19,8 +19,6 @@ readme = "README.md"
 
 [dependencies]
 krabmaga = {path="/home/tirocinio/krABMaga"}
-tinyfiledialogs = "3.9.1"
-ndarray = "0.15.6"
 
 [features]
 visualization = ["krabmaga/visualization"]

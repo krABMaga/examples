@@ -3,10 +3,7 @@ use krabmaga::engine::fields::dense_number_grid_2d::DenseNumberGrid2D;
 use krabmaga::engine::fields::field::Field;
 use krabmaga::engine::fields::field_2d::Field2D;
 use krabmaga::engine::location::{Int2D, Real2D};
-use krabmaga::{
-    engine::{schedule::Schedule, state::State},
-    rand::{self, Rng},
-};
+use krabmaga::engine::{schedule::Schedule, state::State};
 
 pub struct Map {
     pub step: u64,
@@ -28,6 +25,16 @@ impl Map {
             people: Vec::new(),
         }
     }
+
+    pub fn gis_value(&self, loc: Real2D) -> i32 {
+        return self
+            .gis_field
+            .get_value(&Int2D {
+                x: loc.x as i32,
+                y: loc.y as i32,
+            })
+            .unwrap();
+    }
 }
 
 impl State for Map {
@@ -40,7 +47,7 @@ impl State for Map {
         //self.field = DenseNumberGrid2D::new(self.dim.0, self.dim.1);
     }
 
-    fn init(&mut self, schedule: &mut Schedule) {
+    fn init(&mut self, _schedule: &mut Schedule) {
         self.step = 0;
     }
 
@@ -65,22 +72,22 @@ impl State for Map {
     }
 
     fn set_gis(&mut self, vec: Vec<i32>, schedule: &mut Schedule) {
-        let last_d = Real2D { x: 5., y: 5. };
-        let loc = Real2D { x: 5., y: 5. };
+        let loc = Real2D { x: 15., y: 25. };
         let agent = Person {
             id: 0 as u32,
             loc,
-            last_d,
             dir_x: 1.0,
             dir_y: 1.0,
+            direction: None,
         };
         self.people.push(agent.clone());
         self.field.set_object_location(agent, loc);
         schedule.schedule_repeating(Box::new(agent), 0., 0);
 
         for (index, i) in vec.iter().enumerate() {
-            let x = (index as f32 / 30 as f32).floor();
-            let y = index as f32 % 30 as f32;
+            let x = (index as f32 / 30.).floor();
+            let y = index as f32 % 30.;
+
             self.gis_field.set_value_location(
                 *i,
                 &Int2D {
@@ -89,5 +96,6 @@ impl State for Map {
                 },
             );
         }
+        self.gis_field.lazy_update();
     }
 }

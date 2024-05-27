@@ -5,7 +5,7 @@ use krabmaga::bevy::ecs as bevy_ecs;
 use krabmaga::bevy::ecs::system::Resource;
 use krabmaga::bevy::prelude::Commands;
 use krabmaga::engine::agent::Agent;
-use krabmaga::engine::location::{Int2D, Real2D};
+use krabmaga::engine::location::Real2D;
 use krabmaga::engine::schedule::Schedule;
 use krabmaga::engine::state::State;
 use krabmaga::visualization::agent_render::{AgentRender, SpriteType};
@@ -75,9 +75,9 @@ impl VisualizationState<Map> for MapVis {
         match state.field.get(&Person {
             id: agent_render.get_id(),
             loc: Real2D { x: 0., y: 0. },
-            last_d: Real2D { x: 0., y: 0. },
             dir_x: 0.,
             dir_y: 0.,
+            direction: None,
         }) {
             Some(matching_agent) => Some(Box::new(*matching_agent)),
             None => None,

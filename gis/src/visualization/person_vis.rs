@@ -5,7 +5,6 @@ use krabmaga::{
     engine::{agent::Agent, state::State},
     visualization::agent_render::{AgentRender, SpriteType},
 };
-use std::f32::consts::PI;
 
 #[derive(Component)]
 pub struct PersonVis {
@@ -38,7 +37,7 @@ impl AgentRender for PersonVis {
     }
 
     /// Define the degrees in radians to rotate the texture by.
-    fn rotation(&self, agent: &Box<dyn Agent>, _state: &Box<&dyn State>) -> f32 {
+    fn rotation(&self, _agent: &Box<dyn Agent>, _state: &Box<&dyn State>) -> f32 {
         /*  let concrete_agent = agent.downcast_ref::<Person>().unwrap();
         let rotation = if concrete_agent.last_d.x == 0 || concrete_agent.last_d.y == 0 {
             0.
