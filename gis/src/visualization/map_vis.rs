@@ -75,8 +75,6 @@ impl VisualizationState<Map> for MapVis {
         match state.field.get(&Person {
             id: agent_render.get_id(),
             loc: Real2D { x: 0., y: 0. },
-            dir_x: 0.,
-            dir_y: 0.,
             direction: None,
         }) {
             Some(matching_agent) => Some(Box::new(*matching_agent)),

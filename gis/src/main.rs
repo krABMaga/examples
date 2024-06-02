@@ -35,7 +35,7 @@ fn main() {
     Visualization::default()
         .with_window_dimensions(400., 400.)
         .with_simulation_dimensions(dim.0 as f32, dim.1 as f32)
-        .with_background_color(Color::NONE)
+        .with_background_color(Color::WHITE)
         .with_name("Gis")
         .start::<MapVis, Map>(MapVis, state);
 }

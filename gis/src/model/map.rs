@@ -1,10 +1,9 @@
-use super::person::Person;
+use crate::model::person::{Direction, Person};
 use krabmaga::engine::fields::dense_number_grid_2d::DenseNumberGrid2D;
 use krabmaga::engine::fields::field::Field;
 use krabmaga::engine::fields::field_2d::Field2D;
 use krabmaga::engine::location::{Int2D, Real2D};
 use krabmaga::engine::{schedule::Schedule, state::State};
-
 pub struct Map {
     pub step: u64,
     pub field: Field2D<Person>,
@@ -26,13 +25,10 @@ impl Map {
         }
     }
 
-    pub fn gis_value(&self, loc: Real2D) -> i32 {
+    pub fn gis_value(&self, loc: Int2D) -> i32 {
         return self
             .gis_field
-            .get_value(&Int2D {
-                x: loc.x as i32,
-                y: loc.y as i32,
-            })
+            .get_value(&Int2D { x: loc.x, y: loc.y })
             .unwrap();
     }
 }
@@ -72,13 +68,11 @@ impl State for Map {
     }
 
     fn set_gis(&mut self, vec: Vec<i32>, schedule: &mut Schedule) {
-        let loc = Real2D { x: 15., y: 25. };
+        let loc = Real2D { x: 10., y: 10. };
         let agent = Person {
             id: 0 as u32,
             loc,
-            dir_x: 1.0,
-            dir_y: 1.0,
-            direction: None,
+            direction: Some(Direction::Right),
         };
         self.people.push(agent.clone());
         self.field.set_object_location(agent, loc);

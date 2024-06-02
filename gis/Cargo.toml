@@ -19,6 +19,7 @@ readme = "README.md"
 
 [dependencies]
 krabmaga = {path="/home/tirocinio/krABMaga"}
+rand = "0.8"
 
 [features]
 visualization = ["krabmaga/visualization"]
