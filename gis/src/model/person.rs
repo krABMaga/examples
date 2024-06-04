@@ -4,7 +4,6 @@ use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::field_2d::Location2D;
 use krabmaga::engine::location::{Int2D, Real2D};
 use krabmaga::engine::state::State;
-use rand::Rng;
 use std::hash::{Hash, Hasher};
 
 // The Direction of the person
@@ -43,7 +42,6 @@ impl Person {
 
         for dx in -1..2 {
             for dy in -1..2 {
-                
                 let new_x = dx + x;
                 let new_y = dy + y;
                 if map.gis_value(Int2D { x: new_x, y: new_y }) == 1 {
@@ -62,7 +60,7 @@ impl Person {
                 }
             }
         }
-        
+
         match curr_direction {
             Some(Direction::Left) => {
                 if possible_direction.contains(&Direction::Left) {

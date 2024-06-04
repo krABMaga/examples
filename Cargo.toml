@@ -7,11 +7,11 @@ members = [
     "flockers_mpi",
     "forestfire",
     "forestfire_bayesian",
+    "gis",
     "schelling",
     "sir_ga_exploration",
     "sugarscape",
     "template",
     "virusnetwork",
     "wolfsheepgrass",
-    "gis",
 ]
