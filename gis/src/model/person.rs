@@ -43,42 +43,27 @@ impl Person {
 
         for dx in -1..2 {
             for dy in -1..2 {
+                
                 let new_x = dx + x;
                 let new_y = dy + y;
-
-                if (dx != 0 && dy != 0) && map.gis_value(Int2D { x: new_x, y: new_y }) == 1 {
+                if map.gis_value(Int2D { x: new_x, y: new_y }) == 1 {
                     if dx == 0 && dy == -1 {
-                        possible_direction.push(Direction::Down);
-                    }
-                    if dx == 1 && dy == 0 {
-                        possible_direction.push(Direction::Right);
-                    }
-                    if dx == -1 && dy == 0 {
-                        possible_direction.push(Direction::Left);
-                    }
-                    if dx == 0 && dy == 1 {
                         possible_direction.push(Direction::Up);
                     }
-                    if dx == 1 && dy == -1 {
-                        possible_direction.push(Direction::DownRight);
+                    if dx == 1 && dy == 0 {
+                        possible_direction.push(Direction::Left);
                     }
-                    if dx == 1 && dy == 1 {
-                        possible_direction.push(Direction::UpRight);
+                    if dx == -1 && dy == 0 {
+                        possible_direction.push(Direction::Right);
                     }
-                    if dx == -1 && dy == 1 {
-                        possible_direction.push(Direction::UpLeft);
-                    }
-                    if dx == -1 && dy == -1 {
-                        possible_direction.push(Direction::DownLeft);
+                    if dx == 0 && dy == 1 {
+                        possible_direction.push(Direction::Down);
                     }
                 }
             }
         }
-
-        let rand_index = rand::thread_rng().gen_range(0..=possible_direction.len() - 1);
-        new_direction = possible_direction[rand_index];
-
-        /* match curr_direction {
+        
+        match curr_direction {
             Some(Direction::Left) => {
                 if possible_direction.contains(&Direction::Left) {
                     new_direction = Direction::Left;
@@ -136,7 +121,7 @@ impl Person {
                 }
             }
             None => new_direction = Direction::Left,
-        } */
+        }
 
         Some(new_direction)
     }
@@ -150,19 +135,19 @@ impl Agent for Person {
 
         match direction {
             Some(Direction::Left) => {
-                self.loc.x -= 1.;
+                self.loc.x += 1.;
                 self.direction = Some(Direction::Left);
             }
             Some(Direction::Right) => {
-                self.loc.x += 1.;
+                self.loc.x -= 1.;
                 self.direction = Some(Direction::Right);
             }
             Some(Direction::Up) => {
-                self.loc.y += 1.;
+                self.loc.y -= 1.;
                 self.direction = Some(Direction::Up);
             }
             Some(Direction::Down) => {
-                self.loc.y -= 1.;
+                self.loc.y += 1.;
                 self.direction = Some(Direction::Down);
             }
             Some(Direction::UpRight) => {

@@ -13,4 +13,5 @@ members = [
     "template",
     "virusnetwork",
     "wolfsheepgrass",
+    "gis",
 ]

@@ -33,7 +33,7 @@ impl AgentRender for PersonVis {
 
     /// Specify how much the texture should be scaled by. A common scale is (0.1, 0.1).
     fn scale(&self, _agent: &Box<dyn Agent>, _state: &Box<&dyn State>) -> (f32, f32) {
-        (0.2, 0.2)
+        (0.05, 0.05)
     }
 
     /// Define the degrees in radians to rotate the texture by.

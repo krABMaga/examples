@@ -68,7 +68,7 @@ impl State for Map {
     }
 
     fn set_gis(&mut self, vec: Vec<i32>, schedule: &mut Schedule) {
-        let loc = Real2D { x: 10., y: 10. };
+        let loc = Real2D { x: 4., y: 4. };
         let agent = Person {
             id: 0 as u32,
             loc,
