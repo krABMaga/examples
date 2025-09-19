@@ -50,15 +50,15 @@ impl Agent for NetNode {
             NodeStatus::Infected => {
                 if !self.virus_detected {
                     //Scan Virus
-                    let mut rng = rand::thread_rng();
-                    self.virus_detected = rng.gen_bool(VIRUS_CHECK_FREQUENCY);
+                    let mut rng = rand::rng();
+                    self.virus_detected = rng.random_bool(VIRUS_CHECK_FREQUENCY);
                 }
                 if self.virus_detected {
-                    let mut rng = rand::thread_rng();
-                    if rng.gen_bool(RECOVERY_CHANCE) {
+                    let mut rng = rand::rng();
+                    if rng.random_bool(RECOVERY_CHANCE) {
                         self.virus_detected = false;
 
-                        if rng.gen_bool(GAIN_RESISTANCE_CHANCE) {
+                        if rng.random_bool(GAIN_RESISTANCE_CHANCE) {
                             self.status = NodeStatus::Resistant;
                         } else {
                             self.status = NodeStatus::Susceptible;
@@ -72,10 +72,12 @@ impl Agent for NetNode {
                 if neighborhood.is_none() {
                     return;
                 };
-                let mut rng = rand::thread_rng();
+                let mut rng = rand::rng();
                 let neighborhood = neighborhood.unwrap();
                 for edge in &neighborhood {
-                    if rng.gen_bool(VIRUS_SPREAD_CHANCE) && self.status == NodeStatus::Susceptible {
+                    if rng.random_bool(VIRUS_SPREAD_CHANCE)
+                        && self.status == NodeStatus::Susceptible
+                    {
                         let node = state.network.get_object(edge.v).unwrap();
                         match node.status {
                             NodeStatus::Infected => {

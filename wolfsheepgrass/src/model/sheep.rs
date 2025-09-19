@@ -55,10 +55,10 @@ impl Agent for Sheep {
         //MOVE
         let x = self.loc.x;
         let y = self.loc.y;
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let mut moved = false;
-        if self.last.is_some() && rng.gen_bool(MOMENTUM_PROBABILITY) {
+        if self.last.is_some() && rng.random_bool(MOMENTUM_PROBABILITY) {
             if let Some(last_loc) = self.last {
                 let xm = x + (x - last_loc.x);
                 let ym = y + (y - last_loc.y);
@@ -78,10 +78,10 @@ impl Agent for Sheep {
             let ymin = if y > 0 { -1 } else { 0 };
             let ymax = i32::from(y < state.dim.1 - 1);
 
-            // let nx = if rng.gen_bool(0.5) { xmin } else { xmax };
-            // let ny = if rng.gen_bool(0.5) { ymin } else { ymax };
-            let nx = rng.gen_range(xmin..=xmax);
-            let ny = rng.gen_range(ymin..=ymax);
+            // let nx = if rng.random_bool(0.5) { xmin } else { xmax };
+            // let ny = if rng.random_bool(0.5) { ymin } else { ymax };
+            let nx = rng.random_range(xmin..=xmax);
+            let ny = rng.random_range(ymin..=ymax);
 
             self.loc = Int2D {
                 x: x + nx,
@@ -107,7 +107,7 @@ impl Agent for Sheep {
             self.animal_state = LifeState::Dead;
         } else {
             //REPRODUCE
-            if rng.gen_bool(self.prob_reproduction) {
+            if rng.random_bool(self.prob_reproduction) {
                 self.energy /= 2.0;
                 //let mut new_id = state.next_id;
 

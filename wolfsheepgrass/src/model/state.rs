@@ -14,8 +14,7 @@ use krabmaga::engine::fields::grid_option::GridOption;
 use krabmaga::rand;
 use krabmaga::rand::Rng;
 use std::any::Any;
-pub use std::time::Duration;
-pub use std::time::Instant;
+// pub use std::time::{Duration,Instant};
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum LifeState {
@@ -208,14 +207,14 @@ impl State for WsgState {
 fn generate_grass(state: &mut WsgState) {
     (0..state.dim.1).into_iter().for_each(|x| {
         (0..state.dim.0).into_iter().for_each(|y| {
-            let mut rng = rand::thread_rng();
-            let fully_growth = rng.gen_bool(0.5);
+            let mut rng = rand::rng();
+            let fully_growth = rng.random_bool(0.5);
             if fully_growth {
                 state
                     .grass_field
                     .set_value_location(FULL_GROWN, &Int2D { x, y });
             } else {
-                let grass_init_value = rng.gen_range(0..FULL_GROWN + 1);
+                let grass_init_value = rng.random_range(0..FULL_GROWN + 1);
                 state
                     .grass_field
                     .set_value_location(grass_init_value, &Int2D { x, y });
@@ -225,14 +224,14 @@ fn generate_grass(state: &mut WsgState) {
 }
 
 fn generate_sheep(state: &mut WsgState, schedule: &mut Schedule) {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     for id in 0..state.initial_animals.0 {
         let loc = Int2D {
-            x: rng.gen_range(0..state.dim.0),
-            y: rng.gen_range(0..state.dim.1),
+            x: rng.random_range(0..state.dim.0),
+            y: rng.random_range(0..state.dim.1),
         };
-        let init_energy = rng.gen_range(0..(2 * GAIN_ENERGY_SHEEP as usize));
+        let init_energy = rng.random_range(0..(2 * GAIN_ENERGY_SHEEP as usize));
         let sheep = Sheep::new(
             id + state.initial_animals.1,
             loc,
@@ -247,13 +246,13 @@ fn generate_sheep(state: &mut WsgState, schedule: &mut Schedule) {
 }
 
 fn generate_wolves(state: &mut WsgState, schedule: &mut Schedule) {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     for id in 0..state.initial_animals.1 {
         let loc = Int2D {
-            x: rng.gen_range(0..state.dim.0),
-            y: rng.gen_range(0..state.dim.1),
+            x: rng.random_range(0..state.dim.0),
+            y: rng.random_range(0..state.dim.1),
         };
-        let init_energy = rng.gen_range(0..(2 * GAIN_ENERGY_WOLF as usize));
+        let init_energy = rng.random_range(0..(2 * GAIN_ENERGY_WOLF as usize));
 
         let wolf = Wolf::new(id, loc, init_energy as f64, GAIN_ENERGY_WOLF, WOLF_REPR);
         state.wolves_grid.set_object_location(wolf, &loc);

@@ -18,7 +18,7 @@ pub enum NodeStatus {
 pub struct NetNode {
     pub id: u32,
     pub status: NodeStatus,
-    pub virus_detected: bool,
+    // pub virus_detected: bool,
 }
 
 impl NetNode {
@@ -26,7 +26,7 @@ impl NetNode {
         NetNode {
             id,
             status: init_status,
-            virus_detected: false,
+            // virus_detected: false,
         }
     }
 }
@@ -39,7 +39,7 @@ impl Agent for NetNode {
             .unwrap();
         match self.status {
             NodeStatus::Infected => {
-                if state.rng.lock().unwrap().gen_bool(state.recovery as f64) {
+                if state.rng.lock().unwrap().random_bool(state.recovery as f64) {
                     self.status = NodeStatus::Resistant;
                 }
             }
@@ -63,7 +63,7 @@ impl Agent for NetNode {
                             } else {
                                 spread = state.spread;
                             }
-                            if state.rng.lock().unwrap().gen_bool(spread as f64) {
+                            if state.rng.lock().unwrap().random_bool(spread as f64) {
                                 self.status = NodeStatus::Infected;
                                 // increase count of how many nodes node has infected
                                 state.infected_nodes[node.id as usize] += 1;

@@ -95,18 +95,18 @@ impl State for ModelState {
         self.food_source_found = RwLock::new(false);
         self.food_returned_home = RwLock::new(false);
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Food generation
         let x: i32 = if FOOD_XMIN == FOOD_XMAX {
             FOOD_XMIN
         } else {
-            rng.gen_range(FOOD_XMIN..FOOD_XMAX)
+            rng.random_range(FOOD_XMIN..FOOD_XMAX)
         };
         let y: i32 = if FOOD_YMIN == FOOD_YMAX {
             FOOD_YMIN
         } else {
-            rng.gen_range(FOOD_YMIN..FOOD_YMAX)
+            rng.random_range(FOOD_YMIN..FOOD_YMAX)
         };
         let food_location = Int2D { x, y };
 
@@ -122,12 +122,12 @@ impl State for ModelState {
         let x: i32 = if HOME_XMIN == HOME_XMAX {
             HOME_XMIN
         } else {
-            rng.gen_range(HOME_XMIN..HOME_XMAX)
+            rng.random_range(HOME_XMIN..HOME_XMAX)
         };
         let y: i32 = if HOME_YMIN == HOME_YMAX {
             HOME_YMIN
         } else {
-            rng.gen_range(HOME_YMIN..HOME_YMAX)
+            rng.random_range(HOME_YMIN..HOME_YMAX)
         };
         let nest_location = Int2D { x, y };
         self.obstacles_grid.set_object_location(

@@ -30,11 +30,11 @@ pub const MOMENTUM_PROBABILITY: f64 = 0.8;
 fn main() {
     let step = 200;
 
-    let dim: (i32, i32) = (50, 50);
-    let initial_animals: (u32, u32) = ((200. * 0.6) as u32, (200. * 0.4) as u32);
+    let dim: (i32, i32) = (5000, 5000);
+    let initial_animals: (u32, u32) = ((2000000. * 0.6) as u32, (2000000. * 0.4) as u32);
 
     let state = WsgState::new(dim, initial_animals);
-    let _ = simulate!(state, step, 10);
+    let _ = simulate!(state, step, 1);
 }
 
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]

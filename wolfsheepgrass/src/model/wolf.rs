@@ -44,7 +44,7 @@ impl Agent for Wolf {
         let state = state.as_any_mut().downcast_mut::<WsgState>().unwrap();
         let x = self.loc.x;
         let y = self.loc.y;
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // CHECK IF I AM DEAD
         if self.animal_state == LifeState::Dead {
@@ -52,7 +52,7 @@ impl Agent for Wolf {
         }
 
         let mut moved = false;
-        if self.last.is_some() && rng.gen_bool(MOMENTUM_PROBABILITY) {
+        if self.last.is_some() && rng.random_bool(MOMENTUM_PROBABILITY) {
             if let Some(last_loc) = self.last {
                 let xm = x + (x - last_loc.x);
                 let ym = y + (y - last_loc.y);
@@ -71,8 +71,8 @@ impl Agent for Wolf {
             let ymin = if y > 0 { -1 } else { 0 };
             let ymax = i32::from(y < state.dim.1 - 1);
 
-            let nx = rng.gen_range(xmin..=xmax);
-            let ny = rng.gen_range(ymin..=ymax);
+            let nx = rng.random_range(xmin..=xmax);
+            let ny = rng.random_range(ymin..=ymax);
             self.loc = Int2D {
                 x: x + nx,
                 y: y + ny,
@@ -103,7 +103,7 @@ impl Agent for Wolf {
             self.animal_state = LifeState::Dead;
         } else {
             //REPRODUCE
-            if rng.gen_bool(self.prob_reproduction) {
+            if rng.random_bool(self.prob_reproduction) {
                 self.energy /= 2.0;
 
                 let new_wolf = Wolf::new(

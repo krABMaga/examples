@@ -50,7 +50,7 @@ cfg_if! {
             ///The other processes, instead, will be waiting to receive the agents from process 0.
             fn init(&mut self, schedule: &mut Schedule) {
                 let world = UNIVERSE.world();
-                let mut rng = rand::thread_rng();
+                let mut rng = rand::rng();
 
                 //Process 0 creates the agents
                 if world.rank() == 0 {
@@ -63,8 +63,8 @@ cfg_if! {
 
                     //For each initial agent...
                     for bird_id in 0..self.initial_flockers {
-                        let r1: f32 = rng.gen();
-                        let r2: f32 = rng.gen();
+                        let r1: f32 = rng.random();
+                        let r2: f32 = rng.random();
                         let last_d = Real2D { x: 0., y: 0. };
                         let loc = Real2D {
                             x: self.dim.0 * r1,

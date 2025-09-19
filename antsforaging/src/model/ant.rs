@@ -104,7 +104,7 @@ impl Ant {
     // with a probability of MOMENTUM_PROBABILITY. Otherwise, step in a random direction with a
     // probability of RANDOM_ACTION_PROBABILITY.
     pub fn act(&mut self, state: &ModelState) {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut max = -1.; // An initial, impossible pheromone.
 
         let x = self.loc.x;
@@ -145,7 +145,7 @@ impl Ant {
                 // A new maximum is found, or the maximux hasn't changed. In the latter case, we
                 // randomly choose whether to consider the new cell for the next step or not with an
                 // equal chance.
-                if m > max || (m == max && rng.gen_bool(1. / count as f64)) {
+                if m > max || (m == max && rng.random_bool(1. / count as f64)) {
                     // Latter expression is to take a random step towards paths with a good pheromone
                     max = m;
                     max_x = new_x;
@@ -158,7 +158,7 @@ impl Ant {
         if max == 0. && self.last.is_some() {
             // No tips from pheromones, consider stepping in the same direction
             if let Some(last_loc) = self.last {
-                if rng.gen_bool(MOMENTUM_PROBABILITY) {
+                if rng.random_bool(MOMENTUM_PROBABILITY) {
                     let xm = x + (x - last_loc.x);
                     let ym = y + (y - last_loc.y);
                     // Don't go outside the field or in an obstacle
@@ -171,10 +171,10 @@ impl Ant {
                     }
                 }
             }
-        } else if rng.gen_bool(RANDOM_ACTION_PROBABILITY) {
+        } else if rng.random_bool(RANDOM_ACTION_PROBABILITY) {
             // All other ideas have failed, just choose a random direction
-            let xd: i32 = rng.gen_range(-1..2);
-            let yd: i32 = rng.gen_range(-1..2);
+            let xd: i32 = rng.random_range(-1..2);
+            let yd: i32 = rng.random_range(-1..2);
             let xm = x + xd;
             let ym = y + yd;
             // Don't go outside the field, in an obstacle and do not stay still

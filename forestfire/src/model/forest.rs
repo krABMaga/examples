@@ -109,12 +109,12 @@ impl State for Forest {
     fn init(&mut self, schedule: &mut Schedule) {
         self.step = 0;
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut ids = 0;
         // generate the trees to populate the forest
         for i in 0..self.dim.0 {
             for j in 0..self.dim.1 {
-                if rng.gen_bool(self.density) {
+                if rng.random_bool(self.density) {
                     let mut status_tree = Status::Green;
                     if i == 0 {
                         // Set the trees at the left edge on fire
@@ -156,46 +156,46 @@ impl State for Forest {
         self.step += 1;
     }
 
-    fn end_condition(&mut self, _schedule: &mut Schedule) -> bool {
-        // for i in 0..self.field.width {
-        //     for j in 0..self.field.height {
-        //         let tree = match self.field.get_objects(&Int2D { x: i, y: j }) {
-        //             Some(t) => t[0],
-        //             None => {
-        //                 continue;
-        //             }
-        //         };
-        //         if tree.status == Status::Burned {
-        //             self.burned += 1;
-        //         } else if tree.status == Status::Green {
-        //             self.green += 1;
-        //         } else {
-        //             self.burning += 1
-        //         }
-        //     }
-        // }
+    fn end_condition(&mut self, schedule: &mut Schedule) -> bool {
+        for i in 0..self.field.width {
+            for j in 0..self.field.height {
+                let tree = match self.field.get_objects(&Int2D { x: i, y: j }) {
+                    Some(t) => t[0],
+                    None => {
+                        continue;
+                    }
+                };
+                if tree.status == Status::Burned {
+                    self.burned += 1;
+                } else if tree.status == Status::Green {
+                    self.green += 1;
+                } else {
+                    self.burning += 1
+                }
+            }
+        }
 
-        // if (self.before_burned == self.burned)
-        //     && self.before_burning == self.burning
-        //     && self.before_green == self.green
-        // {
-        //     println!("-- Simulation finished at step {:?} --\nTotal trees in the forest: Green {:?}, Burning {:?}, Burned {:?}\n",
-        //         schedule.step, self.green, self.burning, self.burned
-        //     );
-        //     return true;
-        // } else {
-        //     println!("-- Simulation continues at step {:?} --\nTotal trees in the forest: Green {:?}, Burning {:?}, Burned {:?}\n",
-        //         schedule.step, self.green, self.burning, self.burned
-        //     );
-        // }
+        if (self.before_burned == self.burned)
+            && self.before_burning == self.burning
+            && self.before_green == self.green
+        {
+            println!("-- Simulation finished at step {:?} --\nTotal trees in the forest: Green {:?}, Burning {:?}, Burned {:?}\n",
+                schedule.step, self.green, self.burning, self.burned
+            );
+            return true;
+        } else {
+            println!("-- Simulation continues at step {:?} --\nTotal trees in the forest: Green {:?}, Burning {:?}, Burned {:?}\n",
+                schedule.step, self.green, self.burning, self.burned
+            );
+        }
 
-        // self.before_burned = self.burned;
-        // self.before_green = self.green;
-        // self.before_burning = self.burning;
+        self.before_burned = self.burned;
+        self.before_green = self.green;
+        self.before_burning = self.burning;
 
-        // self.burned = 0;
-        // self.green = 0;
-        // self.burning = 0;
+        self.burned = 0;
+        self.green = 0;
+        self.burning = 0;
 
         false
     }

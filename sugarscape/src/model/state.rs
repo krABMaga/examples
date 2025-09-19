@@ -95,7 +95,7 @@ impl State for Environment {
     fn init(&mut self, schedule: &mut Schedule) {
         self.step = 0;
         let mut id = 0;
-        let mut rng = krabmaga::rand::thread_rng();
+        let mut rng = krabmaga::rand::rng();
 
         let bottom_left_mid = (
             (self.dim.0 as f32 * 0.25) as i32,
@@ -149,7 +149,7 @@ impl State for Environment {
                 }
 
                 let pos = Int2D { x: i, y: j };
-                let sugar_growback = rng.gen_range(0..4);
+                let sugar_growback = rng.random_range(0..4);
                 let patch = Patch::new(id, sugar_amount, sugar_growback);
                 id += 1;
                 self.field.set_value_location(patch, &pos);
@@ -158,14 +158,14 @@ impl State for Environment {
 
         //Initializes the Agents
         for i in 0..self.num_agents {
-            let xx = rng.gen_range(0..self.dim.0);
-            let yy = rng.gen_range(0..self.dim.1);
+            let xx = rng.random_range(0..self.dim.0);
+            let yy = rng.random_range(0..self.dim.1);
             let pos = Int2D { x: xx, y: yy };
             let agent = Eater {
                 id: i,
                 position: pos,
-                vision: rng.gen_range(1..4),
-                metabolism: rng.gen_range(1..4),
+                vision: rng.random_range(1..4),
+                metabolism: rng.random_range(1..4),
                 age: 0,
                 max_age: 20,
                 wealth: 20,
