@@ -46,16 +46,16 @@ impl State for Sea {
     fn init(&mut self, schedule: &mut Schedule) {
         self.step = 0;
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         for i in 0..self.num_agents {
-            let r1: f32 = rng.gen();
-            let r2: f32 = rng.gen();
-            let last_d = Real2D { x: 0., y: 0. };
+            let r1: f32 = rng.random();
+            let r2: f32 = rng.random();
             let loc = Real2D {
                 x: self.dim.0 * r1,
                 y: self.dim.1 * r2,
             };
+            let last_d = Real2D { x: 1.0, y: 1.0 };
             let agent = Crab {
                 id: i,
                 loc,

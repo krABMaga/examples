@@ -97,11 +97,11 @@ impl State for World {
         //println!("init system by state");
         self.step = 0;
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         for i in 0..self.num_agents {
-            let xx: i32 = rng.gen_range(0..self.dim.0);
-            let yy: i32 = rng.gen_range(0..self.dim.1);
+            let xx: i32 = rng.random_range(0..self.dim.0);
+            let yy: i32 = rng.random_range(0..self.dim.1);
 
             if i < ((self.num_agents as f32) * PERC).ceil() as u32 {
                 self.field.set_object_location(

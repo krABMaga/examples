@@ -10,24 +10,13 @@ cfg_if! {
         mod model;
 
         // No visualization specific imports
-        #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
+        #[cfg(any(feature = "distributed_mpi"))]
         use {
             krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State,
             krabmaga::simulate_mpi, krabmaga::Info, /* krabmaga::ProgressBar, */ krabmaga::*,
             std::time::Duration,
         };
 
-        //use krabmaga::*;
-
-        // Visualization specific imports
-        #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
-        use {
-            crate::visualization::vis_state::VisState, krabmaga::bevy::prelude::Color,
-            krabmaga::visualization::visualization::Visualization,
-        };
-
-        #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
-        mod visualization;
 
         pub static COHESION: f32 = 0.8;
         pub static AVOIDANCE: f32 = 1.0;
@@ -46,27 +35,13 @@ cfg_if! {
 
         #[cfg(any(feature = "distributed_mpi"))]
         fn main() {
-            let step = 200;
+            let step = 100;
 
-            let dim = (1131., 1131.);
-            let num_agents = 128000;
+            let dim = (100., 100.);
+            let num_agents = 1000;
 
             let state = Flocker::new(dim, num_agents);
             let _ = simulate_mpi!(state, step, 1, Info::Normal);
-        }
-
-        // Main used when a visualization feature is applied.
-        #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
-        fn main() {
-            let dim = (200., 200.);
-            let num_agents = 100;
-            let state = Flocker::new(dim, num_agents);
-            Visualization::default()
-                .with_window_dimensions(1000., 700.)
-                .with_simulation_dimensions(dim.0 as f32, dim.1 as f32)
-                .with_background_color(Color::rgb(0., 0., 0.))
-                .with_name("Flockers")
-                .start::<VisState, Flocker>(VisState, state);
         }
     }
     else {

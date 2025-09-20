@@ -22,15 +22,18 @@ impl Agent for Crab {
     /// Put the code that should happen for each step, for each agent here.
     fn step(&mut self, state: &mut dyn State) {
         let state = state.as_any().downcast_ref::<Sea>().unwrap();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
-        if rng.gen_bool(0.5) {
+        if rng.random_bool(0.5) {
             self.dir_x -= 1.0;
         }
-        if rng.gen_bool(0.5) {
+        if rng.random_bool(0.5) {
             self.dir_y -= 1.0;
         }
-
+        self.last_d = Real2D {
+            x: self.dir_x,
+            y: self.dir_y,
+        };
         let loc_x = toroidal_transform(self.loc.x + self.dir_x, state.field.width);
         let loc_y = toroidal_transform(self.loc.y + self.dir_y, state.field.height);
         self.loc = Real2D { x: loc_x, y: loc_y };

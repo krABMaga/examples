@@ -106,10 +106,10 @@ fn init_population() -> Vec<String> {
     // create n=INDIVIDUALS individuals
     for _ in 0..INDIVIDUALS {
         // create the individual
-        let x = rng.gen_range(0.0..=1.0_f32).to_string(); // spread chance
-        let y = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
-        let x2 = rng.gen_range(0.0..=1.0_f32).to_string(); // recovery chance
-        let day = rng.gen_range(0..=DAY).to_string(); // recovery chance
+        let x = rng.random_range(0.0..=1.0_f32).to_string(); // spread chance
+        let y = rng.random_range(0.0..=1.0_f32).to_string(); // recovery chance
+        let x2 = rng.random_range(0.0..=1.0_f32).to_string(); // recovery chance
+        let day = rng.random_range(0..=DAY).to_string(); // recovery chance
         population.push(format!("{};{};{};{}", x, y, x2, day));
     }
 
@@ -156,11 +156,11 @@ fn crossover(population: &mut Vec<String>) {
     for _ in 0..(children_num as usize) {
         // select two random individuals
 
-        let idx_one = RNG.lock().unwrap().gen_range(0..population.len());
+        let idx_one = RNG.lock().unwrap().random_range(0..population.len());
         let parent_one = population[idx_one].clone();
-        let mut idx_two = RNG.lock().unwrap().gen_range(0..population.len());
+        let mut idx_two = RNG.lock().unwrap().random_range(0..population.len());
         while idx_one == idx_two {
-            idx_two = RNG.lock().unwrap().gen_range(0..population.len());
+            idx_two = RNG.lock().unwrap().random_range(0..population.len());
         }
         let parent_two = population[idx_two].clone();
 
@@ -219,7 +219,7 @@ fn crossover(population: &mut Vec<String>) {
             p_min = 0.;
             p_max = 1.;
         }
-        let new_spread = RNG.lock().unwrap().gen_range(p_min..=p_max);
+        let new_spread = RNG.lock().unwrap().random_range(p_min..=p_max);
 
         // new_recovery
         if one_recovery <= two_recovery {
@@ -242,7 +242,7 @@ fn crossover(population: &mut Vec<String>) {
             p_min = 0.;
             p_max = 1.;
         }
-        let new_recovery = RNG.lock().unwrap().gen_range(p_min..=p_max);
+        let new_recovery = RNG.lock().unwrap().random_range(p_min..=p_max);
 
         // new_spread2
         if one_spread2 <= two_spread2 {
@@ -265,7 +265,7 @@ fn crossover(population: &mut Vec<String>) {
             p_min = 0.;
             p_max = 1.;
         }
-        let new_spread2 = RNG.lock().unwrap().gen_range(p_min..=p_max);
+        let new_spread2 = RNG.lock().unwrap().random_range(p_min..=p_max);
 
         // new_day
         let min_day;
@@ -290,7 +290,7 @@ fn crossover(population: &mut Vec<String>) {
             p_min = 0.;
             p_max = DAY as f32;
         }
-        let new_day = RNG.lock().unwrap().gen_range(p_min..=p_max).ceil();
+        let new_day = RNG.lock().unwrap().random_range(p_min..=p_max).ceil();
 
         let new_individual = format!(
             "{};{};{};{}",
@@ -313,7 +313,11 @@ fn mutation(individual: &mut String) {
 
     // mutate one random parameter
     // randomly increase or decrease spread orrecovery
-    if RNG.lock().unwrap().gen_bool(*MUTATION_RATE.lock().unwrap()) {
+    if RNG
+        .lock()
+        .unwrap()
+        .random_bool(*MUTATION_RATE.lock().unwrap())
+    {
         // mutate spread
         let mut new_spread = one_spread
             .parse::<f32>()
@@ -333,7 +337,7 @@ fn mutation(individual: &mut String) {
             min = 0.;
             max = 1.;
         }
-        new_spread = RNG.lock().unwrap().gen_range(min..=max);
+        new_spread = RNG.lock().unwrap().random_range(min..=max);
 
         let mut new_spread2 = one_spread2
             .parse::<f32>()
@@ -352,7 +356,7 @@ fn mutation(individual: &mut String) {
             min = 0.;
             max = 1.;
         }
-        new_spread2 = RNG.lock().unwrap().gen_range(min..=max);
+        new_spread2 = RNG.lock().unwrap().random_range(min..=max);
 
         let mut new_recovery = one_recovery
             .parse::<f32>()
@@ -371,7 +375,7 @@ fn mutation(individual: &mut String) {
             min = 0.;
             max = 1.;
         }
-        new_recovery = RNG.lock().unwrap().gen_range(min..=max);
+        new_recovery = RNG.lock().unwrap().random_range(min..=max);
 
         let mut new_day = one_day.parse::<u64>().expect("Unable to parse str to u64!");
         let alpha: u64 = 1;
@@ -391,7 +395,7 @@ fn mutation(individual: &mut String) {
             min = 0;
             max = DAY as u64;
         }
-        new_day = RNG.lock().unwrap().gen_range(min..=max);
+        new_day = RNG.lock().unwrap().random_range(min..=max);
 
         new_ind = format!(
             "{};{};{};{}",

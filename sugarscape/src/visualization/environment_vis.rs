@@ -47,13 +47,13 @@ impl VisualizationState<Environment> for EnvironmentVis {
         agent_render: &Box<dyn AgentRender>,
         state: &Box<&dyn State>,
     ) -> Option<Box<dyn Agent>> {
-        let mut rng = krabmaga::rand::thread_rng();
+        let mut rng = krabmaga::rand::rng();
         let state = state.as_any().downcast_ref::<Environment>().unwrap();
         match state.eaters.get(&Eater {
             id: agent_render.get_id(),
             position: Int2D {
-                x: rng.gen_range(0..20),
-                y: rng.gen_range(0..20),
+                x: rng.random_range(0..20),
+                y: rng.random_range(0..20),
             },
             vision: 4,
             metabolism: 50,

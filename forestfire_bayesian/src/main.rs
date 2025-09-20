@@ -43,7 +43,7 @@ fn init_population() -> Vec<Vec<f64>> {
     let mut rng = RNG.lock().unwrap();
 
     for _ in 0..INIT_ELEMENTS {
-        let density = rng.gen_range(0.01..=1.0_f64); // forest density
+        let density = rng.random_range(0.01..=1.0_f64); // forest density
         x_init.push(vec![density]);
     }
 
@@ -85,7 +85,7 @@ fn get_points(_x: &[Vec<f64>]) -> Vec<Vec<f64>> {
     let trial_x: Vec<Vec<f64>> = (0..BATCH_SIZE)
         .into_iter()
         .map(|_| {
-            let density = rng.gen_range(0.1..=1.0_f64); // density
+            let density = rng.random_range(0.1..=1.0_f64); // density
             vec![density]
         })
         .collect();

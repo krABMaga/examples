@@ -5,7 +5,8 @@ use krabmaga::engine::agent::Agent;
 use krabmaga::engine::location::Int2D;
 use krabmaga::engine::schedule::{Schedule, ScheduleOptions};
 use krabmaga::engine::state::State;
-use krabmaga::Rng;
+use krabmaga::rand;
+use krabmaga::rand::Rng;
 use std::hash::{Hash, Hasher};
 
 /// The most basic agent should implement Clone, Copy and Agent to be able to be inserted in a Schedule.
@@ -25,17 +26,17 @@ impl Agent for Eater {
     //If a free patch has been found, the agent moves inside it.
     //The agent then updates its state
     fn step(&mut self, state: &mut dyn State) {
-        let mut rng = krabmaga::rand::thread_rng();
+        let mut rng = rand::rng();
         let state = state.as_any_mut().downcast_mut::<Environment>().unwrap();
 
         if self.age == self.max_age || self.wealth <= 0 {
-            let rand_x = rng.gen_range(0..state.dim.0);
-            let rand_y = rng.gen_range(0..state.dim.1);
+            let rand_x = rng.random_range(0..state.dim.0);
+            let rand_y = rng.random_range(0..state.dim.1);
             let new_pos = Int2D {
                 x: rand_x,
                 y: rand_y,
             };
-            let new_wealth = rng.gen_range(20..50);
+            let new_wealth = rng.random_range(20..50);
 
             self.position = new_pos;
             self.wealth = new_wealth;
@@ -102,7 +103,7 @@ impl Agent for Eater {
         //Updates the agent state and position into the field
         let len = near_patches.len();
         if len > 0 {
-            let rand = rng.gen_range(0..len);
+            let rand = rng.random_range(0..len);
             let nearest_patch = near_patches[rand].0;
             let nearest_pos = near_patches[rand].1;
             // let p = state.field.get_value(&nearest_pos).unwrap();

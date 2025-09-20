@@ -100,12 +100,12 @@ impl State for Forest {
     fn init(&mut self, schedule: &mut Schedule) {
         self.step = 0;
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut ids = 0;
         // generate the trees to populate the forest
         for i in 0..self.dim.0 {
             for j in 0..self.dim.1 {
-                if rng.gen_bool(self.density) {
+                if rng.random_bool(self.density) {
                     let mut status_tree = Status::Green;
                     if i == 0 {
                         // Set the trees at the left edge on fire

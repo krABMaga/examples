@@ -1,8 +1,8 @@
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State, krabmaga::Info,
-    krabmaga::*, std::time::Duration,
+    krabmaga::simulate,
+    //     krabmaga::engine::state::State, krabmaga::*, std::time::Duration, krabmaga::engine::schedule::Schedule, krabmaga::Info,
 };
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
@@ -35,7 +35,8 @@ fn main() {
     let dim = (800., 800.);
     let num_agents = 64000;
     let state = Flocker::new(dim, num_agents);
-    let _ = simulate_old!(state, step, 1, Info::Normal);
+    // let _ = simulate!(state, step, 1, Info::Normal);
+    let _ = simulate!(state, step, 1);
 }
 
 // Main used when a visualization feature is applied.
