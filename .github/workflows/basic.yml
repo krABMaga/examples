@@ -25,6 +25,8 @@ jobs:
         with:
           mpi: openmpi
       - uses: dtolnay/rust-toolchain@stable
+      - name: Install system dependencies
+        uses: ./.github/workflows/install-deps
       - run: cargo check --release --features distributed_mpi
 
   checkvis:
@@ -68,6 +70,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
+      - name: Install system dependencies
+        uses: ./.github/workflows/install-deps
       - run: cargo clippy --features bayesian
 
   clippympi:

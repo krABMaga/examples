@@ -17,18 +17,7 @@ cfg_if! {
             std::time::Duration,
         };
 
-        //use krabmaga::*;
-
-        // Visualization specific imports
-        #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
-        use {
-            crate::visualization::vis_state::VisState, krabmaga::bevy::prelude::Color,
-            krabmaga::visualization::visualization::Visualization,
-        };
-
-        #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
-        mod visualization;
-
+       
         pub static COHESION: f32 = 0.8;
         pub static AVOIDANCE: f32 = 1.0;
         pub static RANDOMNESS: f32 = 1.1;
@@ -53,20 +42,6 @@ cfg_if! {
 
             let state = Flocker::new(dim, num_agents);
             let _ = simulate_mpi!(state, step, 1, Info::Normal);
-        }
-
-        // Main used when a visualization feature is applied.
-        #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
-        fn main() {
-            let dim = (200., 200.);
-            let num_agents = 100;
-            let state = Flocker::new(dim, num_agents);
-            Visualization::default()
-                .with_window_dimensions(1000., 700.)
-                .with_simulation_dimensions(dim.0 as f32, dim.1 as f32)
-                .with_background_color(Color::rgb(0., 0., 0.))
-                .with_name("Flockers")
-                .start::<VisState, Flocker>(VisState, state);
         }
     }
     else {
