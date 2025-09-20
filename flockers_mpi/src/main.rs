@@ -10,14 +10,14 @@ cfg_if! {
         mod model;
 
         // No visualization specific imports
-        #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
+        #[cfg(any(feature = "distributed_mpi"))]
         use {
             krabmaga::engine::schedule::Schedule, krabmaga::engine::state::State,
             krabmaga::simulate_mpi, krabmaga::Info, /* krabmaga::ProgressBar, */ krabmaga::*,
             std::time::Duration,
         };
 
-       
+
         pub static COHESION: f32 = 0.8;
         pub static AVOIDANCE: f32 = 1.0;
         pub static RANDOMNESS: f32 = 1.1;
@@ -35,10 +35,10 @@ cfg_if! {
 
         #[cfg(any(feature = "distributed_mpi"))]
         fn main() {
-            let step = 200;
+            let step = 100;
 
-            let dim = (1131., 1131.);
-            let num_agents = 128000;
+            let dim = (100., 100.);
+            let num_agents = 1000;
 
             let state = Flocker::new(dim, num_agents);
             let _ = simulate_mpi!(state, step, 1, Info::Normal);

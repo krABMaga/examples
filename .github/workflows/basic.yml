@@ -63,7 +63,7 @@ jobs:
       - run: cargo clippy
 
   clippyvis:
-    name: Clippy visualization
+    name: Clippy visualization bayesian
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -72,10 +72,10 @@ jobs:
           components: clippy
       - name: Install system dependencies
         uses: ./.github/workflows/install-deps
-      - run: cargo clippy --features bayesian
+      - run: cargo clippy --features "visualization, bayesian"
 
   clippympi:
-    name: Clippy visualization and mpi
+    name: Clippy mpi
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -87,4 +87,4 @@ jobs:
           mpi: openmpi
       - name: Install system dependencies
         uses: ./.github/workflows/install-deps
-      - run: cargo clippy --features "visualization, bayesian, distributed_mpi"
+      - run: cargo clippy --features distributed_mpi
