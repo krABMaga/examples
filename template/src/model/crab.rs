@@ -37,7 +37,7 @@ impl Agent for Crab {
         let loc_x = toroidal_transform(self.loc.x + self.dir_x, state.field.width);
         let loc_y = toroidal_transform(self.loc.y + self.dir_y, state.field.height);
         self.loc = Real2D { x: loc_x, y: loc_y };
-        
+
         state
             .field
             .set_object_location(*self, Real2D { x: loc_x, y: loc_y });

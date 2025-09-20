@@ -18,8 +18,7 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-krabmaga = {path = "/Users/ddevin/Documents/krABMaga"}
-
+krabmaga = "0.5.*"
 
 [features]
 distributed_mpi = ["krabmaga/distributed_mpi"]
