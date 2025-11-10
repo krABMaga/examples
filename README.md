@@ -10,6 +10,7 @@ This repository hosts working examples of agent-based simulations, based on the 
 | [Flockers](flockers)                        | :heavy_check_mark: | <img src="flockers/flock.gif" alt="drawing" width="200" height="200"/>         |
 | [ForestFire](forestfire)                    | :heavy_check_mark: | <img src="forestfire/ff.gif" alt="drawing" width="200" height="200"/>   |
 | [ForestFire_bayesian](forestfire_bayesian)  | :heavy_check_mark: | 
+| [Robotic Factory](factory)                  | :heavy_check_mark: |        |
 | [Schelling](schelling)                      | :heavy_check_mark: | <img src="schelling/schelling.gif" alt="drawing" width="200" height="200"/>    |
 | [Sir_bayesian](sir_bayesian)                  | :heavy_check_mark: |
 | [Sir_ga_exploration](sir_ga_exploration)               | :heavy_check_mark: |
