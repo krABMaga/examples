@@ -1,9 +1,13 @@
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
-    krabmaga::simulate,
+    krabmaga::engine::schedule::Schedule,
     // krabmaga::*,
-    krabmaga::engine::state::State, krabmaga::*, std::time::Duration, krabmaga::engine::schedule::Schedule, krabmaga::Info,
+    krabmaga::engine::state::State,
+    krabmaga::simulate,
+    krabmaga::Info,
+    krabmaga::*,
+    std::time::Duration,
 };
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
