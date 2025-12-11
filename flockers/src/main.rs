@@ -2,7 +2,8 @@
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 use {
     krabmaga::simulate,
-    //     krabmaga::engine::state::State, krabmaga::*, std::time::Duration, krabmaga::engine::schedule::Schedule, krabmaga::Info,
+    // krabmaga::*,
+    krabmaga::engine::state::State, krabmaga::*, std::time::Duration, krabmaga::engine::schedule::Schedule, krabmaga::Info,
 };
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
@@ -30,13 +31,16 @@ pub static TOROIDAL: bool = true;
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
+    use krabmaga::simulate_old;
+
     let step = 200;
 
-    let dim = (800., 800.);
-    let num_agents = 64000;
+    let dim = (100., 100.);
+    let num_agents = 1000;
     let state = Flocker::new(dim, num_agents);
     // let _ = simulate!(state, step, 1, Info::Normal);
-    let _ = simulate!(state, step, 1);
+    // let _ = simulate!(state, step, 1);
+    let _ = simulate_old!(state, step, 1, krabmaga::Info::Normal);
 }
 
 // Main used when a visualization feature is applied.
