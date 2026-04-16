@@ -48,7 +48,7 @@ pub mod visualization;
 fn main() {
     let state = ModelState::new();
     let mut app = Visualization::default()
-        .with_background_color(Color::rgb(255., 255., 255.))
+        .with_background_color(Color::srgb(1., 1., 1.))
         .with_simulation_dimensions(WIDTH as f32, HEIGHT as f32)
         .with_window_dimensions(1280., 720.)
         .with_name("Ants foraging")
@@ -57,7 +57,7 @@ fn main() {
         FixedUpdate,
         (ToHomeGrid::batch_render, ToFoodGrid::batch_render),
     );
-    app.run()
+    app.run();
 }
 
 // #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]

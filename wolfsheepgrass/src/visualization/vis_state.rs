@@ -4,8 +4,8 @@ use crate::model::wolf::Wolf;
 use crate::visualization::sheep_vis::SheepVis;
 use crate::visualization::wolf_vis::WolfVis;
 use krabmaga::bevy::ecs as bevy_ecs;
-use krabmaga::bevy::ecs::system::Resource;
 use krabmaga::bevy::prelude::Commands;
+use krabmaga::bevy::prelude::Resource;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::location::Int2D;
 use krabmaga::engine::schedule::Schedule;
@@ -46,7 +46,7 @@ impl VisualizationState<WsgState> for VisState {
 
     fn get_agent(
         &self,
-        agent_render: &Box<dyn AgentRender>,
+        agent_render: &dyn AgentRender,
         state: &Box<&dyn State>,
     ) -> Option<Box<dyn Agent>> {
         let state = state.as_any().downcast_ref::<WsgState>().unwrap();

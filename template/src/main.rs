@@ -44,7 +44,7 @@ fn main() {
     Visualization::default()
         .with_window_dimensions(800., 800.)
         .with_simulation_dimensions(dim.0, dim.1)
-        .with_background_color(Color::BLUE)
+        .with_background_color(Color::srgb(0., 0., 1.))
         .with_name("Template")
         .start::<SeaVis, Sea>(SeaVis, state);
 }

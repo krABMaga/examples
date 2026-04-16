@@ -1,5 +1,7 @@
 use crate::model::updater::Updater;
 use core::fmt;
+use krabmaga::bevy::ecs as bevy_ecs;
+use krabmaga::bevy::prelude::Component;
 use krabmaga::engine::fields::field::Field;
 use krabmaga::engine::fields::sparse_object_grid_2d::SparseGrid2D;
 use krabmaga::engine::location::Int2D;
@@ -28,7 +30,7 @@ impl fmt::Display for Status {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Component)]
 pub struct Patch {
     pub id: u32,
     pub value: Status,

@@ -2,15 +2,15 @@
 resolver = "2"
 
 members = [
-    # "antsforaging",
+    "antsforaging",
     "flockers",
-    # "flockers_mpi",
-    # "forestfire",
-    # "forestfire_bayesian",
-    # "schelling",
-    # "sir_ga_exploration",
-    # "sugarscape",
-    # "template",
+    "flockers_mpi",
+    "forestfire",
+    "forestfire_bayesian",
+    "schelling",
+    "sir_ga_exploration",
+    "sugarscape",
+    "template",
     "virusnetwork",
-    # "wolfsheepgrass",
+    "wolfsheepgrass",
 ]

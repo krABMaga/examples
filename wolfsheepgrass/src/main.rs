@@ -49,10 +49,10 @@ fn main() {
 
     let state = WsgState::new(dim, initial_animals);
     let mut app = Visualization::default()
-        .with_background_color(Color::rgb(255., 255., 255.))
+        .with_background_color(Color::srgb(1., 1., 1.))
         .with_simulation_dimensions(dim.0 as f32, dim.1 as f32)
         .with_window_dimensions(1000., 700.)
         .setup::<VisState, WsgState>(VisState, state);
     app.add_systems(FixedUpdate, DenseNumberGrid2D::batch_render);
-    app.run()
+    app.run();
 }
