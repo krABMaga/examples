@@ -1,15 +1,11 @@
 // No visualization specific imports
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-use {
-    krabmaga::simulate,
-    krabmaga::*,
-};
+use {krabmaga::simulate, krabmaga::*};
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    krabmaga::engine::state::State,
     crate::visualization::vis_state::VisState, krabmaga::bevy::prelude::Color,
-    krabmaga::visualization::visualization::Visualization,
+    krabmaga::engine::state::State, krabmaga::visualization::visualization::Visualization,
 };
 
 use crate::model::state::Flocker;
@@ -31,8 +27,6 @@ pub static TOROIDAL: bool = true;
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    
-
     let step = 1000;
 
     let dim = (1000., 1000.);
