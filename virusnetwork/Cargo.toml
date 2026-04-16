@@ -1,6 +1,6 @@
 [package]
 name = "virusnetwork"
-version = "0.3.0"
+version = "0.6.0"
 authors = [
     "Carmine Spagnuolo <spagnuolocarmine@gmail.com>", 
     "Alessia Antelmi <aantelmi@unisa.it>", 
