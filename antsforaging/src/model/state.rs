@@ -7,8 +7,12 @@ use crate::{
 };
 use core::fmt;
 use core::hash::{Hash, Hasher};
+
+#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use krabmaga::bevy::ecs as bevy_ecs;
+#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use krabmaga::bevy::prelude::Component;
+
 use krabmaga::engine::fields::field::Field;
 use krabmaga::engine::fields::sparse_object_grid_2d::SparseGrid2D;
 use krabmaga::engine::location::Int2D;
@@ -36,7 +40,11 @@ impl fmt::Display for ItemType {
     }
 }
 
-#[derive(Copy, Clone, Component)]
+#[derive(Copy, Clone)]
+#[cfg_attr(
+    any(feature = "visualization", feature = "visualization_wasm"),
+    derive(Component)
+)]
 pub struct Item {
     pub id: u32,
     pub value: ItemType,

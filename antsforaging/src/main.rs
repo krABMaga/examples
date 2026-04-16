@@ -8,10 +8,9 @@ use {
     crate::visualization::vis_state::VisState, krabmaga::bevy::app::FixedUpdate,
     krabmaga::bevy::prelude::Color, krabmaga::visualization::fields::number_grid_2d::BatchRender,
     krabmaga::visualization::visualization::Visualization,
+    crate::model::state::ModelState
 };
 
-// Global imports, required in all cases
-use crate::model::state::ModelState;
 
 pub mod model;
 
@@ -60,13 +59,7 @@ fn main() {
     app.run();
 }
 
-// #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-// use {krabmaga::rand, krabmaga::rand::Rng};
-
-// Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    let state = ModelState::new();
-
-    let _ = simulate!(state, STEP, 10);
+    println!("Visualization features are not enabled. Please enable one of the visualization features to see the simulation in action.");
 }
