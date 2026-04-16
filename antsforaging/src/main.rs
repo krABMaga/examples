@@ -4,13 +4,12 @@ use krabmaga::simulate;
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    crate::model::to_food_grid::ToFoodGrid, crate::model::to_home_grid::ToHomeGrid,
-    crate::visualization::vis_state::VisState, krabmaga::bevy::app::FixedUpdate,
-    krabmaga::bevy::prelude::Color, krabmaga::visualization::fields::number_grid_2d::BatchRender,
+    crate::model::state::ModelState, crate::model::to_food_grid::ToFoodGrid,
+    crate::model::to_home_grid::ToHomeGrid, crate::visualization::vis_state::VisState,
+    krabmaga::bevy::app::FixedUpdate, krabmaga::bevy::prelude::Color,
+    krabmaga::visualization::fields::number_grid_2d::BatchRender,
     krabmaga::visualization::visualization::Visualization,
-    crate::model::state::ModelState
 };
-
 
 pub mod model;
 
