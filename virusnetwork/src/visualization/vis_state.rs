@@ -1,8 +1,7 @@
 use crate::model::{node::*, state::EpidemicNetworkState};
 use crate::visualization::node::NetNodeVis;
 use krabmaga::bevy::ecs as bevy_ecs;
-use krabmaga::bevy::ecs::system::Resource;
-use krabmaga::bevy::prelude::Commands;
+use krabmaga::bevy::prelude::{Commands, Resource};
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::schedule::*;
 use krabmaga::engine::state::State;
@@ -39,7 +38,7 @@ impl VisualizationState<EpidemicNetworkState> for VisState {
 
     fn get_agent(
         &self,
-        agent_render: &Box<dyn AgentRender>,
+        agent_render: &dyn AgentRender,
         state: &Box<&dyn State>,
     ) -> Option<Box<dyn Agent>> {
         let state = state

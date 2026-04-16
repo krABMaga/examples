@@ -56,7 +56,7 @@ fn main() {
     Visualization::default()
         .with_window_dimensions(1000., 700.)
         .with_simulation_dimensions(dim.0, dim.1)
-        .with_background_color(Color::rgb(0., 0., 0.))
+        .with_background_color(Color::srgb(0., 0., 0.))
         .with_name("Flockers")
         .start::<VisState, Flocker>(VisState, state);
 }
