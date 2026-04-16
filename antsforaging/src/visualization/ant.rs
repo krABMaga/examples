@@ -1,7 +1,6 @@
 use crate::model::ant::Ant;
 use crate::model::state::ModelState;
-use krabmaga::bevy::ecs::component::TableStorage;
-use krabmaga::bevy::prelude::{Component, Quat, Transform, Visibility};
+use krabmaga::bevy::prelude::{Quat, Transform, Visibility};
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::location::Int2D;
 use krabmaga::engine::state::State;
@@ -10,9 +9,7 @@ use krabmaga::visualization::agent_render::{AgentRender, SpriteType};
 pub struct AntVis {
     pub id: u32,
 }
-impl Component for AntVis {
-    type Storage = TableStorage;
-}
+
 impl AgentRender for AntVis {
     fn sprite(&self, _agent: &Box<dyn Agent>, _state: &Box<&dyn State>) -> SpriteType {
         SpriteType::Emoji(String::from("ant"))

@@ -47,7 +47,7 @@ fn main() {
     let mut app = Visualization::default()
         .with_window_dimensions(1000., 700.)
         .with_simulation_dimensions(dim.0, dim.1)
-        .with_background_color(Color::rgb(255., 255., 255.))
+        .with_background_color(Color::srgb(1., 1., 1.))
         .setup::<VisState, EpidemicNetworkState>(VisState, epidemic_network);
     app.add_systems(FixedUpdate, EpidemicNetworkState::render);
     app.run();

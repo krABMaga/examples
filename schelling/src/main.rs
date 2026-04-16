@@ -49,7 +49,7 @@ fn main() {
     let mut app = Visualization::default()
         .with_simulation_dimensions(dim.0 as f32, dim.1 as f32)
         .with_window_dimensions(1000., 720.)
-        .with_background_color(Color::WHITE)
+        .with_background_color(Color::srgb(1., 1., 1.))
         .with_name("Schelling Model")
         .setup::<WorldVis, World>(WorldVis, world);
     app.add_systems(FixedUpdate, SparseGrid2D::<Patch>::render);

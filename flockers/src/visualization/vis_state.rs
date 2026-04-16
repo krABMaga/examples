@@ -1,4 +1,4 @@
-use krabmaga::bevy::prelude::Commands;
+use krabmaga::bevy::prelude::{Commands, Resource};
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::location::Real2D;
 use krabmaga::engine::schedule::Schedule;
@@ -12,7 +12,6 @@ use crate::model::bird::Bird;
 use crate::model::state::Flocker;
 use crate::visualization::bird_vis::BirdVis;
 use krabmaga::bevy::ecs as bevy_ecs;
-use krabmaga::bevy::ecs::system::Resource;
 
 #[derive(Clone, Resource)]
 pub struct VisState;
@@ -43,7 +42,7 @@ impl VisualizationState<Flocker> for VisState {
 
     fn get_agent(
         &self,
-        agent_render: &Box<dyn AgentRender>,
+        agent_render: &dyn AgentRender,
         state: &Box<&dyn State>,
     ) -> Option<Box<dyn Agent>> {
         // TODO we don't just need the agent associated to the agent render, we need the correct one so that we

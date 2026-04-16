@@ -1,5 +1,9 @@
 use crate::model::spread::Spread;
 use core::fmt;
+#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
+use krabmaga::bevy::ecs as bevy_ecs;
+#[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
+use krabmaga::bevy::prelude::Component;
 use krabmaga::engine::fields::dense_object_grid_2d::DenseGrid2D;
 use krabmaga::engine::fields::field::Field;
 use krabmaga::engine::location::Int2D;
@@ -29,6 +33,10 @@ impl fmt::Display for Status {
 }
 
 #[derive(Copy, Clone)]
+#[cfg_attr(
+    any(feature = "visualization", feature = "visualization_wasm"),
+    derive(Component)
+)]
 pub struct Tree {
     pub id: i32,
     pub status: Status,

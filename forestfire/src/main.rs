@@ -45,7 +45,7 @@ fn main() {
     let mut app = Visualization::default()
         .with_simulation_dimensions(state.dim.0 as f32, state.dim.1 as f32)
         .with_window_dimensions(1000., 720.)
-        .with_background_color(Color::BLACK)
+        .with_background_color(Color::srgb(0., 0., 0.))
         .with_name("Forest Fire Model")
         .setup::<ForestVis, Forest>(ForestVis, state);
     app.add_systems(FixedUpdate, DenseGrid2D::<Tree>::render);

@@ -4,14 +4,12 @@ use krabmaga::simulate;
 // Visualization specific imports
 #[cfg(any(feature = "visualization", feature = "visualization_wasm"))]
 use {
-    crate::model::to_food_grid::ToFoodGrid, crate::model::to_home_grid::ToHomeGrid,
-    crate::visualization::vis_state::VisState, krabmaga::bevy::app::FixedUpdate,
-    krabmaga::bevy::prelude::Color, krabmaga::visualization::fields::number_grid_2d::BatchRender,
+    crate::model::state::ModelState, crate::model::to_food_grid::ToFoodGrid,
+    crate::model::to_home_grid::ToHomeGrid, crate::visualization::vis_state::VisState,
+    krabmaga::bevy::app::FixedUpdate, krabmaga::bevy::prelude::Color,
+    krabmaga::visualization::fields::number_grid_2d::BatchRender,
     krabmaga::visualization::visualization::Visualization,
 };
-
-// Global imports, required in all cases
-use crate::model::state::ModelState;
 
 pub mod model;
 
@@ -48,7 +46,7 @@ pub mod visualization;
 fn main() {
     let state = ModelState::new();
     let mut app = Visualization::default()
-        .with_background_color(Color::rgb(255., 255., 255.))
+        .with_background_color(Color::srgb(1., 1., 1.))
         .with_simulation_dimensions(WIDTH as f32, HEIGHT as f32)
         .with_window_dimensions(1280., 720.)
         .with_name("Ants foraging")
@@ -57,16 +55,10 @@ fn main() {
         FixedUpdate,
         (ToHomeGrid::batch_render, ToFoodGrid::batch_render),
     );
-    app.run()
+    app.run();
 }
 
-// #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
-// use {krabmaga::rand, krabmaga::rand::Rng};
-
-// Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {
-    let state = ModelState::new();
-
-    let _ = simulate!(state, STEP, 10);
+    println!("Visualization features are not enabled. Please enable one of the visualization features to see the simulation in action.");
 }

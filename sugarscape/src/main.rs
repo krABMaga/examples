@@ -38,9 +38,9 @@ fn main() {
     let mut app = Visualization::default()
         .with_window_dimensions(1000.0, 600.0)
         .with_simulation_dimensions(dim.0 as f32, dim.1 as f32)
-        .with_background_color(Color::WHITE)
+        .with_background_color(Color::srgb(1., 1., 1.))
         .with_name("Sugarscape")
         .setup::<EnvironmentVis, Environment>(EnvironmentVis, state);
     app.add_systems(FixedUpdate, DenseNumberGrid2D::batch_render);
-    app.run()
+    app.run();
 }

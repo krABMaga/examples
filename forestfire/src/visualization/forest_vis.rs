@@ -1,8 +1,8 @@
 use crate::model::forest::Forest;
 use crate::Tree;
 use krabmaga::bevy::ecs as bevy_ecs;
-use krabmaga::bevy::ecs::system::Resource;
 use krabmaga::bevy::prelude::Commands;
+use krabmaga::bevy::prelude::Resource;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::fields::dense_object_grid_2d::DenseGrid2D;
 use krabmaga::engine::fields::field::Field;
@@ -49,7 +49,7 @@ impl VisualizationState<Forest> for ForestVis {
 
     fn get_agent(
         &self,
-        _agent_render: &Box<dyn AgentRender>,
+        _agent_render: &dyn AgentRender,
         _state: &Box<&dyn State>,
     ) -> Option<Box<dyn Agent>> {
         None

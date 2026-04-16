@@ -2,8 +2,8 @@ use crate::model::eater::Eater;
 use crate::model::state::Environment;
 use crate::visualization::eater_vis::EaterVis;
 use krabmaga::bevy::ecs as bevy_ecs;
-use krabmaga::bevy::ecs::system::Resource;
 use krabmaga::bevy::prelude::Commands;
+use krabmaga::bevy::prelude::Resource;
 use krabmaga::engine::agent::Agent;
 use krabmaga::engine::location::Int2D;
 use krabmaga::engine::schedule::Schedule;
@@ -44,7 +44,7 @@ impl VisualizationState<Environment> for EnvironmentVis {
 
     fn get_agent(
         &self,
-        agent_render: &Box<dyn AgentRender>,
+        agent_render: &dyn AgentRender,
         state: &Box<&dyn State>,
     ) -> Option<Box<dyn Agent>> {
         let mut rng = krabmaga::rand::rng();

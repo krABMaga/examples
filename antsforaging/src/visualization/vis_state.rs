@@ -15,7 +15,7 @@ use crate::model::ant::Ant;
 use crate::model::state::*;
 use crate::visualization::ant::AntVis;
 use krabmaga::bevy::ecs as bevy_ecs;
-use krabmaga::bevy::ecs::system::Resource;
+use krabmaga::bevy::prelude::Resource;
 
 #[derive(Clone, Resource)]
 pub struct VisState;
@@ -48,7 +48,7 @@ impl VisualizationState<ModelState> for VisState {
 
     fn get_agent(
         &self,
-        agent_render: &Box<dyn AgentRender>,
+        agent_render: &dyn AgentRender,
         state: &Box<&dyn StateTrait>,
     ) -> Option<Box<dyn Agent>> {
         let state = state.as_any().downcast_ref::<ModelState>().unwrap();
