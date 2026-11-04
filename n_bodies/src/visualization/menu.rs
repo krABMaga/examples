@@ -55,8 +55,12 @@ pub fn menu_system(
                     });
                 ui.add(egui::Slider::new(&mut p.number, 2..=300).text("Number of bodies"));
                 ui.add(egui::Slider::new(&mut p.star_mass, 10.0..=5000.0).text("Central mass"));
-                ui.add(egui::Slider::new(&mut p.max_planet_mass, 1.0..=100.0).text("Max planet mass"));
-                ui.add(egui::Slider::new(&mut p.init_speed, 0.0..=60.0).text("Initial speed (random)"));
+                ui.add(
+                    egui::Slider::new(&mut p.max_planet_mass, 1.0..=100.0).text("Max planet mass"),
+                );
+                ui.add(
+                    egui::Slider::new(&mut p.init_speed, 0.0..=60.0).text("Initial speed (random)"),
+                );
                 ui.add(egui::Slider::new(&mut p.tracked, 0..=50).text("Bodies with trail"));
 
                 if ui.button("⟲  Setup").clicked() {
@@ -66,7 +70,9 @@ pub fn menu_system(
 
                 ui.separator();
                 ui.strong("Live parameters");
-                ui.add(egui::Slider::new(&mut p.g, -300.0..=500.0).text("G (negative = repulsive)"));
+                ui.add(
+                    egui::Slider::new(&mut p.g, -300.0..=500.0).text("G (negative = repulsive)"),
+                );
                 ui.add(
                     egui::Slider::new(&mut p.dt, 0.005..=0.2)
                         .logarithmic(true)

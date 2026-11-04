@@ -4,8 +4,7 @@ use krabmaga::engine::state::State;
 
 use crate::model::state::NBodyState;
 
-
-//Physical Data of one body -> it lives in the state so that it can be modified and read by the menu and visualization 
+//Physical Data of one body -> it lives in the state so that it can be modified and read by the menu and visualization
 #[derive(Clone, Copy)]
 pub struct BodyData {
     pub mass: f32,

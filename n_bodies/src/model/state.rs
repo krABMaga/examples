@@ -10,14 +10,14 @@ use krabmaga::Rng;
 
 use crate::model::body::{Body, BodyData};
 
-// to generate the angle and get the most irrational number 
+// to generate the angle and get the most irrational number
 const GOLDEN_ANGLE: f32 = 2.399_963;
 
 const STAR_RADIUS: f32 = 8.0;
 /// A trail point is recorded every TRAIL_EVERY steps.
 const TRAIL_EVERY: u64 = 2;
 
-/// Initial configurations 
+/// Initial configurations
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum SetupMode {
     SolarSystem,
@@ -183,7 +183,11 @@ impl NBodyState {
 
             SetupMode::Random | SetupMode::Symmetrical => {
                 let sym = p.mode == SetupMode::Symmetrical;
-                let n_gen = if sym { (p.number / 2).max(1) } else { p.number.max(2) };
+                let n_gen = if sym {
+                    (p.number / 2).max(1)
+                } else {
+                    p.number.max(2)
+                };
 
                 for _ in 0..n_gen {
                     let r = r_max * rng.random_range(0.0f32..1.0).sqrt();
@@ -236,7 +240,11 @@ impl NBodyState {
             }
         }
 
-        let first = if bodies.first().map_or(false, |b| b.is_star) { 1 } else { 0 };
+        let first = if bodies.first().map_or(false, |b| b.is_star) {
+            1
+        } else {
+            0
+        };
         let tracked = p.tracked.min(bodies.len().saturating_sub(first));
 
         self.trails = vec![VecDeque::new(); tracked];
@@ -277,7 +285,6 @@ impl NBodyState {
 }
 
 impl State for NBodyState {
-    
     // It Registers an agent Body {id} for each body
     fn init(&mut self, schedule: &mut Schedule) {
         for id in 0..self.bodies.len() {

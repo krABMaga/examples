@@ -16,7 +16,6 @@ fn main() {
 
     let mut state = NBodyState::new(DIM); // starts from Params::default()
 
-
     // Change whatever you want here, like the menu does in the window...
     state.p.mode = SetupMode::Random;
     state.p.number = 100;

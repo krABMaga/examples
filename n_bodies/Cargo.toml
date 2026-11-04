@@ -1,6 +1,6 @@
 [package]
 name = "n_bodies"
-version = "0.6.0"
+version = "0.1.0"
 authors = [
     "Jean Claude Coppola <jeanclaudecoppola83@gmail.com>"
 ]
